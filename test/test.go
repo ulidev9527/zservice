@@ -1,20 +1,34 @@
 package main
 
-import "zservice/zservice"
+import (
+	"zservice/zservice"
+)
 
-var DBService = zservice.NewService("DBService", func(s *zservice.ZService) {
-}, func(s *zservice.ZService) {
-	close(s.ChanLock)
+var DBService = zservice.NewService(&zservice.ZServiceConfig{
+	Name: "DBService",
+	OnBeforeStart: func(s *zservice.ZService) {
+		zservice.LogDebug("DBService")
+	},
+	OnStart: func(s *zservice.ZService) {
+		s.StartDone()
+	},
 })
 
 func main() {
 
-	launcher := zservice.NewService("test", nil, nil)
+	service := zservice.NewService(&zservice.ZServiceConfig{Name: "TestService"})
+	restService := zservice.NewRestService(&zservice.ZServiceRESTConfig{
+		Name: "RestService",
+		Addr: "127.0.0.1:8080",
+		OnBeforeStart: func(rs *zservice.RestService) {
+			DBService.WaitingDone()
+		},
+	})
 
-	launcher.AddService(DBService)
+	service.AddService(DBService)
+	service.AddService(restService.ZService)
 
-	launcher.Start()
-
-	<-launcher.ChanLock
+	service.Start()
+	service.WaitingDone()
 
 }

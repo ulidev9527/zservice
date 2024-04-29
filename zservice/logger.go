@@ -40,8 +40,7 @@ func init() {
 func LogInfo(v ...any)                 { LogInfoCaller(2, v...) }
 func LogInfof(format string, v ...any) { LogInfoCaller(2, fmt.Sprintf(format, v...)) }
 
-// func LogInfoCaller(caller int, v ...any) { logger.Info().Caller(caller).Msg(Sprint(v...)) }
-func LogInfoCaller(caller int, v ...any) { logger.Info().Msg(Sprint(v...)) }
+func LogInfoCaller(caller int, v ...any) { logger.Info().Caller(caller).Msg(Sprint(v...)) }
 func LogInfoCallerf(caller int, format string, v ...any) {
 	LogInfoCaller(caller+1, fmt.Sprintf(format, v...))
 }
@@ -49,7 +48,7 @@ func LogInfoCallerf(caller int, format string, v ...any) {
 // Debugf
 func LogDebug(v ...any)                   { LogDebugCaller(2, v...) }
 func LogDebugf(format string, v ...any)   { LogDebugCallerf(2, format, v...) }
-func LogDebugCaller(caller int, v ...any) { logger.Debug().Caller(caller).Msg(Sprint(v...)) }
+func LogDebugCaller(caller int, v ...any) { logger.Debug().Caller(caller).Msg(SprintQuote(v...)) }
 func LogDebugCallerf(caller int, format string, v ...any) {
 	LogDebugCaller(caller+1, fmt.Sprintf(format, v...))
 }
@@ -57,7 +56,7 @@ func LogDebugCallerf(caller int, format string, v ...any) {
 // 警告
 func LogWarn(v ...any)                   { LogWarnCaller(2, v...) }
 func LogWarnf(format string, v ...any)   { LogWarnCallerf(2, format, v...) }
-func LogWarnCaller(caller int, v ...any) { logger.Warn().Caller(caller).Msg(Sprint(v...)) }
+func LogWarnCaller(caller int, v ...any) { logger.Warn().Caller(caller).Msg(SprintQuote(v...)) }
 func LogWarnCallerf(caller int, format string, v ...any) {
 	LogWarnCaller(caller+1, fmt.Sprintf(format, v...))
 }
@@ -65,7 +64,7 @@ func LogWarnCallerf(caller int, format string, v ...any) {
 // 错误
 func LogError(v ...any)                   { LogErrorCaller(2, v...) }
 func LogErrorf(format string, v ...any)   { LogErrorCallerf(2, format, v...) }
-func LogErrorCaller(caller int, v ...any) { logger.Error().Caller(caller).Msg(Sprint(v...)) }
+func LogErrorCaller(caller int, v ...any) { logger.Error().Caller(caller).Msg(SprintQuote(v...)) }
 func LogErrorCallerf(caller int, format string, v ...any) {
 	LogErrorCaller(caller+1, fmt.Sprintf(format, v...))
 }
@@ -77,7 +76,7 @@ func LogErrore(e error) { LogErrorCaller(2, e.Error()) }
 // fatal
 func LogFatal(v ...any)                   { LogFatalCaller(2, v...) }
 func LogFatalf(format string, v ...any)   { LogFatalCallerf(2, format, v...) }
-func LogFatalCaller(caller int, v ...any) { logger.Fatal().Caller(caller).Msg(Sprint(v...)) }
+func LogFatalCaller(caller int, v ...any) { logger.Fatal().Caller(caller).Msg(SprintQuote(v...)) }
 func LogFatalCallerf(caller int, format string, v ...any) {
 	LogFatalCaller(caller+1, fmt.Sprintf(format, v...))
 }
