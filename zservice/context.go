@@ -10,10 +10,10 @@ import (
 
 // 集成链路、日志、错误功能
 type ZContext struct {
-	StartTime time.Time // 当前上下文启动时间
-	TraceTime time.Time // 链路初始化时间
-	TraceID   string    // 链路ID
-	SpanID    int       // 链路 , 自增处理
+	startTime time.Time // 当前上下文启动时间
+	traceTime time.Time // 链路初始化时间
+	traceID   string    // 链路ID
+	spanID    int       // 链路 , 自增处理
 	service   *ZService // 服务
 	mu        sync.Mutex
 	done      atomic.Value
@@ -34,24 +34,24 @@ func NewContext(s *ZService, traceJsonStr string) *ZContext {
 			s.LogError(e, "[zserver.NewContext] => fail, traceJsonStr: %v", traceJsonStr)
 		}
 
-		ctx.StartTime = time.Now()
-		ctx.SpanID++
+		ctx.startTime = time.Now()
+		ctx.spanID++
 
 		return ctx
 	}
 	t := time.Now()
 	return &ZContext{
-		StartTime: t,
-		TraceTime: t,
-		TraceID:   RandomXID(),
-		SpanID:    0,
+		startTime: t,
+		traceTime: t,
+		traceID:   RandomXID(),
+		spanID:    0,
 	}
 }
 
 // -------- 打印消息
 // 获取日志的打印信息
 func (ctx *ZContext) logCtxStr() string {
-	return fmt.Sprintf("[%v %v-%v %v]", ctx.service.tranceName, ctx.TraceID, ctx.SpanID, ctx.SinceTrace())
+	return fmt.Sprintf("[%v %v-%v %v]", ctx.service.tranceName, ctx.traceID, ctx.spanID, ctx.SinceTrace())
 }
 func (ctx *ZContext) LogInfo(v ...any) {
 	LogInfoCaller(2, ctx.logCtxStr(), Sprint(v...))
@@ -74,12 +74,12 @@ func (ctx *ZContext) LogErrorf(f string, v ...any) {
 
 // 获取上下文创建到现在的时间
 func (ctx *ZContext) Since() time.Duration {
-	return time.Since(ctx.StartTime)
+	return time.Since(ctx.startTime)
 }
 
 // 获取链路创建到现在的时间
 func (ctx *ZContext) SinceTrace() time.Duration {
-	return time.Since(ctx.TraceTime)
+	return time.Since(ctx.traceTime)
 }
 
 // Deadline implements context.Context.
