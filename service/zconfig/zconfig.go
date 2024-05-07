@@ -4,9 +4,11 @@ import (
 	_ "embed"
 	"os"
 	"zservice/internal/dbservice"
+	"zservice/internal/httpservice"
 	"zservice/service/zconfig/internal"
 	"zservice/zservice"
 
+	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
@@ -15,6 +17,7 @@ import (
 var Version string
 
 func init() {
+	zservice.LogDebug()
 	zservice.Init(&zservice.ZServiceConfig{
 		Name:    "zconfig",
 		Version: Version,
@@ -40,8 +43,19 @@ func main() {
 		},
 	})
 
+	ginS := httpservice.NewGinService(&httpservice.GinServiceConfig{
+		Addr: os.Getenv("GIN_ADDR"),
+		OnStart: func(engine *gin.Engine) {
+			internal.Gin = engine
+		},
+	})
+
 	zservice.AddDependService(mysqlS.ZService)
 	zservice.AddDependService(redisS.ZService)
+	zservice.AddDependService(ginS.ZService)
+
+	ginS.AddDependService(mysqlS.ZService)
+	ginS.AddDependService(redisS.ZService)
 
 	zservice.Start()
 	zservice.WaitStart()

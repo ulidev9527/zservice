@@ -15,7 +15,7 @@
         - ~~gorm~~
         - ~~go-redis~~
         - ~~zerolog~~
-        - gin
+        - ~~gin~~
         - etcd
         - nsq
 - `zconfig`

@@ -28,7 +28,7 @@ func NewRedisService(c *RedisServiceConfig) *RedisService {
 		return nil
 	}
 	name := "RedisService"
-	if name != "" {
+	if c.Name != "" {
 		name = fmt.Sprint(name, "-", c.Name)
 	}
 
