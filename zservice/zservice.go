@@ -1,129 +1,90 @@
 package zservice
 
 import (
-	"fmt"
-	"time"
+	_ "embed"
+	"os"
+
+	"github.com/joho/godotenv"
 )
 
-type ZService struct {
-	name              string          // 服务名称
-	tranceName        string          // 链路名称
-	isAlreadyStarting bool            // 是否启动
-	childServices     []*ZService     // 子服务
-	parentService     *ZService       // 父服务
-	chanLock          chan any        // 锁
-	startTime         time.Time       // 启动时间
-	onBeforeStart     func(*ZService) // 等待依赖
-	onStart           func(*ZService) // 等待启动
-}
+//go:embed version
+var Version string
 
-// 服务配置
+// 服务
+var mainService *ZService
+
 type ZServiceConfig struct {
-	Name          string          // 服务名称
-	OnBeforeStart func(*ZService) // 启动前的回调
-	OnStart       func(*ZService) // 等待启动
+	Name          string   // 服务名称
+	Version       string   // 服务版本
+	EnvFils       []string // 环境变量文件
+	RemoteEnvAddr string   // 远程环境变量地址
+	RemoteEnvAuth string   // 远程环境变量鉴权码
+	RemoteType    string   // 远程环境变量类型 http/https/grpc
 }
 
-func NewService(c *ZServiceConfig) *ZService {
-	if c == nil {
-		LogError("service is nil")
-		return nil
-	}
-	return &ZService{
-		name:              c.Name,
-		tranceName:        c.Name,
-		isAlreadyStarting: false,
-		childServices:     []*ZService{},
-		chanLock:          make(chan any, 1),
-		startTime:         time.Time{},
-		onBeforeStart:     c.OnBeforeStart,
-		onStart:           c.OnStart,
-	}
+func init() {
 }
 
-// 获取服务名称
-func (s *ZService) GetName() string { return s.name }
+// zservice 初始化
+func Init(c *ZServiceConfig) {
+	LogInfof("zservice v%s", Version)
+	LogInfof("%s v%s", c.Name, c.Version)
 
-// 添加子服务
-func (s *ZService) AddService(service *ZService) {
-	if s.parentService != nil {
-		s.LogErrorf("service {%v} already has parent service", service.name)
-		return
-	}
-	s.childServices = append(s.childServices, service)
-	service.parentService = s
-	service.tranceName = s.tranceName + "/" + service.name
-}
+	mainService = createService(c.Name, nil)
 
-// 启动服务
-func (z *ZService) Start() {
-	if z.isAlreadyStarting {
-		z.LogError("service is already starting")
-		return
+	// .env 文件加载
+	godotenv.Load()         // load .env file
+	if len(c.EnvFils) > 0 { // load other env files
+		godotenv.Load(c.EnvFils...)
 	}
-	z.startTime = time.Now()
-	z.LogInfo("start service")
-	// 子服务启动
-	if len(z.childServices) > 0 {
-		for i := 0; i < len(z.childServices); i++ {
-			go func(item *ZService) {
-				item.Start()
-			}(z.childServices[i])
+
+	// 远程环境变量加载
+	if c.RemoteEnvAddr != "" {
+		switch c.RemoteType {
+
 		}
-		z.LogInfo("waiting child service")
-		for i := 0; i < len(z.childServices); i++ {
-			z.childServices[i].WaitingDone()
+		body, e := Get(NewContext(mainService, ""), c.RemoteEnvAddr, &map[string]any{"auth": c.RemoteEnvAuth}, nil)
+
+		if e != nil {
+			mainService.LogPanic(e)
+		}
+
+		envMaps, e := godotenv.UnmarshalBytes(body)
+		if e != nil {
+			mainService.LogPanic(e)
+		}
+
+		for k, v := range envMaps {
+			e := os.Setenv(k, v)
+			if e != nil {
+				mainService.LogPanic(e)
+			}
 		}
 	}
-	// 启动自己
-	if z.onBeforeStart != nil {
-		z.LogInfo("waiting depend service")
-		z.onBeforeStart(z)
+}
+
+func Start() {
+	mainService.start()
+}
+
+func Stop() {
+	for i := 0; i < len(mainService.dependService); i++ {
+		mainService.dependService[i].Stop()
 	}
-	if z.onStart != nil {
-		z.LogInfo("waiting start service")
-		z.onStart(z)
-		z.WaitingDone()
-	}
-	z.LogInfo("start service done")
+	mainService.Stop()
 }
 
-// 启动完成
-func (z *ZService) StartDone() {
-	close(z.chanLock)
+// 添加依赖服务
+func AddDependService(s *ZService) {
+	mainService.AddDependService(s)
 }
 
-// 等待完成
-func (z *ZService) WaitingDone() {
-	<-z.chanLock
+// 等待启动
+func WaitStart() {
+	mainService.WaitStart()
 }
 
-// 停止服务
-func (z *ZService) Stop() error {
-	return nil
-}
-
-// -------- 打印消息
-// 获取日志的打印信息
-func (z *ZService) logCtxStr() string {
-	return fmt.Sprintf("[%s]", z.tranceName)
-}
-
-func (z *ZService) LogInfo(v ...any) {
-	LogInfoCaller(2, z.logCtxStr(), Sprint(v...))
-}
-func (z *ZService) LogInfof(f string, v ...any) {
-	LogInfoCaller(2, z.logCtxStr(), fmt.Sprintf(f, v...))
-}
-func (z *ZService) LogWarn(v ...any) {
-	LogWarnCaller(2, z.logCtxStr(), Sprint(v...))
-}
-func (z *ZService) LogWarnf(f string, v ...any) {
-	LogWarnCaller(2, z.logCtxStr(), fmt.Sprintf(f, v...))
-}
-func (z *ZService) LogError(v ...any) {
-	LogErrorCaller(2, z.logCtxStr(), Sprint(v...))
-}
-func (z *ZService) LogErrorf(f string, v ...any) {
-	LogErrorCaller(2, z.logCtxStr(), fmt.Sprintf(f, v...))
+// 等待停止
+func WaitStop() {
+	mainService.WaitStop()
 }

@@ -15,25 +15,9 @@ func init() {
 		Out:        os.Stdout,
 		TimeFormat: time.RFC3339,
 	}
-
-	isUseTime := Convert_StringToBoolean(os.Getenv("LOGGER_USE_TIME"))
-
-	if !isUseTime {
-		logCW.FormatTimestamp = func(i interface{}) string {
-			return ""
-		}
-	}
-
 	logger = zerolog.New(logCW)
 	logCtx := logger.With()
-
-	if isUseTime {
-
-		logger = logCtx.Timestamp().Logger()
-	} else {
-		logger = logCtx.Logger()
-	}
-
+	logger = logCtx.Timestamp().Logger()
 }
 
 // info 消息
@@ -73,10 +57,10 @@ func Erroref(e error, formmat string, v ...any) {
 }
 func LogErrore(e error) { LogErrorCaller(2, e.Error()) }
 
-// fatal
-func LogFatal(v ...any)                   { LogFatalCaller(2, v...) }
-func LogFatalf(format string, v ...any)   { LogFatalCallerf(2, format, v...) }
-func LogFatalCaller(caller int, v ...any) { logger.Fatal().Caller(caller).Msg(SprintQuote(v...)) }
-func LogFatalCallerf(caller int, format string, v ...any) {
-	LogFatalCaller(caller+1, fmt.Sprintf(format, v...))
+// panic
+func LogPanic(v ...any)                   { LogPanicCaller(2, v...) }
+func LogPanicf(format string, v ...any)   { LogPanicCallerf(2, format, v...) }
+func LogPanicCaller(caller int, v ...any) { logger.Panic().Caller(caller).Msg(SprintQuote(v...)) }
+func LogPanicCallerf(caller int, format string, v ...any) {
+	LogPanicCaller(caller+1, fmt.Sprintf(format, v...))
 }

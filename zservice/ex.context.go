@@ -8,50 +8,61 @@ import (
 	"time"
 )
 
+type zcontextTrace struct {
+	TraceTime time.Time `json:"tt"`  // 链路初始化时间
+	TraceID   string    `json:"tid"` // 链路ID
+	SpanID    int       `json:"sid"` // 链路 , 自增处理
+}
+
 // 集成链路、日志、错误功能
 type ZContext struct {
-	startTime time.Time // 当前上下文启动时间
-	traceTime time.Time // 链路初始化时间
-	traceID   string    // 链路ID
-	spanID    int       // 链路 , 自增处理
-	service   *ZService // 服务
-	mu        sync.Mutex
-	done      atomic.Value
-	err       error
-	values    sync.Map
+	zcontextTrace
+	StartTime  time.Time // 当前上下文启动时间
+	Service    *ZService // 服务
+	CTX_mu     sync.Mutex
+	CTX_done   atomic.Value
+	CTX_err    error
+	CTX_values sync.Map
 }
 
 // 创建上下文
 func NewContext(s *ZService, traceJsonStr string) *ZContext {
 	ctx := &ZContext{
-		service: s,
-		mu:      sync.Mutex{},
-		values:  sync.Map{},
+		Service:    s,
+		CTX_mu:     sync.Mutex{},
+		CTX_values: sync.Map{},
 	}
 	if traceJsonStr != "" {
-		e := json.Unmarshal([]byte(traceJsonStr), &ctx)
+		e := json.Unmarshal([]byte(traceJsonStr), &ctx.zcontextTrace)
 		if e != nil {
-			s.LogError(e, "[zserver.NewContext] => fail, traceJsonStr: %v", traceJsonStr)
+			s.LogError(e, "[zservice.NewContext] => fail, traceJsonStr: %v", traceJsonStr)
 		}
 
-		ctx.startTime = time.Now()
-		ctx.spanID++
+		ctx.StartTime = time.Now()
+		ctx.SpanID++
 
 		return ctx
 	}
 	t := time.Now()
 	return &ZContext{
-		startTime: t,
-		traceTime: t,
-		traceID:   RandomXID(),
-		spanID:    0,
+		StartTime: t,
+		zcontextTrace: zcontextTrace{
+			TraceTime: t,
+			TraceID:   RandomXID(),
+			SpanID:    0,
+		},
 	}
+}
+
+// 创建一个空的上下文
+func NewEmptyContext() *ZContext {
+	return NewContext(mainService, "")
 }
 
 // -------- 打印消息
 // 获取日志的打印信息
 func (ctx *ZContext) logCtxStr() string {
-	return fmt.Sprintf("[%v %v-%v %v]", ctx.service.tranceName, ctx.traceID, ctx.spanID, ctx.SinceTrace())
+	return fmt.Sprintf("[%v %v-%v %v]", ctx.Service.tranceName, ctx.TraceID, ctx.SpanID, ctx.SinceTrace())
 }
 func (ctx *ZContext) LogInfo(v ...any) {
 	LogInfoCaller(2, ctx.logCtxStr(), Sprint(v...))
@@ -74,12 +85,12 @@ func (ctx *ZContext) LogErrorf(f string, v ...any) {
 
 // 获取上下文创建到现在的时间
 func (ctx *ZContext) Since() time.Duration {
-	return time.Since(ctx.startTime)
+	return time.Since(ctx.StartTime)
 }
 
 // 获取链路创建到现在的时间
 func (ctx *ZContext) SinceTrace() time.Duration {
-	return time.Since(ctx.traceTime)
+	return time.Since(ctx.TraceTime)
 }
 
 // Deadline implements context.Context.
@@ -89,27 +100,27 @@ func (ctx *ZContext) Deadline() (deadline time.Time, ok bool) {
 
 // Done implements context.Context.
 func (ctx *ZContext) Done() <-chan struct{} {
-	d := ctx.done.Load()
+	d := ctx.CTX_done.Load()
 	if d != nil {
 		return d.(chan struct{})
 	}
-	ctx.mu.Lock()
-	defer ctx.mu.Unlock()
-	d = ctx.done.Load()
+	ctx.CTX_mu.Lock()
+	defer ctx.CTX_mu.Unlock()
+	d = ctx.CTX_done.Load()
 	if d == nil {
 		d = make(chan struct{})
-		ctx.done.Store(d)
+		ctx.CTX_done.Store(d)
 	}
 	return d.(chan struct{})
 }
 
 // Err implements context.Context.
 func (ctx *ZContext) Err() error {
-	return ctx.err
+	return ctx.CTX_err
 }
 
 // Value implements context.Context.
 func (ctx *ZContext) Value(key any) any {
-	v, _ := ctx.values.Load(key)
+	v, _ := ctx.CTX_values.Load(key)
 	return v
 }
