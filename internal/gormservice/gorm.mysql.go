@@ -1,4 +1,4 @@
-package dbservice
+package gormservice
 
 import (
 	"fmt"

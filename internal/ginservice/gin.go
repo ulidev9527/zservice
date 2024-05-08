@@ -1,4 +1,4 @@
-package httpservice
+package ginservice
 
 import (
 	"bytes"
@@ -132,7 +132,7 @@ func NewGinService(c *GinServiceConfig) *GinService {
 			gs.LogInfof("ginService listen on %v", c.Addr)
 			e := g.Run(c.Addr)
 			if e != nil {
-				gs.LogPanic(e)
+				s.LogPanic(e)
 			}
 		}()
 		go func() {

@@ -27,8 +27,16 @@ func init() {
 
 // zservice 初始化
 func Init(c *ZServiceConfig) {
+
 	LogInfof("zservice v%s", Version)
 	LogInfof("%s v%s", c.Name, c.Version)
+
+	if c.Name == "" {
+		LogPanic("zservice name is empty")
+	}
+	if c.Version == "" {
+		LogPanic("zservice version is empty")
+	}
 
 	mainService = createService(c.Name, nil)
 
@@ -61,6 +69,11 @@ func Init(c *ZServiceConfig) {
 			}
 		}
 	}
+}
+
+// 获取服务名称
+func GetName() string {
+	return mainService.name
 }
 
 func Start() {

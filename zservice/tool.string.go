@@ -18,7 +18,7 @@ func Sprint(v ...any) string {
 	return fmt.Sprint(nv[:len(nv)-1]...)
 }
 
-// 去掉各种符号的的格式化
+// 去掉换行的格式化
 func SprintQuote(v ...any) string {
 	return strconv.Quote(Sprint(v...))
 }

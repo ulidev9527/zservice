@@ -3,8 +3,9 @@ package main
 import (
 	_ "embed"
 	"os"
-	"zservice/internal/dbservice"
-	"zservice/internal/httpservice"
+	"zservice/internal/ginservice"
+	"zservice/internal/gormservice"
+	"zservice/internal/redisservice"
 	"zservice/service/zconfig/internal"
 	"zservice/zservice"
 
@@ -17,7 +18,6 @@ import (
 var Version string
 
 func init() {
-	zservice.LogDebug()
 	zservice.Init(&zservice.ZServiceConfig{
 		Name:    "zconfig",
 		Version: Version,
@@ -26,7 +26,7 @@ func init() {
 
 func main() {
 
-	mysqlS := dbservice.NewGormMysqlService(&dbservice.GormMysqlServiceConfig{
+	mysqlS := gormservice.NewGormMysqlService(&gormservice.GormMysqlServiceConfig{
 		DBName: os.Getenv("MYSQL_DBNAME"),
 		Addr:   os.Getenv("MYSQL_ADDR"),
 		User:   os.Getenv("MYSQL_USER"),
@@ -36,7 +36,7 @@ func main() {
 			internal.InitMysql()
 		},
 	})
-	redisS := dbservice.NewRedisService(&dbservice.RedisServiceConfig{
+	redisS := redisservice.NewRedisService(&redisservice.RedisServiceConfig{
 		Addr: os.Getenv("REDIS_ADDR"),
 		Pass: os.Getenv("REDIS_PASS"),
 		OnStart: func(db *redis.Client) {
@@ -45,7 +45,7 @@ func main() {
 		},
 	})
 
-	ginS := httpservice.NewGinService(&httpservice.GinServiceConfig{
+	ginS := ginservice.NewGinService(&ginservice.GinServiceConfig{
 		Addr: os.Getenv("GIN_ADDR"),
 		OnStart: func(engine *gin.Engine) {
 			internal.Gin = engine

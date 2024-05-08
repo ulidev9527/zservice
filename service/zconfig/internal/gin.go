@@ -1,7 +1,7 @@
 package internal
 
 import (
-	"zservice/internal/httpservice"
+	"zservice/internal/ginservice"
 
 	"github.com/gin-gonic/gin"
 )
@@ -10,7 +10,7 @@ var Gin *gin.Engine
 
 func InitGin() {
 	Gin.GET("/config", func(ctx *gin.Context) {
-		zctx := httpservice.GetGinCtxEX(ctx)
+		zctx := ginservice.GetGinCtxEX(ctx)
 
 		auth := ctx.Query("auth")
 		zctx.LogWarn(auth)
