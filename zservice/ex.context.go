@@ -82,6 +82,13 @@ func (ctx *ZContext) LogErrorf(f string, v ...any) {
 	LogErrorCaller(2, ctx.logCtxStr(), fmt.Sprintf(f, v...))
 }
 
+func (ctx *ZContext) LogPanic(v ...any) {
+	LogPanicCaller(2, ctx.logCtxStr(), Sprint(v...))
+}
+func (ctx *ZContext) LogPanicf(f string, v ...any) {
+	LogPanicCaller(2, ctx.logCtxStr(), fmt.Sprintf(f, v...))
+}
+
 // 获取上下文创建到现在的时间
 func (ctx *ZContext) Since() time.Duration {
 	return time.Since(ctx.StartTime)

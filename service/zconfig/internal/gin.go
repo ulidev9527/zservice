@@ -17,4 +17,9 @@ func InitGin() {
 
 		ctx.String(200, "ok")
 	})
+
+	Gin.GET("/version", func(ctx *gin.Context) {
+		zctx := ginservice.GetGinCtxEX(ctx)
+		zctx.LogPanic("eeeeeee")
+	})
 }
