@@ -28,6 +28,7 @@ type ZContext struct {
 // 创建上下文
 func NewContext(s *ZService, traceJsonStr string) *ZContext {
 	ctx := &ZContext{
+		StartTime:  time.Now(),
 		Service:    s,
 		CTX_mu:     sync.Mutex{},
 		CTX_values: sync.Map{},
@@ -42,16 +43,14 @@ func NewContext(s *ZService, traceJsonStr string) *ZContext {
 		ctx.SpanID++
 
 		return ctx
-	}
-	t := time.Now()
-	return &ZContext{
-		StartTime: t,
-		zcontextTrace: zcontextTrace{
-			TraceTime: t,
+	} else {
+		ctx.zcontextTrace = zcontextTrace{
+			TraceTime: ctx.StartTime,
 			TraceID:   RandomXID(),
 			SpanID:    0,
-		},
+		}
 	}
+	return ctx
 }
 
 // 创建一个空的上下文

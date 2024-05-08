@@ -48,7 +48,7 @@ var __gin_contextEX_Middleware_Key = "__gin_contextEX_Middleware_Key"
 func GinContextEXTMiddleware(zs *zservice.ZService) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		zctx := zservice.NewContext(zs, ctx.Request.Header.Get(zservice.S_TraceKey))
-		ctx.Set(__gin_contextEX_Middleware_Key, ctx)
+		ctx.Set(__gin_contextEX_Middleware_Key, zctx)
 
 		reqParams := ""
 		bodyStr := ""
@@ -103,9 +103,6 @@ type GinServiceConfig struct {
 	Name string // 服务名
 	Addr string // 监听地址
 
-	UseCORS  bool // 是否启用跨域
-	UseCTXEX bool // 是否启用扩展 Context 中间件
-
 	OnStart func(*gin.Engine) // 启动的回调
 }
 
@@ -128,14 +125,6 @@ func NewGinService(c *GinServiceConfig) *GinService {
 	gs := &GinService{}
 	g := gin.New()
 
-	// 中间件
-	if c.UseCORS {
-		g.Use(GinCORSMiddleware())
-	}
-	if c.UseCTXEX {
-		g.Use(GinContextEXTMiddleware(gs.ZService))
-	}
-
 	// 服务
 	s := zservice.NewService(name, func(s *zservice.ZService) {
 
@@ -157,6 +146,10 @@ func NewGinService(c *GinServiceConfig) *GinService {
 
 	gs.Ginengine = g
 	gs.ZService = s
+
+	// 中间件
+	g.Use(GinCORSMiddleware())
+	g.Use(GinContextEXTMiddleware(gs.ZService))
 
 	return gs
 }

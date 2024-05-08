@@ -9,3 +9,6 @@ var (
 	Mysql *gorm.DB
 	Redis *redis.Client
 )
+
+func InitMysql() {}
+func InitRedis() {}

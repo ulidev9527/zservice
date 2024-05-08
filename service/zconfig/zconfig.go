@@ -33,6 +33,7 @@ func main() {
 		Pass:   os.Getenv("MYSQL_PASS"),
 		OnStart: func(db *gorm.DB) {
 			internal.Mysql = db
+			internal.InitMysql()
 		},
 	})
 	redisS := dbservice.NewRedisService(&dbservice.RedisServiceConfig{
@@ -40,6 +41,7 @@ func main() {
 		Pass: os.Getenv("REDIS_PASS"),
 		OnStart: func(db *redis.Client) {
 			internal.Redis = db
+			internal.InitRedis()
 		},
 	})
 
@@ -47,6 +49,7 @@ func main() {
 		Addr: os.Getenv("GIN_ADDR"),
 		OnStart: func(engine *gin.Engine) {
 			internal.Gin = engine
+			internal.InitGin()
 		},
 	})
 
