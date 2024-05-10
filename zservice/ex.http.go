@@ -8,8 +8,8 @@ import (
 	"strings"
 )
 
-func RequestSend(ctx *ZContext, req *http.Request) (body []byte, e error) {
-	b, _ := json.Marshal(&ctx.zcontextTrace)
+func RequestSend(ctx *Context, req *http.Request) (body []byte, e error) {
+	b, _ := json.Marshal(&ctx.ContextTrace)
 	req.Header.Set(S_TraceKey, string(b))
 	res, e := (&http.Client{}).Do(req) // 发起请求
 	if e != nil {
@@ -29,7 +29,7 @@ func RequestSend(ctx *ZContext, req *http.Request) (body []byte, e error) {
 }
 
 // 发送 post 请求
-func Post(ctx *ZContext, url string, params *map[string]any, header *map[string]string) (body []byte, e error) {
+func Post(ctx *Context, url string, params *map[string]any, header *map[string]string) (body []byte, e error) {
 	var bodyReader io.Reader
 	logStr := ""
 	if params != nil {
@@ -53,7 +53,7 @@ func Post(ctx *ZContext, url string, params *map[string]any, header *map[string]
 }
 
 // 发送 json 请求
-func PostJson(ctx *ZContext, url string, params *map[string]any, header *map[string]string) (body []byte, e error) {
+func PostJson(ctx *Context, url string, params *map[string]any, header *map[string]string) (body []byte, e error) {
 	if header == nil {
 		header = &map[string]string{}
 	}
@@ -84,7 +84,7 @@ func PostJson(ctx *ZContext, url string, params *map[string]any, header *map[str
 }
 
 // 发送 Get 请求
-func Get(ctx *ZContext, url string, params *map[string]any, header *map[string]string) (body []byte, e error) {
+func Get(ctx *Context, url string, params *map[string]any, header *map[string]string) (body []byte, e error) {
 	logStr := ""
 	if params != nil {
 		for k, v := range *params {

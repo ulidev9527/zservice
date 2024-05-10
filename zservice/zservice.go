@@ -51,7 +51,7 @@ func Init(c *ZServiceConfig) {
 		switch c.RemoteType {
 
 		}
-		body, e := Get(NewContext(mainService, ""), c.RemoteEnvAddr, &map[string]any{"auth": c.RemoteEnvAuth}, nil)
+		body, e := Get(NewContext(""), c.RemoteEnvAddr, &map[string]any{"auth": c.RemoteEnvAuth}, nil)
 
 		if e != nil {
 			mainService.LogPanic(e)

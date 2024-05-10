@@ -61,10 +61,10 @@ func (z *ZService) start() {
 	// 启动依赖
 	if len(z.dependService) > 0 {
 		z.LogInfo("waiting depend service")
-		for i := 0; i < len(z.dependService); i++ {
-			go func(item *ZService) {
-				item.start()
-			}(z.dependService[i])
+		if z == mainService {
+			for i := 0; i < len(z.dependService); i++ {
+				go z.dependService[i].start()
+			}
 		}
 		for i := 0; i < len(z.dependService); i++ {
 			z.dependService[i].WaitStart()
@@ -78,6 +78,7 @@ func (z *ZService) start() {
 	}
 	z.LogInfo("start service done", time.Since(z.createTime))
 	if z == mainService {
+		z.StartDone()
 		z.LogInfo("all service start done", time.Since(z.createTime))
 	}
 }

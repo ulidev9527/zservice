@@ -10,7 +10,7 @@ var Gin *gin.Engine
 
 func InitGin() {
 	Gin.GET("/config", func(ctx *gin.Context) {
-		zctx := ginservice.GetGinCtxEX(ctx)
+		zctx := ginservice.GetCtxEX(ctx)
 
 		auth := ctx.Query("auth")
 		zctx.LogWarn(auth)
@@ -19,7 +19,7 @@ func InitGin() {
 	})
 
 	Gin.GET("/version", func(ctx *gin.Context) {
-		zctx := ginservice.GetGinCtxEX(ctx)
+		zctx := ginservice.GetCtxEX(ctx)
 		zctx.LogPanic("eeeeeee")
 	})
 }

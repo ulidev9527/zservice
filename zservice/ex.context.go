@@ -8,15 +8,15 @@ import (
 	"time"
 )
 
-type zcontextTrace struct {
+type ContextTrace struct {
 	TraceTime time.Time `json:"tt"`  // 链路初始化时间
 	TraceID   string    `json:"tid"` // 链路ID
 	SpanID    int       `json:"sid"` // 链路 , 自增处理
 }
 
 // 集成链路、日志、错误功能
-type ZContext struct {
-	zcontextTrace
+type Context struct {
+	ContextTrace
 	StartTime  time.Time // 当前上下文启动时间
 	Service    *ZService // 服务
 	CTX_mu     sync.Mutex
@@ -26,17 +26,17 @@ type ZContext struct {
 }
 
 // 创建上下文
-func NewContext(s *ZService, traceJsonStr string) *ZContext {
-	ctx := &ZContext{
+func NewContext(traceJsonStr string) *Context {
+	ctx := &Context{
 		StartTime:  time.Now(),
-		Service:    s,
+		Service:    mainService,
 		CTX_mu:     sync.Mutex{},
 		CTX_values: sync.Map{},
 	}
 	if traceJsonStr != "" {
-		e := json.Unmarshal([]byte(traceJsonStr), &ctx.zcontextTrace)
+		e := json.Unmarshal([]byte(traceJsonStr), &ctx.ContextTrace)
 		if e != nil {
-			s.LogError(e, "[zservice.NewContext] => fail, traceJsonStr: %v", traceJsonStr)
+			mainService.LogError(e, "[zservice.NewContext] => fail, traceJsonStr: %v", traceJsonStr)
 		}
 
 		ctx.StartTime = time.Now()
@@ -44,7 +44,7 @@ func NewContext(s *ZService, traceJsonStr string) *ZContext {
 
 		return ctx
 	} else {
-		ctx.zcontextTrace = zcontextTrace{
+		ctx.ContextTrace = ContextTrace{
 			TraceTime: ctx.StartTime,
 			TraceID:   RandomXID(),
 			SpanID:    0,
@@ -54,58 +54,58 @@ func NewContext(s *ZService, traceJsonStr string) *ZContext {
 }
 
 // 创建一个空的上下文
-func NewEmptyContext() *ZContext {
-	return NewContext(mainService, "")
+func NewEmptyContext() *Context {
+	return NewContext("")
 }
 
 // -------- 打印消息
 // 获取日志的打印信息
-func (ctx *ZContext) logCtxStr() string {
+func (ctx *Context) logCtxStr() string {
 	return fmt.Sprintf("[%v %v-%v %v]", ctx.Service.tranceName, ctx.TraceID, ctx.SpanID, ctx.SinceTrace())
 }
-func (ctx *ZContext) LogInfo(v ...any) {
+func (ctx *Context) LogInfo(v ...any) {
 	LogInfoCaller(2, ctx.logCtxStr(), Sprint(v...))
 }
-func (ctx *ZContext) LogInfof(f string, v ...any) {
+func (ctx *Context) LogInfof(f string, v ...any) {
 	LogInfoCaller(2, ctx.logCtxStr(), fmt.Sprintf(f, v...))
 }
-func (ctx *ZContext) LogWarn(v ...any) {
+func (ctx *Context) LogWarn(v ...any) {
 	LogWarnCaller(2, ctx.logCtxStr(), Sprint(v...))
 }
-func (ctx *ZContext) LogWarnf(f string, v ...any) {
+func (ctx *Context) LogWarnf(f string, v ...any) {
 	LogWarnCaller(2, ctx.logCtxStr(), fmt.Sprintf(f, v...))
 }
-func (ctx *ZContext) LogError(v ...any) {
+func (ctx *Context) LogError(v ...any) {
 	LogErrorCaller(2, ctx.logCtxStr(), Sprint(v...))
 }
-func (ctx *ZContext) LogErrorf(f string, v ...any) {
+func (ctx *Context) LogErrorf(f string, v ...any) {
 	LogErrorCaller(2, ctx.logCtxStr(), fmt.Sprintf(f, v...))
 }
 
-func (ctx *ZContext) LogPanic(v ...any) {
+func (ctx *Context) LogPanic(v ...any) {
 	LogPanicCaller(2, ctx.logCtxStr(), Sprint(v...))
 }
-func (ctx *ZContext) LogPanicf(f string, v ...any) {
+func (ctx *Context) LogPanicf(f string, v ...any) {
 	LogPanicCaller(2, ctx.logCtxStr(), fmt.Sprintf(f, v...))
 }
 
 // 获取上下文创建到现在的时间
-func (ctx *ZContext) Since() time.Duration {
+func (ctx *Context) Since() time.Duration {
 	return time.Since(ctx.StartTime)
 }
 
 // 获取链路创建到现在的时间
-func (ctx *ZContext) SinceTrace() time.Duration {
+func (ctx *Context) SinceTrace() time.Duration {
 	return time.Since(ctx.TraceTime)
 }
 
 // Deadline implements context.Context.
-func (ctx *ZContext) Deadline() (deadline time.Time, ok bool) {
+func (ctx *Context) Deadline() (deadline time.Time, ok bool) {
 	return
 }
 
 // Done implements context.Context.
-func (ctx *ZContext) Done() <-chan struct{} {
+func (ctx *Context) Done() <-chan struct{} {
 	d := ctx.CTX_done.Load()
 	if d != nil {
 		return d.(chan struct{})
@@ -121,12 +121,12 @@ func (ctx *ZContext) Done() <-chan struct{} {
 }
 
 // Err implements context.Context.
-func (ctx *ZContext) Err() error {
+func (ctx *Context) Err() error {
 	return ctx.CTX_err
 }
 
 // Value implements context.Context.
-func (ctx *ZContext) Value(key any) any {
+func (ctx *Context) Value(key any) any {
 	v, _ := ctx.CTX_values.Load(key)
 	return v
 }

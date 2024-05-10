@@ -16,7 +16,7 @@ type EtcdService struct {
 
 type EtcdServiceConfig struct {
 	Name    string                 // 服务名
-	Addrs   []string               // 服务地址
+	Addr    string                 // 服务地址
 	OnStart func(*clientv3.Client) // 启动的回调
 }
 
@@ -36,13 +36,14 @@ func NewEtcdService(c *EtcdServiceConfig) *EtcdService {
 	es := &EtcdService{}
 	es.ZService = zservice.NewService(name, func(s *zservice.ZService) {
 
-		es.LogInfof("etcdService listen on %v", c.Addrs)
+		es.LogInfof("etcdService listen on %v", c.Addr)
 
-		l, e := es.Etcd.Lease.Leases(context.TODO())
+		timeoutCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		_, e := es.Etcd.Status(timeoutCtx, c.Addr)
 		if e != nil {
 			s.LogPanic(e)
 		}
-		s.LogInfo(l)
 
 		if c.OnStart != nil {
 			c.OnStart(es.Etcd)
@@ -52,7 +53,7 @@ func NewEtcdService(c *EtcdServiceConfig) *EtcdService {
 	})
 
 	etcd, e := clientv3.New(clientv3.Config{
-		Endpoints:   c.Addrs,
+		Endpoints:   []string{c.Addr},
 		DialTimeout: 5 * time.Second,
 	})
 

@@ -16,10 +16,11 @@
         - ~~go-redis~~
         - ~~zerolog~~
         - ~~gin~~
-        - etcd
+        - ~~etcd~~
+        - ~~grpc~~
         - nsq
 - `zconfig`
-    - 配置服务
+    - 配置中心服务
 
 ## 主要集成
 - [gorm](https://gorm.io)

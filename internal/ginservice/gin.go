@@ -20,12 +20,12 @@ func (grw *ginResWriter) Write(b []byte) (int, error) {
 }
 
 // 获取扩展的上下文
-func GetGinCtxEX(ctx *gin.Context) *zservice.ZContext {
-	z, has := ctx.Get(__gin_contextEX_Middleware_Key)
+func GetCtxEX(ctx *gin.Context) *zservice.Context {
+	z, has := ctx.Get(GIN_contextEX_Middleware_Key)
 	if !has {
 		return nil
 	}
-	return z.(*zservice.ZContext)
+	return z.(*zservice.Context)
 }
 
 type GinService struct {

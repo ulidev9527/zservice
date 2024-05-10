@@ -26,31 +26,17 @@ func init() {
 
 func main() {
 
-	// addrs, err := net.InterfaceAddrs()
-	// if err != nil {
-	// 	zservice.LogError("获取IP地址出错:", err)
-	// 	return
-	// }
-
-	// for _, addr := range addrs {
-	// 	if ipnet, ok := addr.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-	// 		if ipnet.IP.To4() != nil {
-	// 			zservice.LogInfo("当前IP地址:", ipnet.IP.To4())
-	// 		}
-	// 	}
-	// }
-
 	etcdS := etcdservice.NewEtcdService(&etcdservice.EtcdServiceConfig{
 
-		Addrs: zservice.GetenvStringSplit("ETCD_ADDRS"),
+		Addr: zservice.Getenv("ETCD_ADDR"),
 		OnStart: func(etcd *clientv3.Client) {
 			// do something
 		},
 	})
 
 	grpcS := grpcservice.NewGrpcService(&grpcservice.GrpcServiceConfig{
-		Addr: zservice.Getenv("GRPC_ADDR"),
-		Etcd: etcdS.Etcd,
+		Addr:       zservice.Getenv("GRPC_ADDR"),
+		EtcdServer: etcdS.Etcd,
 		OnStart: func(grpc *grpc.Server) {
 			smsservice_pb.RegisterSmsserviceServer(grpc, internal.NewSmsserviceServer())
 		},
@@ -63,5 +49,5 @@ func main() {
 
 	zservice.Start()
 	zservice.WaitStart()
-	zservice.WaitStart()
+	zservice.WaitStop()
 }

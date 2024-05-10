@@ -31,13 +31,11 @@ func GinCORSMiddleware() gin.HandlerFunc {
 	}
 }
 
-var __gin_contextEX_Middleware_Key = "__gin_contextEX_Middleware_Key"
-
 // 扩展 Context 中间件
 func GinContextEXTMiddleware(zs *zservice.ZService) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		zctx := zservice.NewContext(zs, ctx.Request.Header.Get(zservice.S_TraceKey))
-		ctx.Set(__gin_contextEX_Middleware_Key, zctx)
+		zctx := zservice.NewContext(ctx.Request.Header.Get(zservice.S_TraceKey))
+		ctx.Set(GIN_contextEX_Middleware_Key, zctx)
 
 		var grw *ginResWriter
 		reqParams := ""
