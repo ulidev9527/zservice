@@ -1,12 +1,56 @@
 package zservice
 
 import (
+	"fmt"
 	"os"
 	"strings"
+
+	"github.com/joho/godotenv"
 )
 
+// 环境变量缓存
+var envCacheMap = map[string]string{}
+
+func ClearEnvCache() {
+	for k := range envCacheMap {
+		delete(envCacheMap, k)
+	}
+
+}
+
+func initEnv(c *ZServiceConfig) {
+	ClearEnvCache()
+	// .env 文件加载
+	godotenv.Load()         // load .env file
+	if len(c.EnvFils) > 0 { // load other env files
+		godotenv.Load(c.EnvFils...)
+	}
+
+	// 远程环境变量加载
+	if c.RemoteEnvAddr != "" {
+		LoadRemoteEnv(c.RemoteEnvAddr, c.RemoteEnvAuth)
+	}
+}
+
 func Getenv(key string) string {
-	return os.Getenv(key)
+	s := envCacheMap[key]
+	if s != "" {
+		return s
+	}
+	s = os.Getenv(key)
+	if s == "" {
+		return s
+	}
+
+	maps, e := godotenv.Unmarshal(fmt.Sprintf("%s=%s", key, s))
+	if e != nil {
+		LogError(e)
+	}
+	for k, v := range maps {
+		envCacheMap[k] = v
+	}
+
+	return Getenv(key)
 }
 
 func GetenvBool(key string) bool {
@@ -25,4 +69,27 @@ func GetenvStringSplit(key string, split ...string) []string {
 	}
 
 	return strings.Split(str, ",")
+}
+
+// 加载远程环境变量
+func LoadRemoteEnv(addr string, auth string) {
+	body, e := Get(NewContext(""), addr, &map[string]any{"auth": auth}, nil)
+
+	if e != nil {
+		mainService.LogPanic(e)
+	}
+
+	envMaps, e := godotenv.UnmarshalBytes(body)
+	if e != nil {
+		mainService.LogPanic(e)
+	}
+
+	for k, v := range envMaps {
+		e := os.Setenv(k, v)
+		if e != nil {
+			mainService.LogPanic(e)
+			continue
+		}
+		envCacheMap[k] = v
+	}
 }

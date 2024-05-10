@@ -2,9 +2,6 @@ package zservice
 
 import (
 	_ "embed"
-	"os"
-
-	"github.com/joho/godotenv"
 )
 
 //go:embed version
@@ -19,7 +16,6 @@ type ZServiceConfig struct {
 	EnvFils       []string // 环境变量文件
 	RemoteEnvAddr string   // 远程环境变量地址
 	RemoteEnvAuth string   // 远程环境变量鉴权码
-	RemoteType    string   // 远程环境变量类型 http/https/grpc
 }
 
 func init() {
@@ -39,36 +35,7 @@ func Init(c *ZServiceConfig) {
 	}
 
 	mainService = createService(c.Name, nil)
-
-	// .env 文件加载
-	godotenv.Load()         // load .env file
-	if len(c.EnvFils) > 0 { // load other env files
-		godotenv.Load(c.EnvFils...)
-	}
-
-	// 远程环境变量加载
-	if c.RemoteEnvAddr != "" {
-		switch c.RemoteType {
-
-		}
-		body, e := Get(NewContext(""), c.RemoteEnvAddr, &map[string]any{"auth": c.RemoteEnvAuth}, nil)
-
-		if e != nil {
-			mainService.LogPanic(e)
-		}
-
-		envMaps, e := godotenv.UnmarshalBytes(body)
-		if e != nil {
-			mainService.LogPanic(e)
-		}
-
-		for k, v := range envMaps {
-			e := os.Setenv(k, v)
-			if e != nil {
-				mainService.LogPanic(e)
-			}
-		}
-	}
+	initEnv(c)
 }
 
 // 获取服务名称
