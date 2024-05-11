@@ -1,6 +1,7 @@
 package zservice
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"sync"
@@ -56,6 +57,10 @@ func NewContext(traceJsonStr string) *Context {
 // 创建一个空的上下文
 func NewEmptyContext() *Context {
 	return NewContext("")
+}
+
+func TODO() context.Context {
+	return context.TODO()
 }
 
 // -------- 打印消息

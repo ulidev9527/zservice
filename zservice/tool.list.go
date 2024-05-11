@@ -18,3 +18,26 @@ func ListRemoveDuplicates(arr interface{}) interface{} {
 func ListRemoveFirst(arr interface{}, i int) interface{} {
 	return append(arr.([]interface{})[:0], arr.([]interface{})[i:]...)
 }
+
+// 过滤器
+func ListFilter(arr any, fn func(item any) bool) any {
+	newArr := &[]any{}
+	for _, item := range arr.([]any) {
+		if fn(item) {
+			*newArr = append(*newArr, item)
+		}
+	}
+
+	return *newArr
+}
+
+// 过滤器
+func ListFilterString(arr []string, fn func(item string) bool) []string {
+	newArr := []string{}
+	for _, item := range arr {
+		if fn(item) {
+			newArr = append(newArr, item)
+		}
+	}
+	return newArr
+}

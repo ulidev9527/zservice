@@ -65,12 +65,11 @@ func GinContextEXTMiddleware(zs *zservice.ZService) gin.HandlerFunc {
 			//放在匿名函数里,e捕获到错误信息，并且输出
 			e := recover()
 			if e != nil {
-				buf := make([]byte, 1<<16)
+				buf := make([]byte, 1<<10)
 				stackSize := runtime.Stack(buf, true)
-				zctx.LogError(e, string(buf[:stackSize]))
-				zctx.LogErrorf("GIN %v %v %v %v %v :Q %v ",
+				zctx.LogErrorf("GIN %v %v %v %v %v :Q %v :E %v %v",
 					ctx.ClientIP(), ctx.Request.Method, ctx.Request.URL,
-					ctx.Writer.Status(), zctx.Since(), reqParams,
+					ctx.Writer.Status(), zctx.Since(), reqParams, e, string(buf[:stackSize]),
 				)
 				ctx.String(500, "ERROR: %v", zctx.TraceID)
 			}

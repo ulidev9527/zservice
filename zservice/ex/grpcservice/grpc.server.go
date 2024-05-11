@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"runtime"
 	"strings"
 	"time"
 	"zservice/zservice"
@@ -144,7 +145,9 @@ func ServerUnaryInterceptor(ctx context.Context, req any, info *grpc.UnaryServer
 	defer func() {
 		e := recover()
 		if e != nil {
-			zctx.LogError(e, "GRPC %v %v :Q %v :E %v", ipaddr, info.FullMethod, req, e)
+			buf := make([]byte, 1<<10)
+			stackSize := runtime.Stack(buf, true)
+			zctx.LogErrorf("GRPC %v %v :Q %v :E %v %v", ipaddr, info.FullMethod, req, e, string(buf[:stackSize]))
 		}
 	}()
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"runtime"
 	"zservice/zservice"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
@@ -73,7 +74,9 @@ func ClientUnaryInterceptor(ctx context.Context, method string, req, reply any, 
 	defer func() {
 		e := recover()
 		if e != nil {
-			zctx.LogErrorf("RPC %s :Q %v :E %v", method, req, e)
+			buf := make([]byte, 1<<10)
+			stackSize := runtime.Stack(buf, true)
+			zctx.LogErrorf("RPC %s :Q %v :E %v %v", method, req, e, string(buf[:stackSize]))
 		}
 	}()
 

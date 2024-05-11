@@ -3,9 +3,9 @@ package zsms
 import (
 	"context"
 	_ "embed"
-	"zservice/internal/grpcservice"
 	"zservice/service/zsms/zsms_pb"
 	"zservice/zservice"
+	"zservice/zservice/ex/grpcservice"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"google.golang.org/grpc"
@@ -32,11 +32,9 @@ func NewZsmsClient(etcdClient *clientv3.Client) *ZsmsClient {
 }
 
 func (s *ZsmsClient) SendVerifyCode(ctx *zservice.Context, req *zsms_pb.SendVerifyCode_REQ) (*zsms_pb.Default_RES, error) {
-	zctx := context.WithValue(context.Background(), grpcservice.GRPC_contextEX_Middleware_Key, ctx)
-	return s.client.SendVerifyCode(zctx, req)
+	return s.client.SendVerifyCode(context.WithValue(context.Background(), grpcservice.GRPC_contextEX_Middleware_Key, ctx), req)
 }
 
 func (s *ZsmsClient) VerifyCode(ctx *zservice.Context, req *zsms_pb.VerifyCode_REQ) (*zsms_pb.Default_RES, error) {
-	zctx := context.WithValue(context.Background(), grpcservice.GRPC_contextEX_Middleware_Key, ctx)
-	return s.client.VerifyCode(zctx, req)
+	return s.client.VerifyCode(context.WithValue(context.Background(), grpcservice.GRPC_contextEX_Middleware_Key, ctx), req)
 }

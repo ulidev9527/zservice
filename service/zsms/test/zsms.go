@@ -1,10 +1,10 @@
 package main
 
 import (
-	"zservice/internal/etcdservice"
 	"zservice/service/zsms/zsms"
 	"zservice/service/zsms/zsms_pb"
 	"zservice/zservice"
+	"zservice/zservice/ex/etcdservice"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
 )

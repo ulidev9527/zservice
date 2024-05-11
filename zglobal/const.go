@@ -1,18 +1,38 @@
 package zglobal
 
+import "time"
+
 const (
-	E_SUCC                = 1    // 成功
-	E_Fail                = 2    // 失败
-	E_ErrorBreakoff       = 3    // 中断
-	E_Phone_NULL          = 1001 // 手机号为空
-	E_Phone_VerifyFail    = 1002 // 手机号验证失败
-	E_Phone_Ban           = 1003 // 手机号被封禁
-	E_Phone_CD            = 1004 // 手机号验证码CD中
-	E_Phone_CodeCacheNull = 1005 // 手机号验证码不存在, 没有缓存
-	E_Phone_CodeNull      = 1006 // 手机号验证码为空
-	E_Phone_CodeLenErr    = 1007 // 手机号验证码长度错误
+	Code_SUCC          = 1 // 成功
+	Code_Fail          = 2 // 失败
+	Code_ErrorBreakoff = 3 // 中断
 
-	E_SMS_ErrorBreakoff = 2001 // 短信发送中断错误
-	E_SMS_SendParamsErr = 2002 // 短信发送参数错误
+	Code_OpenFileErr  = 101 // 打开文件错误
+	Code_WiteFileErr  = 102 // 写入文件错误
+	Code_CloseFileErr = 103 // 关闭文件错误
+	Code_EmptyFile    = 104 // 文件为空
 
+	Code_Zsms_Phone_NULL          = 1001 // 手机号为空
+	Code_Zsms_Phone_VerifyFail    = 1002 // 手机号验证失败
+	Code_Zsms_Phone_Ban           = 1003 // 手机号被封禁
+	Code_Zsms_Phone_CD            = 1004 // 手机号验证码CD中
+	Code_Zsms_Phone_CodeCacheNull = 1005 // 手机号验证码不存在, 没有缓存
+	Code_Zsms_Phone_CodeNull      = 1006 // 手机号验证码为空
+	Code_Zsms_Phone_CodeLenErr    = 1007 // 手机号验证码长度错误
+	Code_Zsms_ErrorBreakoff       = 1008 // 短信中断错误
+	Code_Zsms_SendParamsErr       = 1009 // 短信发送参数错误
+
+	Code_Zconfig_ParamsErr        = 2001 // 参数错误
+	Code_Zconfig_ParserNotExist   = 2002 // 没有这个解析器
+	Code_Zconfig_FileNotExist     = 2003 // 文件不存在
+	Code_Zconfig_ParserFail       = 2004 // 解析失败
+	Code_Zconfig_PathIsDir        = 2005 // 文件是个目录
+	Code_Zconfig_GetFileMd5Fail   = 2006 // 读取文件 md5 失败
+	Code_Zconfig_FileMd5NotChange = 2007 // 文件 md5 未变化
+	Code_Zconfig_ExcelNoContent   = 2008 // excel 内容为空
+	Code_Zconfig_GetConfigFail    = 2009 // 获取配置失败
+
+	E_ZConfig_Parser_Excel = 1 // excel 解析器
+
+	Time_1m = time.Second * 60 // 1 分钟
 )

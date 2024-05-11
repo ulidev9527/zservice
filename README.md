@@ -30,3 +30,6 @@
 - [etcd](https://etcd.io)
 - [nsq](https://nsq.io)
 - [grpc](https://grpc.io)
+
+## Bug
+- `debug` 下 `grpc.server` 中的 `lease` 超时会断开失效，需要重连机制

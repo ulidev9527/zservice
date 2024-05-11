@@ -27,7 +27,7 @@ func aliyunSMSSend(ctx *zservice.Context, c *aliyunSMSSendConfig) (code uint32) 
 		c.Secret == "" ||
 		c.TemplateCode == "" ||
 		c.SignName == "" {
-		return zglobal.E_SMS_SendParamsErr
+		return zglobal.Code_Zsms_SendParamsErr
 	}
 
 	// 请确保代码运行环境设置了环境变量 ALIBABA_CLOUD_ACCESS_KEY_ID 和 ALIBABA_CLOUD_ACCESS_KEY_SECRET��
@@ -48,7 +48,7 @@ func aliyunSMSSend(ctx *zservice.Context, c *aliyunSMSSendConfig) (code uint32) 
 
 	if e != nil {
 		ctx.LogError(e)
-		return zglobal.E_SMS_ErrorBreakoff
+		return zglobal.Code_Zsms_ErrorBreakoff
 	}
 
 	sendSmsRequest := &dysmsapi20170525.SendSmsRequest{
@@ -78,7 +78,7 @@ func aliyunSMSSend(ctx *zservice.Context, c *aliyunSMSSendConfig) (code uint32) 
 	}()
 
 	if tryErr != nil {
-		return zglobal.E_SMS_ErrorBreakoff
+		return zglobal.Code_Zsms_ErrorBreakoff
 	}
-	return zglobal.E_SUCC
+	return zglobal.Code_SUCC
 }

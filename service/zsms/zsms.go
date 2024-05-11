@@ -2,13 +2,13 @@ package main
 
 import (
 	_ "embed"
-	"zservice/internal/etcdservice"
-	"zservice/internal/gormservice"
-	"zservice/internal/grpcservice"
-	"zservice/internal/redisservice"
 	"zservice/service/zsms/internal"
 	"zservice/service/zsms/zsms_pb"
 	"zservice/zservice"
+	"zservice/zservice/ex/etcdservice"
+	"zservice/zservice/ex/gormservice"
+	"zservice/zservice/ex/grpcservice"
+	"zservice/zservice/ex/redisservice"
 
 	"github.com/redis/go-redis/v9"
 	clientv3 "go.etcd.io/etcd/client/v3"

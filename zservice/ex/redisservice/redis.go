@@ -3,6 +3,7 @@ package redisservice
 import (
 	"context"
 	"fmt"
+	"zservice/zglobal"
 	"zservice/zservice"
 
 	"github.com/redis/go-redis/v9"
@@ -58,4 +59,23 @@ func NewRedisService(c *RedisServiceConfig) *RedisService {
 // 格式化 key, 对key进行拼接
 func FormatKey(key string, args ...any) string {
 	return fmt.Sprintf("%s:%s", zservice.GetName(), fmt.Sprintf(key, args...))
+}
+
+// 分布式锁
+func Lock(r *redis.Client, key string) (func(), error) {
+	lockKey := fmt.Sprintf("%s_lock", key)
+	has, e := r.SetNX(context.TODO(), lockKey, 1, zglobal.Time_1m).Result()
+	if e != nil {
+		return nil, zservice.NewError(e)
+	}
+	if !has {
+		return nil, zservice.NewErrorf("lock %s fail", lockKey)
+	}
+
+	return func() {
+		_, e = r.Del(context.TODO(), lockKey).Result()
+		if e != nil {
+			zservice.LogErrorf("unlock %s fail: %s", lockKey, e)
+		}
+	}, nil
 }

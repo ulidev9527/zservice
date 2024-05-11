@@ -1,7 +1,7 @@
 package internal
 
 import (
-	"zservice/internal/ginservice"
+	"zservice/zservice/ex/ginservice"
 
 	"github.com/gin-gonic/gin"
 )

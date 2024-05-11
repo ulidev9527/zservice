@@ -2,8 +2,8 @@ package internal
 
 import (
 	"context"
-	"zservice/internal/grpcservice"
 	"zservice/service/zsms/zsms_pb"
+	"zservice/zservice/ex/grpcservice"
 )
 
 type ZsmsServer struct {

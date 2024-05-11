@@ -2,11 +2,11 @@ package main
 
 import (
 	"os"
-	"zservice/internal/ginservice"
-	"zservice/internal/gormservice"
-	"zservice/internal/redisservice"
 	"zservice/service/zauth/internal"
 	"zservice/zservice"
+	"zservice/zservice/ex/ginservice"
+	"zservice/zservice/ex/gormservice"
+	"zservice/zservice/ex/redisservice"
 
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"

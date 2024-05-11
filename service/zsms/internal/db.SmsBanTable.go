@@ -2,9 +2,9 @@ package internal
 
 import (
 	"time"
-	"zservice/internal/redisservice"
 	"zservice/zglobal"
 	"zservice/zservice"
+	"zservice/zservice/ex/redisservice"
 
 	"gorm.io/gorm"
 )
@@ -30,20 +30,20 @@ func IsSmsBan(ctx *zservice.Context, phone string) (bool, error) {
 	rKey := redisservice.FormatKey(RK_PhoneBan, phone)
 	has, e := Redis.Exists(ctx, rKey).Result()
 	if e != nil {
-		return true, zservice.NewError(e).SetCode(zglobal.E_ErrorBreakoff)
+		return true, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 	}
 
 	if has >= 1 {
 		// 提取缓存的时间
 		tstr, e := Redis.Get(ctx, rKey).Result()
 		if e != nil {
-			return true, zservice.NewError(e).SetCode(zglobal.E_ErrorBreakoff)
+			return true, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 		}
 		t, e := time.Parse(time.RFC3339, tstr)
 		if e != nil {
 			_, e := Redis.Del(ctx, rKey).Result()
 			if e != nil {
-				return true, zservice.NewError(e).SetCode(zglobal.E_ErrorBreakoff)
+				return true, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 			}
 		} else {
 			return t.After(time.Now()), nil
@@ -55,7 +55,7 @@ func IsSmsBan(ctx *zservice.Context, phone string) (bool, error) {
 	count := int64(0)
 	e = wh.Count(&count).Error
 	if e != nil {
-		return true, zservice.NewError(e).SetCode(zglobal.E_ErrorBreakoff)
+		return true, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 	}
 	// 封禁时间
 	banTime := time.Now()
@@ -65,7 +65,7 @@ func IsSmsBan(ctx *zservice.Context, phone string) (bool, error) {
 		tb := &SmsBanTable{}
 		e := wh.First(&tb).Error
 		if e != nil {
-			return true, zservice.NewError(e).SetCode(zglobal.E_ErrorBreakoff)
+			return true, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 		}
 		banTime = tb.Expires
 		banCache = int(time.Until(banTime).Seconds())
