@@ -1,9 +1,9 @@
 syntax = "proto3";
-package smsservice_pb;
-option go_package="./smsservice_pb";
+package zauth_pb;
+option go_package="./zauth_pb";
 
 message Default_RES {
-    uint32 Code = 1;  // 服务状态码 约定: 0 表示成功, 其它数字根据业务进行返回
+    uint32 Code = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
     string MSG  = 2;  // 服务消息
 }
 
@@ -18,7 +18,7 @@ message VerifyCode_REQ { // 发送验证码 请求
     string Code     = 3;  // 验证码
 }
 
-service smsservice{
+service zauth{
     rpc SendVerifyCode(SendVerifyCode_REQ) returns(Default_RES);  // 发送验证码
     rpc VerifyCode(VerifyCode_REQ) returns(Default_RES);          // 验证验证码
 }

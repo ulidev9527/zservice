@@ -1,0 +1,23 @@
+syntax = "proto3";
+package zsms_pb;
+option go_package="./zsms_pb";
+
+message Default_RES {
+    uint32 Code = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
+}
+
+message SendVerifyCode_REQ { // 发送验证码 请求
+    string Phone    = 1;  // 手机号 必须带有 +86
+    string Serive = 2;  // 服务标识，哪个服务发起的验证码请求，可以为空字符串
+}
+
+message VerifyCode_REQ { // 发送验证码 请求
+    string Phone    = 1;  // 手机号 必须带有 +86
+    string Serive = 2;  // 服务标识，哪个服务发起的验证码请求，可以为空字符串
+    string Code     = 3;  // 验证码
+}
+
+service zsms{
+    rpc SendVerifyCode(SendVerifyCode_REQ) returns(Default_RES);  // 发送验证码
+    rpc VerifyCode(VerifyCode_REQ) returns(Default_RES);          // 验证验证码
+}

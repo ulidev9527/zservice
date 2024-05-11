@@ -21,9 +21,18 @@ func ClearEnvCache() {
 func initEnv(c *ZServiceConfig) {
 	ClearEnvCache()
 	// .env 文件加载
-	godotenv.Load()         // load .env file
+	if _, err := os.Stat(".env"); !os.IsNotExist(err) {
+		e := godotenv.Load() // load .env file
+		if e != nil {
+			LogError("load .env fail:", e)
+		}
+	}
+
 	if len(c.EnvFils) > 0 { // load other env files
-		godotenv.Load(c.EnvFils...)
+		e := godotenv.Load(c.EnvFils...)
+		if e != nil {
+			LogError("load env files fail:", e)
+		}
 	}
 
 	// 远程环境变量加载
@@ -51,6 +60,10 @@ func Getenv(key string) string {
 	}
 
 	return Getenv(key)
+}
+
+func GetenvInt(key string) int {
+	return Convert_StringToInt(Getenv(key))
 }
 
 func GetenvBool(key string) bool {

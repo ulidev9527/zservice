@@ -7,7 +7,7 @@ import (
 
 // ------------- Error -------------
 type Error struct {
-	code int    // 错误码
+	code uint32 // 错误码
 	msg  string // 错误消息
 }
 
@@ -42,7 +42,12 @@ func (e *Error) String() string {
 }
 
 // 设置错误码
-func (e *Error) SetCode(code int) *Error {
+func (e *Error) SetCode(code uint32) *Error {
 	e.code = code
 	return e
+}
+
+// 获取错误码
+func (e *Error) GetCode() uint32 {
+	return e.code
 }

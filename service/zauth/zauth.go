@@ -1,11 +1,11 @@
 package main
 
 import (
-	_ "embed"
+	"os"
 	"zservice/internal/ginservice"
 	"zservice/internal/gormservice"
 	"zservice/internal/redisservice"
-	"zservice/service/zconfig/internal"
+	"zservice/service/zauth/internal"
 	"zservice/zservice"
 
 	"github.com/gin-gonic/gin"
@@ -15,26 +15,28 @@ import (
 
 func init() {
 	zservice.Init(&zservice.ZServiceConfig{
-		Name:    "zconfig",
-		Version: "0.1.0",
+		Name:          "zauth",
+		Version:       "1.0.0",
+		RemoteEnvAddr: zservice.Getenv("REMOTE_ENV_ADDR"),
+		RemoteEnvAuth: zservice.Getenv("REMOTE_ENV_AUTH"),
 	})
 }
 
 func main() {
 
 	mysqlS := gormservice.NewGormMysqlService(&gormservice.GormMysqlServiceConfig{
-		DBName: zservice.Getenv("MYSQL_DBNAME"),
-		Addr:   zservice.Getenv("MYSQL_ADDR"),
-		User:   zservice.Getenv("MYSQL_USER"),
-		Pass:   zservice.Getenv("MYSQL_PASS"),
+		DBName: os.Getenv("MYSQL_DBNAME"),
+		Addr:   os.Getenv("MYSQL_ADDR"),
+		User:   os.Getenv("MYSQL_USER"),
+		Pass:   os.Getenv("MYSQL_PASS"),
 		OnStart: func(db *gorm.DB) {
 			internal.Mysql = db
 			internal.InitMysql()
 		},
 	})
 	redisS := redisservice.NewRedisService(&redisservice.RedisServiceConfig{
-		Addr: zservice.Getenv("REDIS_ADDR"),
-		Pass: zservice.Getenv("REDIS_PASS"),
+		Addr: os.Getenv("REDIS_ADDR"),
+		Pass: os.Getenv("REDIS_PASS"),
 		OnStart: func(db *redis.Client) {
 			internal.Redis = db
 			internal.InitRedis()
@@ -42,7 +44,7 @@ func main() {
 	})
 
 	ginS := ginservice.NewGinService(&ginservice.GinServiceConfig{
-		Addr: zservice.Getenv("GIN_ADDR"),
+		Addr: os.Getenv("GIN_ADDR"),
 		OnStart: func(engine *gin.Engine) {
 			internal.Gin = engine
 			internal.InitGin()

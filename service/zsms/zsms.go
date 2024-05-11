@@ -2,22 +2,30 @@ package main
 
 import (
 	_ "embed"
-	"zservice/internal/ginservice"
+	"zservice/internal/etcdservice"
 	"zservice/internal/gormservice"
+	"zservice/internal/grpcservice"
 	"zservice/internal/redisservice"
-	"zservice/service/zconfig/internal"
+	"zservice/service/zsms/internal"
+	"zservice/service/zsms/zsms_pb"
 	"zservice/zservice"
 
-	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
+	clientv3 "go.etcd.io/etcd/client/v3"
+	"google.golang.org/grpc"
 	"gorm.io/gorm"
 )
 
+//go:embed version
+var Version string
+
 func init() {
+
 	zservice.Init(&zservice.ZServiceConfig{
-		Name:    "zconfig",
-		Version: "0.1.0",
+		Name:    "zsms",
+		Version: Version,
 	})
+
 }
 
 func main() {
@@ -41,20 +49,30 @@ func main() {
 		},
 	})
 
-	ginS := ginservice.NewGinService(&ginservice.GinServiceConfig{
-		Addr: zservice.Getenv("GIN_ADDR"),
-		OnStart: func(engine *gin.Engine) {
-			internal.Gin = engine
-			internal.InitGin()
+	etcdS := etcdservice.NewEtcdService(&etcdservice.EtcdServiceConfig{
+
+		Addr: zservice.Getenv("ETCD_ADDR"),
+		OnStart: func(etcd *clientv3.Client) {
+			// do something
+		},
+	})
+
+	grpcS := grpcservice.NewGrpcService(&grpcservice.GrpcServiceConfig{
+		Addr:       zservice.Getenv("GRPC_ADDR"),
+		EtcdServer: etcdS.Etcd,
+		OnStart: func(grpc *grpc.Server) {
+			zsms_pb.RegisterZsmsServer(grpc, internal.NewZsmsServer())
 		},
 	})
 
 	zservice.AddDependService(mysqlS.ZService)
 	zservice.AddDependService(redisS.ZService)
-	zservice.AddDependService(ginS.ZService)
+	zservice.AddDependService(etcdS.ZService)
+	zservice.AddDependService(grpcS.ZService)
 
-	ginS.AddDependService(mysqlS.ZService)
-	ginS.AddDependService(redisS.ZService)
+	grpcS.AddDependService(etcdS.ZService)
+	grpcS.AddDependService(mysqlS.ZService)
+	grpcS.AddDependService(redisS.ZService)
 
 	zservice.Start()
 	zservice.WaitStart()

@@ -29,14 +29,6 @@ func LogInfoCallerf(caller int, format string, v ...any) {
 	LogInfoCaller(caller+1, fmt.Sprintf(format, v...))
 }
 
-// Debugf
-func LogDebug(v ...any)                   { LogDebugCaller(2, v...) }
-func LogDebugf(format string, v ...any)   { LogDebugCallerf(2, format, v...) }
-func LogDebugCaller(caller int, v ...any) { logger.Debug().Caller(caller).Msg(SprintQuote(v...)) }
-func LogDebugCallerf(caller int, format string, v ...any) {
-	LogDebugCaller(caller+1, fmt.Sprintf(format, v...))
-}
-
 // 警告
 func LogWarn(v ...any)                   { LogWarnCaller(2, v...) }
 func LogWarnf(format string, v ...any)   { LogWarnCallerf(2, format, v...) }

@@ -1,42 +1,42 @@
-package smsservice
+package zsms
 
 import (
 	"context"
 	_ "embed"
 	"zservice/internal/grpcservice"
-	"zservice/service/smsservice/smsservice_pb"
+	"zservice/service/zsms/zsms_pb"
 	"zservice/zservice"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"google.golang.org/grpc"
 )
 
-type SmsserviceClient struct {
+type ZsmsClient struct {
 	conn   *grpc.ClientConn
-	client smsservice_pb.SmsserviceClient
+	client zsms_pb.ZsmsClient
 }
 
-func NewSmsserviceClient(etcdClient *clientv3.Client) *SmsserviceClient {
+func NewZsmsClient(etcdClient *clientv3.Client) *ZsmsClient {
 	conn, e := grpcservice.NewGrpcClient(&grpcservice.GrpcClientConfig{
-		EtcdServiceName: "smsservice",
+		EtcdServiceName: "zsms",
 		EtcdServer:      etcdClient,
 	})
 	if e != nil {
 		zservice.LogPanic(e)
 		return nil
 	}
-	return &SmsserviceClient{
+	return &ZsmsClient{
 		conn:   conn,
-		client: smsservice_pb.NewSmsserviceClient(conn),
+		client: zsms_pb.NewZsmsClient(conn),
 	}
 }
 
-func (s *SmsserviceClient) SendVerifyCode(ctx *zservice.Context, req *smsservice_pb.SendVerifyCode_REQ) (*smsservice_pb.Default_RES, error) {
+func (s *ZsmsClient) SendVerifyCode(ctx *zservice.Context, req *zsms_pb.SendVerifyCode_REQ) (*zsms_pb.Default_RES, error) {
 	zctx := context.WithValue(context.Background(), grpcservice.GRPC_contextEX_Middleware_Key, ctx)
 	return s.client.SendVerifyCode(zctx, req)
 }
 
-func (s *SmsserviceClient) VerifyCode(ctx *zservice.Context, req *smsservice_pb.VerifyCode_REQ) (*smsservice_pb.Default_RES, error) {
+func (s *ZsmsClient) VerifyCode(ctx *zservice.Context, req *zsms_pb.VerifyCode_REQ) (*zsms_pb.Default_RES, error) {
 	zctx := context.WithValue(context.Background(), grpcservice.GRPC_contextEX_Middleware_Key, ctx)
 	return s.client.VerifyCode(zctx, req)
 }

@@ -10,7 +10,9 @@ var (
 	Redis *redis.Client
 )
 
-func InitMysql() {}
+func InitMysql() {
+	Mysql.AutoMigrate(&SmsBanTable{})
+}
 func InitRedis() {
 
 }

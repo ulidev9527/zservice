@@ -1,0 +1,14 @@
+syntax = "proto3";
+package zconfig_pb;
+option go_package="./zconfig_pb";
+
+
+message Default_RES {
+    uint32 Code = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
+    string MSG  = 2;  // 服务消息
+}
+
+
+service zconfig{
+    
+}
