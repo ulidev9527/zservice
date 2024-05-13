@@ -127,11 +127,17 @@ func (z *ZService) LogInfo(v ...any) {
 func (z *ZService) LogInfof(f string, v ...any) {
 	LogInfoCaller(2, z.logCtxStr(), fmt.Sprintf(f, v...))
 }
+func (z *ZService) LogInfoCaller(caller int, v ...any) {
+	LogInfoCaller(2+caller, z.logCtxStr(), Sprint(v...))
+}
 func (z *ZService) LogWarn(v ...any) {
 	LogWarnCaller(2, z.logCtxStr(), Sprint(v...))
 }
 func (z *ZService) LogWarnf(f string, v ...any) {
 	LogWarnCaller(2, z.logCtxStr(), fmt.Sprintf(f, v...))
+}
+func (z *ZService) LogWarnCaller(caller int, v ...any) {
+	LogWarnCaller(2+caller, z.logCtxStr(), Sprint(v...))
 }
 func (z *ZService) LogError(v ...any) {
 	LogErrorCaller(2, z.logCtxStr(), Sprint(v...))
@@ -139,9 +145,15 @@ func (z *ZService) LogError(v ...any) {
 func (z *ZService) LogErrorf(f string, v ...any) {
 	LogErrorCaller(2, z.logCtxStr(), fmt.Sprintf(f, v...))
 }
+func (z *ZService) LogErrorCaller(caller int, v ...any) {
+	LogErrorCaller(2+caller, z.logCtxStr(), Sprint(v...))
+}
 func (z *ZService) LogPanic(v ...any) {
 	LogPanicCaller(2, z.logCtxStr(), Sprint(v...))
 }
 func (z *ZService) LogPanicf(f string, v ...any) {
 	LogPanicCallerf(2, z.logCtxStr(), fmt.Sprintf(f, v...))
+}
+func (z *ZService) LogPanicCaller(caller int, v ...any) {
+	LogPanicCaller(2+caller, z.logCtxStr(), Sprint(v...))
 }

@@ -49,7 +49,7 @@ func main() {
 	})
 
 	nsqS := nsqservice.NewNsqProducerService(&nsqservice.NsqProducerServiceConfig{
-		Addr: zservice.Getenv("NSQ_ADDR"),
+		Addr: zservice.Getenv("NSQD_ADDR"),
 		OnStart: func(producer *nsq.Producer) {
 			internal.Nsq = producer
 			internal.InitNsq()

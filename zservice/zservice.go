@@ -41,6 +41,11 @@ func GetServiceName() string {
 	return mainService.name
 }
 
+// 获取主服务
+func GetMainService() *ZService {
+	return mainService
+}
+
 func Start() {
 	mainService.start()
 }

@@ -2,6 +2,7 @@ package zconfig
 
 import (
 	"encoding/json"
+	"fmt"
 	"sync"
 	"zservice/service/zconfig/zconfig_pb"
 	"zservice/zglobal"
@@ -13,9 +14,9 @@ import (
 )
 
 type ZConfigConfig struct {
-	Etcd     *clientv3.Client
-	NsqAddrs []string
-	IsNsqd   bool
+	Etcd            *clientv3.Client
+	NsqConsumerAddr string // nsq consumer addr
+	IsNsqd          bool
 }
 
 var grpcClient *GrpcClient
@@ -26,7 +27,7 @@ func Init(c *ZConfigConfig) {
 	grpcClient = NewGrpcClient(c.Etcd)
 
 	NewNsqConsumer_FileConfigChange(&NsqConsumerConfig{
-		Addrs:  c.NsqAddrs,
+		Addr:   c.NsqConsumerAddr,
 		IsNsqd: c.IsNsqd,
 		OnMessage: func(m *nsq.Message) error {
 			fileName := string(m.Body)
@@ -39,6 +40,11 @@ func Init(c *ZConfigConfig) {
 
 // 加载远程环境变量
 func LoadRemoteEnv(addr string, auth string) *zservice.Error {
+
+	if addr == "" {
+		return zservice.NewError("no addr")
+	}
+
 	body, e := zservice.Get(zservice.NewEmptyContext(), addr, &map[string]any{"auth": auth}, nil)
 	if e != nil {
 		return e
@@ -54,14 +60,14 @@ func LoadRemoteEnv(addr string, auth string) *zservice.Error {
 }
 
 // 获取指定文件的配置
-// 不传 key 返回所有配置 map
+// 不传 key 返回所有配置数组
 // 一个 key 返回一个对象
 // 多个 key 返回数组
 func GetFileConfig(fileName string, v any, keys ...string) *zservice.Error {
 	// 是否有配置，没有拉取配置
 	val, has := fileConfigMap.Load(fileName)
 
-	if !has {
+	if !has { // 配置中心拉取配置
 		res, e := grpcClient.GetFileConfig(zservice.NewEmptyContext(), &zconfig_pb.GetFileConfig_REQ{
 			FileName: fileName,
 		})
@@ -73,7 +79,7 @@ func GetFileConfig(fileName string, v any, keys ...string) *zservice.Error {
 			return zservice.NewError("get file config fail").SetCode(res.Code)
 		}
 
-		var maps map[string]map[string]any
+		var maps map[string]string
 		ee := json.Unmarshal([]byte(res.Value), &maps)
 		if ee != nil {
 			return zservice.NewError(ee)
@@ -84,28 +90,40 @@ func GetFileConfig(fileName string, v any, keys ...string) *zservice.Error {
 		val = maps
 	}
 
-	maps := val.(map[string]map[string]any)
+	// 开始解析
+	maps := val.(map[string]string)
 	keyCount := len(keys)
-	if keyCount == 0 {
-		arr := make([]map[string]any, 0)
-		for _, _v := range maps {
-			arr = append(arr, _v)
-		}
-		json.Unmarshal(zservice.JsonMustMarshal(arr), v)
-		return nil
-	} else if keyCount == 1 {
-		json.Unmarshal(zservice.JsonMustMarshal(maps[keys[0]]), v)
-		return nil
-	} else {
-		arr := make([]any, 0)
-		for _, _v := range keys {
-			m := maps[_v]
-			if m == nil {
-				return zservice.NewError("key not exist", _v).SetCode(zglobal.Code_Zconfig_GetConfigFail)
-			}
-			arr = append(arr, maps[_v])
-		}
-		json.Unmarshal(zservice.JsonMustMarshal(arr), v)
+
+	if keyCount == 1 { // 解析一个配置
+		str := maps[keys[0]]
+		json.Unmarshal([]byte(str), v)
 		return nil
 	}
+
+	useMap := map[string]string{}
+
+	if keyCount == 0 {
+		useMap = maps
+	} else {
+		for _, _v := range keys {
+			str := maps[_v]
+			if str == "" {
+				return zservice.NewError("key not exist", _v).SetCode(zglobal.Code_Zconfig_GetConfigFail)
+			}
+			useMap[_v] = str
+		}
+	}
+
+	// 数组模式解析
+	jStr := ""
+	for _, _v := range useMap {
+		jStr += _v + ","
+	}
+	jStr = jStr[0 : len(jStr)-1]
+	jStr = fmt.Sprintf("[ %s ]", jStr)
+	zservice.LogInfo(jStr)
+	if e := json.Unmarshal([]byte(jStr), v); e != nil {
+		return zservice.NewError(e).SetCode(zglobal.Code_Zconfig_GetConfigFail)
+	}
+	return nil
 }

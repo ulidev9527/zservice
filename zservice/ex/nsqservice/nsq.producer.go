@@ -30,6 +30,10 @@ func NewNsqProducerService(c *NsqProducerServiceConfig) *NsqProducerService {
 		name = fmt.Sprint(name, "-", zservice.GetServiceName())
 	}
 
+	if c.Addr == "" {
+		zservice.LogPanic("NsqProducerServiceConfig.Addr is nil")
+	}
+
 	nps := &NsqProducerService{}
 
 	nps.ZService = zservice.NewService(name, func(s *zservice.ZService) {
@@ -38,7 +42,15 @@ func NewNsqProducerService(c *NsqProducerServiceConfig) *NsqProducerService {
 		if e != nil {
 			s.LogPanic(e)
 		}
+		s.LogInfo("start nsq producer", c.Addr)
 		nps.Producer = producer
+
+		producer.SetLogger(&LogEx{s}, nsq.LogLevelInfo)
+
+		e = nps.Producer.Ping()
+		if e != nil {
+			s.LogPanic(e)
+		}
 
 		if c.OnStart != nil {
 			c.OnStart(nps.Producer)

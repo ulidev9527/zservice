@@ -1,11 +1,14 @@
 package main
 
 import (
+	"net/http"
+	"strings"
 	"zservice/service/zconfig/zconfig"
-	"zservice/service/zconfig/zconfig_pb"
 	"zservice/zservice"
 	"zservice/zservice/ex/etcdservice"
+	"zservice/zservice/ex/ginservice"
 
+	"github.com/gin-gonic/gin"
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
@@ -28,62 +31,75 @@ func main() {
 	})
 
 	grpcClient := zservice.NewService("zconfig.grpc", func(z *zservice.ZService) {
-		zc := zconfig.NewGrpcClient(etcdS.Etcd)
-
-		zservice.TestAction("GetFileConfig-all", func() {
-
-			res, e := zc.GetFileConfig(zservice.NewEmptyContext(), &zconfig_pb.GetFileConfig_REQ{
-				FileName: "test.xlsx",
-			})
-			if e != nil {
-				z.LogError(e)
-			} else {
-				z.LogInfo(res)
-			}
+		zconfig.Init(&zconfig.ZConfigConfig{
+			Etcd:            etcdS.Etcd,
+			NsqConsumerAddr: zservice.Getenv("NSQ_CONSUMER_ADDR"),
+			IsNsqd:          zservice.GetenvBool("NSQ_CONSUMER_IS_NSQD"),
 		})
 
-		zservice.TestAction("getFileConfig-byID", func() {
-			res, e := zc.GetFileConfig(zservice.NewEmptyContext(), &zconfig_pb.GetFileConfig_REQ{
-				FileName: "test.xlsx",
-				Keys:     "1,3,5,",
-			})
-			if e != nil {
-				z.LogError(e)
-			} else {
-				z.LogInfo(res)
-			}
-		})
+		z.StartDone()
+	})
 
-		zservice.TestAction("getFileConfig-one", func() {
-			res, e := zc.GetFileConfig(zservice.NewEmptyContext(), &zconfig_pb.GetFileConfig_REQ{
-				FileName: "test.xlsx",
-				Keys:     "1",
-			})
-			if e != nil {
-				z.LogError(e)
-			} else {
-				z.LogInfo(res)
-			}
-		})
+	ginS := ginservice.NewGinService(&ginservice.GinServiceConfig{
+		Addr: zservice.Getenv("GIN_ADDR"),
+		OnStart: func(engine *gin.Engine) {
+			engine.GET("/", func(ctx *gin.Context) {
+				zctx := ginservice.GetCtxEX(ctx)
+				id := ctx.Query("id")
+				if id == "" {
 
-		zservice.TestAction("getFileConfig-one empty", func() {
-			res, e := zc.GetFileConfig(zservice.NewEmptyContext(), &zconfig_pb.GetFileConfig_REQ{
-				FileName: "test.xlsx",
-				Keys:     "18",
-			})
-			if e != nil {
-				z.LogError(e)
-			} else {
-				z.LogInfo(res)
-			}
-		})
+					arr := []struct {
+						ID         string `json:"id"`
+						Name       string `json:"name"`
+						Desc       string `json:"desc"`
+						Icon       string `json:"icon"`
+						LimitCount uint32 `json:"limit_count"`
+					}{}
 
+					e := zconfig.GetFileConfig("test.xlsx", &arr)
+					if e != nil {
+						zctx.LogError(e)
+					}
+					ctx.String(http.StatusOK, string(zservice.JsonMustMarshal(arr)))
+				} else if strings.Contains(id, ",") {
+					arr := []struct {
+						ID         string `json:"id"`
+						Name       string `json:"name"`
+						Desc       string `json:"desc"`
+						Icon       string `json:"icon"`
+						LimitCount uint32 `json:"limit_count"`
+					}{}
+
+					e := zconfig.GetFileConfig("test.xlsx", &arr, zservice.StringSplit(id, ",")...)
+					if e != nil {
+						zctx.LogError(e)
+					}
+					ctx.String(http.StatusOK, string(zservice.JsonMustMarshal(arr)))
+				} else {
+
+					m := struct {
+						ID         int    `json:"id"`
+						Name       string `json:"name"`
+						Desc       string `json:"desc"`
+						Icon       string `json:"icon"`
+						LimitCount uint32 `json:"limit_count"`
+					}{}
+					e := zconfig.GetFileConfig("test.xlsx", &m, id)
+					if e != nil {
+						zctx.LogError(e)
+					}
+					ctx.String(http.StatusOK, string(zservice.JsonMustMarshal(m)))
+				}
+			})
+		},
 	})
 
 	zservice.AddDependService(etcdS.ZService)
 	zservice.AddDependService(grpcClient)
+	zservice.AddDependService(ginS.ZService)
 
 	grpcClient.AddDependService(etcdS.ZService)
+	ginS.ZService.AddDependService(etcdS.ZService)
 
 	zservice.Start()
 

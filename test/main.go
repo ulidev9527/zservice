@@ -1,6 +1,9 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
+	"reflect"
 	"zservice/zservice"
 )
 
@@ -13,55 +16,35 @@ func init() {
 
 func main() {
 
-	arr := []int{}
-	for i := 0; i < 100000; i++ {
-		arr = append(arr, i)
+	arr1 := []int{1, 2, 3, 456}
+	GetEle(arr1)
+
+	type CC struct {
+		ID         string `json:"id"`
+		Name       string `json:"name"`
+		Desc       string `json:"desc"`
+		Icon       string `json:"icon"`
+		LimitCount uint32 `json:"limit_count"`
 	}
 
-	zservice.TestAction("test", func() {
-		n := 0
-		for i := 0; i < len(arr); i++ {
-			n = i
-		}
-		zservice.LogInfo(n)
-	})
+	arr2 := []CC{}
+	GetEle(arr2)
+	GetEle(&arr2)
 
-	zservice.TestAction("test2", func() {
-		n := 0
-		for _, v := range arr {
-			n = v
-		}
-		zservice.LogInfo(n)
-	})
+	str := `[ {"id":"5"},{"id":"8"},{"def_container_id":0,"desc":"初始化创建","icon":"","id":"1","limit_count":1,"name":"角色背包","type":0},{"id":"4"},{"id":"7"},{"id":"10"},{"id":"3"},{"desc":"用户ID","id":"51","name":"用户ID"},{"id":"52","name":"用户昵称"},{"id":"53","name":"用户头像"},{"desc":"常见的货币","icon":"gold","id":"54","name":"金币"},{"def_container_id":0,"desc":"","icon":"","id":"2","limit_count":1,"name":"","type":0},{"id":"9"},{"id":"6"} ]`
 
-	// zservice.TestAction("test1", func() {
-	// 	for i := 0; i < 200000; i++ {
-	// 		zservice.Convert_IntToString(zservice.RandomIntRange(100000, 999999))
-	// 	}
-	// })
-	// zservice.TestAction("test2", func() {
-	// 	for i := 0; i < 200000; i++ {
-	// 		zservice.RandomIntRange(100000, 999999)
-	// 		// if len(strconv.Itoa(c)) != 6 {
-	// 		// 	zservice.LogError(c)
-	// 		// }
-	// 	}
-	// })
-	// zservice.TestAction("test3", func() {
-	// 	for i := 0; i < 200000; i++ {
-	// 		fmt.Sprintf("%d", zservice.RandomIntRange(100000, 999999))
-	// 		// if len(strconv.Itoa(c)) != 6 {
-	// 		// 	zservice.LogError(c)
-	// 		// }
-	// 	}
-	// })
-	// zservice.TestAction("test3", func() {
-	// 	for i := 0; i < 200000; i++ {
-	// 		zservice.Sprint("%d", zservice.RandomIntRange(100000, 999999))
-	// 		// if len(strconv.Itoa(c)) != 6 {
-	// 		// 	zservice.LogError(c)
-	// 		// }
-	// 	}
-	// })
+	// c := &CC{}
+	e := json.Unmarshal([]byte(str), &arr2)
+	if e != nil {
+		zservice.LogError(e)
+	} else {
+		zservice.LogInfo(arr2)
+	}
 
+}
+
+func GetEle(v any) {
+
+	vt := reflect.TypeOf(v).Elem()
+	fmt.Println("Array element type:", vt)
 }

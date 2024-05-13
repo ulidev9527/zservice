@@ -1,22 +1,27 @@
 package internal
 
 import (
+	"fmt"
 	"strings"
 	"zservice/service/zconfig/zconfig_pb"
 	"zservice/zglobal"
 	"zservice/zservice"
-	"zservice/zservice/ex/redisservice"
 )
 
 // 获取文件配置
 func GetFileConfig(ctx *zservice.Context, in *zconfig_pb.GetFileConfig_REQ) (uint32, string) {
-
-	if e := ParserFile(in.FileName, zglobal.E_ZConfig_Parser_Excel); e != nil {
+	fKey := fmt.Sprintf(RK_FileConfig, in.FileName) // 缓存 key
+	has, e := Redis.Exists(ctx, fKey).Result()
+	if e != nil {
 		ctx.LogError(e)
-		return e.GetCode(), ""
+		return zglobal.Code_Zconfig_GetConfigFail, ""
 	}
-
-	fKey := redisservice.FormatKey(RK_FileConfig, in.FileName)
+	if has == 0 {
+		if e := ParserFile(in.FileName, zglobal.E_ZConfig_Parser_Excel); e != nil {
+			ctx.LogError(e)
+			return e.GetCode(), ""
+		}
+	}
 
 	// 获取全部
 	if in.Keys == "" {

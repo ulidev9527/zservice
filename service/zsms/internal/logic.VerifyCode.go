@@ -1,10 +1,10 @@
 package internal
 
 import (
+	"fmt"
 	"zservice/service/zsms/zsms_pb"
 	"zservice/zglobal"
 	"zservice/zservice"
-	"zservice/zservice/ex/redisservice"
 )
 
 func VerifyCode(ctx *zservice.Context, in *zsms_pb.VerifyCode_REQ) (code uint32) {
@@ -38,7 +38,7 @@ func VerifyCode(ctx *zservice.Context, in *zsms_pb.VerifyCode_REQ) (code uint32)
 	}
 
 	// 验证
-	rk := redisservice.FormatKey(RK_PhoneCode, in.Phone)
+	rk := fmt.Sprintf(RK_PhoneCode, in.Phone)
 	has, e := Redis.Exists(ctx, rk).Result()
 	if e != nil {
 		ctx.LogError(e)

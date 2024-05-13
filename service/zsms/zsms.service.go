@@ -2,6 +2,7 @@ package main
 
 import (
 	_ "embed"
+	"zservice/service/zconfig/zconfig"
 	"zservice/service/zsms/internal"
 	"zservice/service/zsms/zsms_pb"
 	"zservice/zservice"
@@ -16,15 +17,19 @@ import (
 	"gorm.io/gorm"
 )
 
-//go:embed version
-var Version string
-
 func init() {
 
 	zservice.Init(&zservice.ZServiceConfig{
 		Name:    "zsms",
-		Version: Version,
+		Version: "0.1.0",
 	})
+
+	if zservice.GetenvBool("USE_REMOTE_ENV") {
+		e := zconfig.LoadRemoteEnv(zservice.Getenv("REMOTE_ENV_ADDR"), zservice.Getenv("REMOTE_ENV_AUTH"))
+		if e != nil {
+			zservice.LogPanic(e)
+		}
+	}
 
 }
 

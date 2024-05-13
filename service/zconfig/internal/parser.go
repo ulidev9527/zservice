@@ -21,8 +21,8 @@ func init() {
 }
 
 // 验证文件正确性
-func ParserFileVerify(file string) *zservice.Error {
-	fi, e := os.Stat(file)
+func ParserFileVerify(fileName string) *zservice.Error {
+	fi, e := os.Stat(fileName)
 	if os.IsNotExist(e) {
 		return zservice.NewError(e).SetCode(zglobal.Code_Zconfig_FileNotExist)
 	}
@@ -86,6 +86,7 @@ func ParserFile(fileName string, parserType uint32) *zservice.Error {
 		return e
 	}
 
+	// 通知监听程序更新
 	if e := Nsq.Publish(NSQ_FileConfig_Change, []byte(fileName)); e != nil {
 		return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 	}

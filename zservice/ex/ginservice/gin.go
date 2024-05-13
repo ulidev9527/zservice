@@ -62,6 +62,10 @@ func NewGinService(c *GinServiceConfig) *GinService {
 	// 服务
 	gs.ZService = zservice.NewService(name, func(s *zservice.ZService) {
 
+		if c.OnStart != nil {
+			c.OnStart(gs.Ginengine)
+		}
+
 		go func() {
 			gs.LogInfof("ginService listen on %v", c.Addr)
 			e := gs.Ginengine.Run(c.Addr)
@@ -70,9 +74,6 @@ func NewGinService(c *GinServiceConfig) *GinService {
 			}
 		}()
 		go func() {
-			if c.OnStart != nil {
-				c.OnStart(gs.Ginengine)
-			}
 			s.StartDone()
 		}()
 

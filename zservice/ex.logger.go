@@ -24,7 +24,8 @@ func init() {
 func LogInfo(v ...any)                 { LogInfoCaller(2, v...) }
 func LogInfof(format string, v ...any) { LogInfoCaller(2, fmt.Sprintf(format, v...)) }
 
-func LogInfoCaller(caller int, v ...any) { logger.Info().Caller(caller).Msg(Sprint(v...)) }
+// func LogInfoCaller(caller int, v ...any) { logger.Info().Caller(caller).Msg(Sprint(v...)) }
+func LogInfoCaller(caller int, v ...any) { logger.Info().Msg(Sprint(v...)) } // 不打印 caller
 func LogInfoCallerf(caller int, format string, v ...any) {
 	LogInfoCaller(caller+1, fmt.Sprintf(format, v...))
 }

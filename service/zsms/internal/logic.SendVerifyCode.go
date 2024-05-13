@@ -1,11 +1,11 @@
 package internal
 
 import (
+	"fmt"
 	"time"
 	"zservice/service/zsms/zsms_pb"
 	"zservice/zglobal"
 	"zservice/zservice"
-	"zservice/zservice/ex/redisservice"
 )
 
 // 发送验证码
@@ -35,7 +35,7 @@ func SendVerifyCode(ctx *zservice.Context, in *zsms_pb.SendVerifyCode_REQ) (code
 	}
 
 	// CD 检查
-	rKeyCD := redisservice.FormatKey(RK_PhoneCD, in.Phone)
+	rKeyCD := fmt.Sprintf(RK_PhoneCD, in.Phone)
 	has, e := Redis.Exists(ctx, rKeyCD).Result()
 	if e != nil {
 		ctx.LogError(e)
@@ -65,7 +65,7 @@ func SendVerifyCode(ctx *zservice.Context, in *zsms_pb.SendVerifyCode_REQ) (code
 		}
 
 		// 验证码
-		e = Redis.Set(ctx, redisservice.FormatKey(RK_PhoneCode, in.Phone), code, time.Duration(zservice.GetenvInt("SMS_CODE_CACHE"))*time.Second).Err()
+		e = Redis.Set(ctx, fmt.Sprintf(RK_PhoneCode, in.Phone), code, time.Duration(zservice.GetenvInt("SMS_CODE_CACHE"))*time.Second).Err()
 		if e != nil {
 			ctx.LogError(e)
 			return zglobal.Code_ErrorBreakoff

@@ -5,7 +5,6 @@ import (
 	"strings"
 	"zservice/zglobal"
 	"zservice/zservice"
-	"zservice/zservice/ex/redisservice"
 
 	"github.com/xuri/excelize/v2"
 )
@@ -13,7 +12,7 @@ import (
 // 解析 Excel 文件
 func ParserExcel(fileName string) *zservice.Error {
 
-	fullPath := fmt.Sprintf("static/%s", fileName)
+	fullPath := fmt.Sprintf("%s/%s", FI_StaticRoot, fileName)
 
 	fileMD5, e := GetMd5(fullPath)
 	if e != nil {
@@ -21,7 +20,7 @@ func ParserExcel(fileName string) *zservice.Error {
 	}
 
 	// md5 匹配, 没有数据或者无变化，返回 nil 进行解析
-	rKeyMd5 := redisservice.FormatKey(RK_FileMD5, fileName)
+	rKeyMd5 := fmt.Sprintf(RK_FileMD5, fileName)
 	if e := func() *zservice.Error {
 		has, e := Redis.Exists(zservice.TODO(), rKeyMd5).Result()
 		if e != nil {
@@ -35,13 +34,10 @@ func ParserExcel(fileName string) *zservice.Error {
 			return zservice.NewError(e).SetCode(zglobal.Code_Zconfig_ParserFail)
 		}
 		if str == fileMD5 {
-			return zservice.NewError("file md5 not change").SetCode(zglobal.Code_Zconfig_FileMd5NotChange)
+			return zservice.NewError("file md5 not change:", fileName).SetCode(zglobal.Code_Zconfig_FileMd5NotChange)
 		}
 		return nil // 有变化
 	}(); e != nil {
-		if e.GetCode() == zglobal.Code_Zconfig_FileMd5NotChange {
-			return nil
-		}
 		return e
 	}
 
@@ -70,8 +66,8 @@ func ParserExcel(fileName string) *zservice.Error {
 		}
 
 		// 开始循环 excel
-		rowsIndex := 0            // 当前行
-		exportType := []string{}  // 导出类型
+		rowsIndex := 0 // 当前行
+		// exportType := []string{}  // 导出类型 当前需要导出全部配置，禁用导出类型处理
 		valueTypes := []string{}  // 值类型
 		valueFields := []string{} // 值字段名
 		for rows.Next() {
@@ -96,7 +92,7 @@ func ParserExcel(fileName string) *zservice.Error {
 			}
 
 			if rowsIndex == 3 {
-				exportType = cols
+				// exportType = cols
 				continue
 			}
 
@@ -114,11 +110,10 @@ func ParserExcel(fileName string) *zservice.Error {
 			for i := 0; i < count; i++ {
 				// 导出类型判定
 				// 默认没有填写导出，c 表示客户端专用，不导出
-
-				if len(exportType) > i && strings.ToLower(exportType[i]) == "c" {
-					// 注释忽略导出类型
-					// continue
-				}
+				// if len(exportType) > i && strings.ToLower(exportType[i]) == "c" {
+				// 	// 注释忽略导出类型
+				// 	// continue
+				// }
 
 				// 字段获取
 				if len(valueFields) <= i { // 字段不够参数长度, 不继续导出
@@ -165,7 +160,7 @@ func ParserExcel(fileName string) *zservice.Error {
 	}
 
 	// 存储
-	rKeyFile := redisservice.FormatKey(RK_FileConfig, fileName)
+	rKeyFile := fmt.Sprintf(RK_FileConfig, fileName)
 	if e := func() *zservice.Error {
 
 		e := Redis.Del(zservice.TODO(), rKeyMd5).Err()

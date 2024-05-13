@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"zservice/service/zconfig/internal"
 	"zservice/zservice"
+	"zservice/zservice/ex/nsqservice"
 
 	"github.com/nsqio/go-nsq"
 )
 
 type NsqConsumerConfig struct {
-	Addrs     []string
+	Addr      string
 	IsNsqd    bool // 是否是nsqlookupd地址
 	OnMessage func(*nsq.Message) error
 }
@@ -20,14 +21,19 @@ func NewNsqConsumer_FileConfigChange(c *NsqConsumerConfig) {
 	if e != nil {
 		zservice.LogPanic(e)
 	}
+
+	consumer.AddHandler(nsq.HandlerFunc(c.OnMessage))
+	consumer.SetLogger(&nsqservice.LogEx{}, nsq.LogLevelInfo)
+
 	startChan := make(chan any, 1)
 
+	addrs := zservice.StringSplit(c.Addr, ",", true)
 	go func() {
 		e := func() error {
 			if c.IsNsqd {
-				return consumer.ConnectToNSQDs(c.Addrs)
+				return consumer.ConnectToNSQDs(addrs)
 			} else {
-				return consumer.ConnectToNSQLookupds(c.Addrs)
+				return consumer.ConnectToNSQLookupds(addrs)
 			}
 		}()
 		if e != nil {

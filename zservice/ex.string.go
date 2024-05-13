@@ -3,6 +3,7 @@ package zservice
 import (
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 // 格式化
@@ -21,4 +22,14 @@ func Sprint(v ...any) string {
 // 去掉换行的格式化
 func SprintQuote(v ...any) string {
 	return strconv.Quote(Sprint(v...))
+}
+
+func StringSplit(s string, sep string, clearEmpty ...bool) []string {
+	arr := strings.Split(s, sep)
+	if len(clearEmpty) > 0 && clearEmpty[0] {
+		arr = ListFilterString(arr, func(item string) bool {
+			return item != ""
+		})
+	}
+	return arr
 }

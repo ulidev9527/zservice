@@ -1,10 +1,10 @@
 package internal
 
 import (
+	"fmt"
 	"time"
 	"zservice/zglobal"
 	"zservice/zservice"
-	"zservice/zservice/ex/redisservice"
 
 	"gorm.io/gorm"
 )
@@ -27,7 +27,7 @@ func IsSmsBan(ctx *zservice.Context, phone string) (bool, error) {
 	}
 
 	// 查缓存
-	rKey := redisservice.FormatKey(RK_PhoneBan, phone)
+	rKey := fmt.Sprintf(RK_PhoneBan, phone)
 	has, e := Redis.Exists(ctx, rKey).Result()
 	if e != nil {
 		return true, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
