@@ -35,7 +35,11 @@ func NewErroref(e error, f string, v ...any) *Error {
 	return NewErrorCaller(2, fmt.Sprintf(f, v...), e)
 }
 func (e *Error) Error() string {
-	return fmt.Sprintf("%T:\n%s", &Error{}, e.msg)
+	if e.code != 0 {
+		return fmt.Sprintf("%d:%T:\n%s", e.code, &Error{}, e.msg)
+	} else {
+		return fmt.Sprintf("%T:\n%s", &Error{}, e.msg)
+	}
 }
 func (e *Error) String() string {
 	return e.msg

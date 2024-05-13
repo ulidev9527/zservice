@@ -11,11 +11,9 @@ var Version string
 var mainService *ZService
 
 type ZServiceConfig struct {
-	Name          string   // 服务名称
-	Version       string   // 服务版本
-	EnvFils       []string // 环境变量文件
-	RemoteEnvAddr string   // 远程环境变量地址
-	RemoteEnvAuth string   // 远程环境变量鉴权码
+	Name    string   // 服务名称
+	Version string   // 服务版本
+	EnvFils []string // 环境变量文件
 }
 
 func init() {
@@ -39,7 +37,7 @@ func Init(c *ZServiceConfig) {
 }
 
 // 获取服务名称
-func GetName() string {
+func GetServiceName() string {
 	return mainService.name
 }
 

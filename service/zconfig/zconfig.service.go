@@ -9,9 +9,11 @@ import (
 	"zservice/zservice/ex/ginservice"
 	"zservice/zservice/ex/gormservice"
 	"zservice/zservice/ex/grpcservice"
+	"zservice/zservice/ex/nsqservice"
 	"zservice/zservice/ex/redisservice"
 
 	"github.com/gin-gonic/gin"
+	"github.com/nsqio/go-nsq"
 	"github.com/redis/go-redis/v9"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"google.golang.org/grpc"
@@ -46,8 +48,15 @@ func main() {
 		},
 	})
 
-	etcdS := etcdservice.NewEtcdService(&etcdservice.EtcdServiceConfig{
+	nsqS := nsqservice.NewNsqProducerService(&nsqservice.NsqProducerServiceConfig{
+		Addr: zservice.Getenv("NSQ_ADDR"),
+		OnStart: func(producer *nsq.Producer) {
+			internal.Nsq = producer
+			internal.InitNsq()
+		},
+	})
 
+	etcdS := etcdservice.NewEtcdService(&etcdservice.EtcdServiceConfig{
 		Addr: zservice.Getenv("ETCD_ADDR"),
 		OnStart: func(etcd *clientv3.Client) {
 			// do something
@@ -75,13 +84,17 @@ func main() {
 	zservice.AddDependService(ginS.ZService)
 	zservice.AddDependService(etcdS.ZService)
 	zservice.AddDependService(grpcS.ZService)
+	zservice.AddDependService(nsqS.ZService)
 
 	grpcS.AddDependService(mysqlS.ZService)
 	grpcS.AddDependService(redisS.ZService)
+	grpcS.AddDependService(nsqS.ZService)
+
 	ginS.AddDependService(grpcS.ZService)
 	ginS.AddDependService(etcdS.ZService)
 	ginS.AddDependService(mysqlS.ZService)
 	ginS.AddDependService(redisS.ZService)
+	ginS.AddDependService(nsqS.ZService)
 
 	zservice.Start()
 	zservice.WaitStart()

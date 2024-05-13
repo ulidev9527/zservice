@@ -10,12 +10,12 @@ import (
 	"google.golang.org/grpc"
 )
 
-type ZconfigClient struct {
+type GrpcClient struct {
 	conn   *grpc.ClientConn
 	client zconfig_pb.ZconfigClient
 }
 
-func NewZconfigClient(etcdClient *clientv3.Client) *ZconfigClient {
+func NewGrpcClient(etcdClient *clientv3.Client) *GrpcClient {
 	conn, e := grpcservice.NewGrpcClient(&grpcservice.GrpcClientConfig{
 		EtcdServiceName: "zconfig",
 		EtcdServer:      etcdClient,
@@ -24,12 +24,12 @@ func NewZconfigClient(etcdClient *clientv3.Client) *ZconfigClient {
 		zservice.LogPanic(e)
 		return nil
 	}
-	return &ZconfigClient{
+	return &GrpcClient{
 		conn:   conn,
 		client: zconfig_pb.NewZconfigClient(conn),
 	}
 }
 
-func (s *ZconfigClient) GetFileConfig(ctx *zservice.Context, req *zconfig_pb.GetFileConfig_REQ) (*zconfig_pb.GetFileConfig_RES, error) {
+func (s *GrpcClient) GetFileConfig(ctx *zservice.Context, req *zconfig_pb.GetFileConfig_REQ) (*zconfig_pb.GetFileConfig_RES, error) {
 	return s.client.GetFileConfig(context.WithValue(context.Background(), grpcservice.GRPC_contextEX_Middleware_Key, ctx), req)
 }

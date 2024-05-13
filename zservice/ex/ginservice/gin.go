@@ -57,33 +57,30 @@ func NewGinService(c *GinServiceConfig) *GinService {
 	}
 
 	gs := &GinService{}
-	g := gin.New()
+	gs.Ginengine = gin.New()
 
 	// 服务
-	s := zservice.NewService(name, func(s *zservice.ZService) {
+	gs.ZService = zservice.NewService(name, func(s *zservice.ZService) {
 
 		go func() {
 			gs.LogInfof("ginService listen on %v", c.Addr)
-			e := g.Run(c.Addr)
+			e := gs.Ginengine.Run(c.Addr)
 			if e != nil {
 				s.LogPanic(e)
 			}
 		}()
 		go func() {
 			if c.OnStart != nil {
-				c.OnStart(g)
+				c.OnStart(gs.Ginengine)
 			}
 			s.StartDone()
 		}()
 
 	})
 
-	gs.Ginengine = g
-	gs.ZService = s
-
 	// 中间件
-	g.Use(GinCORSMiddleware())
-	g.Use(GinContextEXTMiddleware(gs.ZService))
+	gs.Ginengine.Use(GinCORSMiddleware())
+	gs.Ginengine.Use(GinContextEXTMiddleware(gs.ZService))
 
 	return gs
 }

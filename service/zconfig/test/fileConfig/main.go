@@ -3,7 +3,6 @@ package main
 import (
 	"zservice/service/zconfig/zconfig"
 	"zservice/service/zconfig/zconfig_pb"
-	"zservice/zglobal"
 	"zservice/zservice"
 	"zservice/zservice/ex/etcdservice"
 
@@ -29,12 +28,11 @@ func main() {
 	})
 
 	grpcClient := zservice.NewService("zconfig.grpc", func(z *zservice.ZService) {
-		zc := zconfig.NewZconfigClient(etcdS.Etcd)
+		zc := zconfig.NewGrpcClient(etcdS.Etcd)
 
 		zservice.TestAction("GetFileConfig-all", func() {
 
 			res, e := zc.GetFileConfig(zservice.NewEmptyContext(), &zconfig_pb.GetFileConfig_REQ{
-				Parser:   zglobal.E_ZConfig_Parser_Excel,
 				FileName: "test.xlsx",
 			})
 			if e != nil {
@@ -46,7 +44,6 @@ func main() {
 
 		zservice.TestAction("getFileConfig-byID", func() {
 			res, e := zc.GetFileConfig(zservice.NewEmptyContext(), &zconfig_pb.GetFileConfig_REQ{
-				Parser:   zglobal.E_ZConfig_Parser_Excel,
 				FileName: "test.xlsx",
 				Keys:     "1,3,5,",
 			})
@@ -59,7 +56,6 @@ func main() {
 
 		zservice.TestAction("getFileConfig-one", func() {
 			res, e := zc.GetFileConfig(zservice.NewEmptyContext(), &zconfig_pb.GetFileConfig_REQ{
-				Parser:   zglobal.E_ZConfig_Parser_Excel,
 				FileName: "test.xlsx",
 				Keys:     "1",
 			})
@@ -72,7 +68,6 @@ func main() {
 
 		zservice.TestAction("getFileConfig-one empty", func() {
 			res, e := zc.GetFileConfig(zservice.NewEmptyContext(), &zconfig_pb.GetFileConfig_REQ{
-				Parser:   zglobal.E_ZConfig_Parser_Excel,
 				FileName: "test.xlsx",
 				Keys:     "18",
 			})

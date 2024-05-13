@@ -11,7 +11,6 @@ message Default_RES {
 message GetFileConfig_REQ {
     string FileName = 1;  // 文件名
     string Keys     = 2;  // key 需要返回哪些值, 空值返回全部
-    uint32 Parser   = 3;  // 解析器，调用哪个解析器进行文件解析, zglobal.E_ZConfig_Parser_***
 }
 message GetFileConfig_RES{
     uint32 Code  = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回

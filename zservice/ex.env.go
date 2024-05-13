@@ -4,62 +4,60 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/joho/godotenv"
 )
 
 // 环境变量缓存
-var envCacheMap = map[string]string{}
+var envCacheMap = &sync.Map{}
 
-func ClearEnvCache() {
-	for k := range envCacheMap {
-		delete(envCacheMap, k)
+func MergeEnv(envs map[string]string) {
+	for k, v := range envs {
+		envCacheMap.Store(k, v)
 	}
-
 }
 
 func initEnv(c *ZServiceConfig) {
-	ClearEnvCache()
 	// .env 文件加载
 	if _, err := os.Stat(".env"); !os.IsNotExist(err) {
-		e := godotenv.Load() // load .env file
+		e := LoadFileEnv(".env") // load .env file
 		if e != nil {
 			LogError("load .env fail:", e)
 		}
 	}
 
 	if len(c.EnvFils) > 0 { // load other env files
-		e := godotenv.Load(c.EnvFils...)
-		if e != nil {
-			LogError("load env files fail:", e)
+		for _, v := range c.EnvFils {
+			e := LoadFileEnv(v)
+			if e != nil {
+				LogError("load env files fail:", e)
+			}
 		}
-	}
-
-	// 远程环境变量加载
-	if c.RemoteEnvAddr != "" {
-		LoadRemoteEnv(c.RemoteEnvAddr, c.RemoteEnvAuth)
 	}
 }
 
 func Getenv(key string) string {
-	s := envCacheMap[key]
-	if s != "" {
-		return s
+	s, has := envCacheMap.Load(key)
+	if has {
+		return s.(string)
 	}
+
 	s = os.Getenv(key)
 	if s == "" {
-		return s
+		return ""
 	}
 
 	maps, e := godotenv.Unmarshal(fmt.Sprintf("%s=%s", key, s))
 	if e != nil {
 		LogError(e)
 	}
-	for k, v := range maps {
-		envCacheMap[k] = v
-	}
+	MergeEnv(maps)
+	return maps[key]
+}
 
-	return Getenv(key)
+func SetEnv(key string, value string) {
+	envCacheMap.Store(key, value)
 }
 
 func GetenvInt(key string) int {
@@ -84,25 +82,25 @@ func GetenvStringSplit(key string, split ...string) []string {
 	return strings.Split(str, ",")
 }
 
-// 加载远程环境变量
-func LoadRemoteEnv(addr string, auth string) {
-	body, e := Get(NewContext(""), addr, &map[string]any{"auth": auth}, nil)
-
+// 加载本地文件环境变量
+func LoadFileEnv(envFile string) *Error {
+	fi, e := os.Stat(envFile)
 	if e != nil {
-		mainService.LogPanic(e)
+		return NewError(e)
+	}
+	if fi.Size() > 1024*1024 {
+		return NewError("env file too large")
 	}
 
-	envMaps, e := godotenv.UnmarshalBytes(body)
+	data, e := os.ReadFile(envFile)
 	if e != nil {
-		mainService.LogPanic(e)
+		return NewError(e)
 	}
 
-	for k, v := range envMaps {
-		e := os.Setenv(k, v)
-		if e != nil {
-			mainService.LogPanic(e)
-			continue
-		}
-		envCacheMap[k] = v
+	mpas, e := godotenv.UnmarshalBytes(data)
+	if e != nil {
+		return NewError(e)
 	}
+	MergeEnv(mpas)
+	return nil
 }

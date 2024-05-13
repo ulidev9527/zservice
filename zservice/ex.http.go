@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func RequestSend(ctx *Context, req *http.Request) (body []byte, e error) {
+func RequestSend(ctx *Context, req *http.Request) ([]byte, *Error) {
 	b, _ := json.Marshal(&ctx.ContextTrace)
 	req.Header.Set(S_TraceKey, string(b))
 	res, e := (&http.Client{}).Do(req) // 发起请求
@@ -20,7 +20,7 @@ func RequestSend(ctx *Context, req *http.Request) (body []byte, e error) {
 		return nil, NewError("REQ FAIL", res.Request.URL)
 	}
 
-	body, e = io.ReadAll(res.Body)
+	body, e := io.ReadAll(res.Body)
 	if e != nil {
 		return nil, NewError(e)
 	}
@@ -29,7 +29,7 @@ func RequestSend(ctx *Context, req *http.Request) (body []byte, e error) {
 }
 
 // 发送 post 请求
-func Post(ctx *Context, url string, params *map[string]any, header *map[string]string) (body []byte, e error) {
+func Post(ctx *Context, url string, params *map[string]any, header *map[string]string) (body []byte, e *Error) {
 	var bodyReader io.Reader
 	logStr := ""
 	if params != nil {
@@ -53,7 +53,7 @@ func Post(ctx *Context, url string, params *map[string]any, header *map[string]s
 }
 
 // 发送 json 请求
-func PostJson(ctx *Context, url string, params *map[string]any, header *map[string]string) (body []byte, e error) {
+func PostJson(ctx *Context, url string, params *map[string]any, header *map[string]string) (body []byte, e *Error) {
 	if header == nil {
 		header = &map[string]string{}
 	}
@@ -84,7 +84,7 @@ func PostJson(ctx *Context, url string, params *map[string]any, header *map[stri
 }
 
 // 发送 Get 请求
-func Get(ctx *Context, url string, params *map[string]any, header *map[string]string) (body []byte, e error) {
+func Get(ctx *Context, url string, params *map[string]any, header *map[string]string) (body []byte, e *Error) {
 	logStr := ""
 	if params != nil {
 		for k, v := range *params {

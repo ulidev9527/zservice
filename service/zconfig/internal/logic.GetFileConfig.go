@@ -11,12 +11,7 @@ import (
 // 获取文件配置
 func GetFileConfig(ctx *zservice.Context, in *zconfig_pb.GetFileConfig_REQ) (uint32, string) {
 
-	// 解析器
-	parserFN, ok := fileParserMap[in.Parser]
-	if !ok {
-		return zglobal.Code_Zconfig_ParserNotExist, ""
-	}
-	if e := parserFN(in.FileName); e != nil && e.GetCode() != zglobal.Code_SUCC {
+	if e := ParserFile(in.FileName, zglobal.E_ZConfig_Parser_Excel); e != nil {
 		ctx.LogError(e)
 		return e.GetCode(), ""
 	}

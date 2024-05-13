@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"zservice/zservice"
 )
 
@@ -13,34 +12,56 @@ func init() {
 }
 
 func main() {
-	zservice.TestAction("test1", func() {
-		for i := 0; i < 200000; i++ {
-			zservice.Convert_IntToString(zservice.RandomIntRange(100000, 999999))
+
+	arr := []int{}
+	for i := 0; i < 100000; i++ {
+		arr = append(arr, i)
+	}
+
+	zservice.TestAction("test", func() {
+		n := 0
+		for i := 0; i < len(arr); i++ {
+			n = i
 		}
+		zservice.LogInfo(n)
 	})
+
 	zservice.TestAction("test2", func() {
-		for i := 0; i < 200000; i++ {
-			zservice.RandomIntRange(100000, 999999)
-			// if len(strconv.Itoa(c)) != 6 {
-			// 	zservice.LogError(c)
-			// }
+		n := 0
+		for _, v := range arr {
+			n = v
 		}
+		zservice.LogInfo(n)
 	})
-	zservice.TestAction("test3", func() {
-		for i := 0; i < 200000; i++ {
-			fmt.Sprintf("%d", zservice.RandomIntRange(100000, 999999))
-			// if len(strconv.Itoa(c)) != 6 {
-			// 	zservice.LogError(c)
-			// }
-		}
-	})
-	zservice.TestAction("test3", func() {
-		for i := 0; i < 200000; i++ {
-			zservice.Sprint("%d", zservice.RandomIntRange(100000, 999999))
-			// if len(strconv.Itoa(c)) != 6 {
-			// 	zservice.LogError(c)
-			// }
-		}
-	})
+
+	// zservice.TestAction("test1", func() {
+	// 	for i := 0; i < 200000; i++ {
+	// 		zservice.Convert_IntToString(zservice.RandomIntRange(100000, 999999))
+	// 	}
+	// })
+	// zservice.TestAction("test2", func() {
+	// 	for i := 0; i < 200000; i++ {
+	// 		zservice.RandomIntRange(100000, 999999)
+	// 		// if len(strconv.Itoa(c)) != 6 {
+	// 		// 	zservice.LogError(c)
+	// 		// }
+	// 	}
+	// })
+	// zservice.TestAction("test3", func() {
+	// 	for i := 0; i < 200000; i++ {
+	// 		fmt.Sprintf("%d", zservice.RandomIntRange(100000, 999999))
+	// 		// if len(strconv.Itoa(c)) != 6 {
+	// 		// 	zservice.LogError(c)
+	// 		// }
+	// 	}
+	// })
+	// zservice.TestAction("test3", func() {
+	// 	for i := 0; i < 200000; i++ {
+	// 		zservice.Sprint("%d", zservice.RandomIntRange(100000, 999999))
+	// 		// if len(strconv.Itoa(c)) != 6 {
+	// 		// 	zservice.LogError(c)
+	// 		// }
+	// 	}
+	// })
 
 }

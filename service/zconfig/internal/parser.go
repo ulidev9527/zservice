@@ -74,3 +74,20 @@ func GetMd5(fullPath string) (md5Str string, e *zservice.Error) {
 	}
 	return string(data), nil
 }
+
+// 解析文件
+func ParserFile(fileName string, parserType uint32) *zservice.Error {
+	// 解析器
+	parserFN, ok := fileParserMap[parserType]
+	if !ok {
+		return zservice.NewError("parser not found").SetCode(zglobal.Code_Zconfig_ParserNotExist)
+	}
+	if e := parserFN(fileName); e != nil && e.GetCode() != zglobal.Code_SUCC {
+		return e
+	}
+
+	if e := Nsq.Publish(NSQ_FileConfig_Change, []byte(fileName)); e != nil {
+		return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+	}
+	return nil
+}

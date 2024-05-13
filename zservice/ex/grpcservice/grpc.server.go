@@ -59,7 +59,7 @@ func NewGrpcService(c *GrpcServiceConfig) *GrpcService {
 		if c.EtcdServer != nil {
 
 			// 创建 etcd 客户端
-			mgrTarget := fmt.Sprintf(S_ServiceName, zservice.GetName())
+			mgrTarget := fmt.Sprintf(S_ServiceName, zservice.GetServiceName())
 			mgr, e := endpoints.NewManager(c.EtcdServer, mgrTarget)
 			if e != nil {
 				s.LogPanic(e)

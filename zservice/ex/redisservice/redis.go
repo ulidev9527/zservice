@@ -58,7 +58,7 @@ func NewRedisService(c *RedisServiceConfig) *RedisService {
 
 // 格式化 key, 对key进行拼接
 func FormatKey(key string, args ...any) string {
-	return fmt.Sprintf("%s:%s", zservice.GetName(), fmt.Sprintf(key, args...))
+	return fmt.Sprintf("%s:%s", zservice.GetServiceName(), fmt.Sprintf(key, args...))
 }
 
 // 分布式锁
