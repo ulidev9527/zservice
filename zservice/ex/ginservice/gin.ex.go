@@ -3,10 +3,14 @@ package ginservice
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"runtime"
 	"strings"
+	"zservice/service/zauth/zauth"
+	"zservice/service/zauth/zauth_pb"
+	"zservice/zglobal"
 	"zservice/zservice"
 
 	"github.com/gin-gonic/gin"
@@ -14,7 +18,7 @@ import (
 
 // 中间件
 // CORS跨域中间件
-func GinCORSMiddleware() gin.HandlerFunc {
+func GinCORSMiddleware(zs *zservice.ZService) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		method := ctx.Request.Method
 		origin := ctx.Request.Header.Get("Origin")
@@ -32,9 +36,9 @@ func GinCORSMiddleware() gin.HandlerFunc {
 }
 
 // 扩展 Context 中间件
-func GinContextEXTMiddleware(zs *zservice.ZService) gin.HandlerFunc {
+func GinContextEXMiddleware(zs *zservice.ZService) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		zctx := zservice.NewContext(ctx.Request.Header.Get(zservice.S_TraceKey))
+		zctx := zservice.NewContext(ctx.Request.Header.Get(zservice.S_S2S))
 		ctx.Set(GIN_contextEX_Middleware_Key, zctx)
 
 		var grw *ginResWriter
@@ -87,5 +91,27 @@ func GinContextEXTMiddleware(zs *zservice.ZService) gin.HandlerFunc {
 			ctx.Writer.Status(), zctx.Since(),
 			reqParams, bodyStr,
 		)
+	}
+}
+
+func GinAuthEXMiddleware(zs *zservice.ZService) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		zctx := GetCtxEX(ctx)
+		zctx.AuthSign = zservice.MD5String(ctx.Request.UserAgent())
+
+		// 授权查询
+		if e := zauth.CheckAuth(zctx, &zauth_pb.CheckAuth_REQ{
+			Auth: fmt.Sprint(zservice.GetServiceName(), "/http", ctx.Request.URL.Path),
+		}); e != nil {
+
+			ctx.JSON(http.StatusOK, &zglobal.Default_RES{
+				Code: e.GetCode(),
+				Msg:  zctx.TraceID,
+			})
+			ctx.Abort()
+			return
+		}
+
+		ctx.Next()
 	}
 }

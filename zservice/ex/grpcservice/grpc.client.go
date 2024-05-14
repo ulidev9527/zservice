@@ -67,8 +67,8 @@ func ClientUnaryInterceptor(ctx context.Context, method string, req, reply any, 
 	}
 
 	// 配置metadata
-	traceJson, _ := json.Marshal(zctx.ContextTrace)
-	ctx = metadata.AppendToOutgoingContext(ctx, zservice.S_TraceKey, string(traceJson))
+	traceJson, _ := json.Marshal(zctx.ContextS2S)
+	ctx = metadata.AppendToOutgoingContext(ctx, zservice.S_S2S, string(traceJson))
 
 	// panic
 	defer func() {

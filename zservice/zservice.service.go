@@ -78,8 +78,8 @@ func (z *ZService) start() {
 	}
 	z.LogInfo("start service done", time.Since(z.createTime))
 	if z == mainService {
-		z.StartDone()
 		z.LogInfo("all service start done", time.Since(z.createTime))
+		z.StartDone()
 	}
 }
 

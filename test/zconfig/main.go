@@ -56,7 +56,7 @@ func main() {
 						LimitCount uint32 `json:"limit_count"`
 					}{}
 
-					e := zconfig.GetFileConfig("test.xlsx", &arr)
+					e := zconfig.GetFileConfig(zctx, "test.xlsx", &arr)
 					if e != nil {
 						zctx.LogError(e)
 					}
@@ -70,7 +70,7 @@ func main() {
 						LimitCount uint32 `json:"limit_count"`
 					}{}
 
-					e := zconfig.GetFileConfig("test.xlsx", &arr, zservice.StringSplit(id, ",")...)
+					e := zconfig.GetFileConfig(zctx, "test.xlsx", &arr, zservice.StringSplit(id, ",")...)
 					if e != nil {
 						zctx.LogError(e)
 					}
@@ -84,7 +84,7 @@ func main() {
 						Icon       string `json:"icon"`
 						LimitCount uint32 `json:"limit_count"`
 					}{}
-					e := zconfig.GetFileConfig("test.xlsx", &m, id)
+					e := zconfig.GetFileConfig(zctx, "test.xlsx", &m, id)
 					if e != nil {
 						zctx.LogError(e)
 					}

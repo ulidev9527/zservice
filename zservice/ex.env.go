@@ -3,7 +3,6 @@ package zservice
 import (
 	"fmt"
 	"os"
-	"strings"
 	"sync"
 
 	"github.com/joho/godotenv"
@@ -64,6 +63,9 @@ func GetenvInt(key string) int {
 	return Convert_StringToInt(Getenv(key))
 }
 
+func GetenvUInt32(key string) int32 {
+	return int32(GetenvInt(key))
+}
 func GetenvBool(key string) bool {
 	return Convert_StringToBoolean(Getenv(key))
 }
@@ -76,10 +78,10 @@ func GetenvStringSplit(key string, split ...string) []string {
 	}
 
 	if len(split) > 0 {
-		return strings.Split(str, split[0])
+		return StringSplit(str, split[0], true)
 	}
 
-	return strings.Split(str, ",")
+	return StringSplit(str, ",", true)
 }
 
 // 加载本地文件环境变量

@@ -4,9 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"sync"
+	"zservice/service/zconfig/internal"
 	"zservice/service/zconfig/zconfig_pb"
 	"zservice/zglobal"
 	"zservice/zservice"
+	"zservice/zservice/ex/grpcservice"
+	"zservice/zservice/ex/nsqservice"
 
 	"github.com/joho/godotenv"
 	"github.com/nsqio/go-nsq"
@@ -19,16 +22,29 @@ type ZConfigConfig struct {
 	IsNsqd          bool
 }
 
-var grpcClient *GrpcClient
+var grpcClient zconfig_pb.ZconfigClient
 var fileConfigMap = &sync.Map{}
 
 // 初始化
 func Init(c *ZConfigConfig) {
-	grpcClient = NewGrpcClient(c.Etcd)
 
-	NewNsqConsumer_FileConfigChange(&NsqConsumerConfig{
-		Addr:   c.NsqConsumerAddr,
-		IsNsqd: c.IsNsqd,
+	func() {
+		conn, e := grpcservice.NewGrpcClient(&grpcservice.GrpcClientConfig{
+			EtcdServiceName: "zconfig",
+			EtcdServer:      c.Etcd,
+		})
+		if e != nil {
+			zservice.LogPanic(e)
+			return
+		}
+		grpcClient = zconfig_pb.NewZconfigClient(conn)
+	}()
+
+	nsqservice.NewNsqConsumer(&nsqservice.NsqConsumerConfig{
+		Addr:    c.NsqConsumerAddr,
+		IsNsqd:  c.IsNsqd,
+		Topic:   internal.NSQ_FileConfig_Change,
+		Channel: fmt.Sprintf("%s-%s", zservice.GetServiceName(), zservice.RandomXID()),
 		OnMessage: func(m *nsq.Message) error {
 			fileName := string(m.Body)
 			zservice.LogInfo("Update config ", fileName)
@@ -63,12 +79,12 @@ func LoadRemoteEnv(addr string, auth string) *zservice.Error {
 // 不传 key 返回所有配置数组
 // 一个 key 返回一个对象
 // 多个 key 返回数组
-func GetFileConfig(fileName string, v any, keys ...string) *zservice.Error {
+func GetFileConfig(ctx *zservice.Context, fileName string, v any, keys ...string) *zservice.Error {
 	// 是否有配置，没有拉取配置
 	val, has := fileConfigMap.Load(fileName)
 
 	if !has { // 配置中心拉取配置
-		res, e := grpcClient.GetFileConfig(zservice.NewEmptyContext(), &zconfig_pb.GetFileConfig_REQ{
+		res, e := grpcClient.GetFileConfig(ctx, &zconfig_pb.GetFileConfig_REQ{
 			FileName: fileName,
 		})
 		if e != nil {

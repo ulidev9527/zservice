@@ -10,37 +10,7 @@ import (
 )
 
 // 解析 Excel 文件
-func ParserExcel(fileName string) *zservice.Error {
-
-	fullPath := fmt.Sprintf("%s/%s", FI_StaticRoot, fileName)
-
-	fileMD5, e := GetMd5(fullPath)
-	if e != nil {
-		return e
-	}
-
-	// md5 匹配, 没有数据或者无变化，返回 nil 进行解析
-	rKeyMd5 := fmt.Sprintf(RK_FileMD5, fileName)
-	if e := func() *zservice.Error {
-		has, e := Redis.Exists(zservice.TODO(), rKeyMd5).Result()
-		if e != nil {
-			return zservice.NewError(e).SetCode(zglobal.Code_Zconfig_ParserFail)
-		}
-		if has == 0 { // 不存在 需要更新
-			return nil
-		}
-		str, e := Redis.Get(zservice.TODO(), rKeyMd5).Result()
-		if e != nil {
-			return zservice.NewError(e).SetCode(zglobal.Code_Zconfig_ParserFail)
-		}
-		if str == fileMD5 {
-			return zservice.NewError("file md5 not change:", fileName).SetCode(zglobal.Code_Zconfig_FileMd5NotChange)
-		}
-		return nil // 有变化
-	}(); e != nil {
-		return e
-	}
-
+func ParserExcel(fullPath string) (map[string]string, *zservice.Error) {
 	// 解析
 	valueMap := map[string]string{}
 	if e := func() *zservice.Error {
@@ -156,32 +126,8 @@ func ParserExcel(fileName string) *zservice.Error {
 
 		return nil
 	}(); e != nil {
-		return e
+		return nil, e
 	}
 
-	// 存储
-	rKeyFile := fmt.Sprintf(RK_FileConfig, fileName)
-	if e := func() *zservice.Error {
-
-		e := Redis.Del(zservice.TODO(), rKeyMd5).Err()
-		if e != nil {
-			zservice.LogError(e)
-		}
-
-		e = Redis.HMSet(zservice.TODO(), rKeyFile, valueMap).Err()
-		if e != nil {
-			return zservice.NewError(e).SetCode(zglobal.Code_Zconfig_ParserFail)
-		}
-
-		e = Redis.Set(zservice.TODO(), rKeyMd5, fileMD5, 0).Err()
-		if e != nil {
-			zservice.LogError(e)
-		}
-
-		return nil
-	}(); e != nil {
-		return e
-	}
-
-	return nil
+	return valueMap, nil
 }

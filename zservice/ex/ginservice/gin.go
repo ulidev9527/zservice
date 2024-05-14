@@ -80,8 +80,9 @@ func NewGinService(c *GinServiceConfig) *GinService {
 	})
 
 	// 中间件
-	gs.Ginengine.Use(GinCORSMiddleware())
-	gs.Ginengine.Use(GinContextEXTMiddleware(gs.ZService))
+	gs.Ginengine.Use(GinCORSMiddleware(gs.ZService))
+	gs.Ginengine.Use(GinContextEXMiddleware(gs.ZService))
+	gs.Ginengine.Use(GinAuthEXMiddleware(gs.ZService))
 
 	return gs
 }

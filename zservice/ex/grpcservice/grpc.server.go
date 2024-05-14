@@ -134,7 +134,7 @@ func ServerUnaryInterceptor(ctx context.Context, req any, info *grpc.UnaryServer
 
 	// 获取 zservice.Context 和 Trace数据
 	md, _ := metadata.FromIncomingContext(ctx)
-	zctx := zservice.NewContext(md.Get(zservice.S_TraceKey)[0])
+	zctx := zservice.NewContext(md.Get(zservice.S_S2S)[0])
 	ctx = context.WithValue(ctx, GRPC_contextEX_Middleware_Key, zctx)
 
 	// 获取客户端ID

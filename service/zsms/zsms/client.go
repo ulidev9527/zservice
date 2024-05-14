@@ -32,9 +32,9 @@ func NewZsmsClient(etcdClient *clientv3.Client) *ZsmsClient {
 }
 
 func (s *ZsmsClient) SendVerifyCode(ctx *zservice.Context, req *zsms_pb.SendVerifyCode_REQ) (*zsms_pb.Default_RES, error) {
-	return s.client.SendVerifyCode(context.WithValue(context.Background(), grpcservice.GRPC_contextEX_Middleware_Key, ctx), req)
+	return s.client.SendVerifyCode(context.WithValue(context.Background(), grpcservice.GRPC_contextEX_Middleware_Key, ctx.ContextS2S), req)
 }
 
 func (s *ZsmsClient) VerifyCode(ctx *zservice.Context, req *zsms_pb.VerifyCode_REQ) (*zsms_pb.Default_RES, error) {
-	return s.client.VerifyCode(context.WithValue(context.Background(), grpcservice.GRPC_contextEX_Middleware_Key, ctx), req)
+	return s.client.VerifyCode(context.WithValue(context.Background(), grpcservice.GRPC_contextEX_Middleware_Key, ctx.ContextS2S), req)
 }

@@ -4,21 +4,23 @@ option go_package="./zauth_pb";
 
 message Default_RES {
     uint32 Code = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
-    string MSG  = 2;  // 服务消息
 }
 
-message SendVerifyCode_REQ { // 发送验证码 请求
-    string Phone    = 1;  // 手机号 必须带有 +86
-    string SeriveID = 2;  // 服务标识，哪个服务发起的验证码请求，可以为空字符串
+message LoginByPhone_REQ {
+    string phone   = 1;  // 手机号 +86****
+    uint32 Expires = 2;  // 过期时间 没有传入 (单位: 秒)，最小 30s，过期时间到了后需要重新授权
 }
 
-message VerifyCode_REQ { // 发送验证码 请求
-    string Phone    = 1;  // 手机号 必须带有 +86
-    string SeriveID = 2;  // 服务标识，哪个服务发起的验证码请求，可以为空字符串
-    string Code     = 3;  // 验证码
+message CheckAuth_REQ{
+    string Auth = 2;  // 权限
+}
+message CheckAuth_RES{
+    uint32 Code           = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
+    bool   IsTokenRefresh = 2;  // 是否需要刷新token, true 表示需要，不受错误码影响
+    string Token          = 3;  // 新的令牌， IsTokenRefresh 和 Token 为固定格式，不受错误码影响
 }
 
 service zauth{
-    rpc SendVerifyCode(SendVerifyCode_REQ) returns(Default_RES);  // 发送验证码
-    rpc VerifyCode(VerifyCode_REQ) returns(Default_RES);          // 验证验证码
+    rpc LoginByPhone(LoginByPhone_REQ) returns(Default_RES);  // 手机号登陆
+    rpc CheckAuth(CheckAuth_REQ) returns(CheckAuth_RES);     // 检查权限
 }

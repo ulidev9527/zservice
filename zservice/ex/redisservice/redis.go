@@ -57,14 +57,14 @@ func NewRedisService(c *RedisServiceConfig) *RedisService {
 }
 
 // 分布式锁
-func Lock(r *redis.Client, key string) (func(), error) {
+func Lock(r *redis.Client, key string) (func(), *zservice.Error) {
 	lockKey := fmt.Sprintf("%s_lock", key)
 	has, e := r.SetNX(context.TODO(), lockKey, 1, zglobal.Time_1m).Result()
 	if e != nil {
-		return nil, zservice.NewError(e)
+		return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 	}
 	if !has {
-		return nil, zservice.NewErrorf("lock %s fail", lockKey)
+		return nil, zservice.NewErrorf("lock %s fail", lockKey).SetCode(zglobal.Code_RedisKeyLockFail)
 	}
 
 	return func() {

@@ -9,15 +9,18 @@ import (
 	"time"
 )
 
-type ContextTrace struct {
-	TraceTime time.Time `json:"tt"`  // 链路初始化时间
-	TraceID   string    `json:"tid"` // 链路ID
-	SpanID    int       `json:"sid"` // 链路 , 自增处理
+// 上下文内部交互信息
+type ContextS2S struct {
+	TraceTime   time.Time `json:"tt"`  // 链路初始化时间
+	TraceID     string    `json:"ti"`  // 链路ID
+	TraceSpanID int       `json:"tsi"` // 链路 , 自增处理
+	AuthToken   string    `json:"at"`  // token
+	AuthSign    string    `json:"as"`  // 授权的签名
 }
 
 // 集成链路、日志、错误功能
 type Context struct {
-	ContextTrace
+	ContextS2S
 	StartTime  time.Time // 当前上下文启动时间
 	Service    *ZService // 服务
 	CTX_mu     sync.Mutex
@@ -34,23 +37,22 @@ func NewContext(traceJsonStr string) *Context {
 		CTX_mu:     sync.Mutex{},
 		CTX_values: sync.Map{},
 	}
+
+	// 链路记录
 	if traceJsonStr != "" {
-		e := json.Unmarshal([]byte(traceJsonStr), &ctx.ContextTrace)
+		e := json.Unmarshal([]byte(traceJsonStr), &ctx.ContextS2S)
 		if e != nil {
 			mainService.LogError(e, "[zservice.NewContext] => fail, traceJsonStr: %v", traceJsonStr)
 		}
-
-		ctx.StartTime = time.Now()
-		ctx.SpanID++
-
-		return ctx
-	} else {
-		ctx.ContextTrace = ContextTrace{
-			TraceTime: ctx.StartTime,
-			TraceID:   RandomXID(),
-			SpanID:    0,
-		}
 	}
+	if ctx.ContextS2S.TraceID == "" {
+		ctx.ContextS2S.TraceTime = ctx.StartTime
+		ctx.ContextS2S.TraceID = RandomXID()
+		ctx.ContextS2S.TraceSpanID = 0
+	} else {
+		ctx.ContextS2S.TraceSpanID++
+	}
+
 	return ctx
 }
 
@@ -66,7 +68,7 @@ func TODO() context.Context {
 // -------- 打印消息
 // 获取日志的打印信息
 func (ctx *Context) logCtxStr() string {
-	return fmt.Sprintf("[%v %v-%v %v]", ctx.Service.tranceName, ctx.TraceID, ctx.SpanID, ctx.SinceTrace())
+	return fmt.Sprintf("[%v %v-%v %v]", ctx.Service.tranceName, ctx.TraceID, ctx.TraceSpanID, ctx.SinceTrace())
 }
 func (ctx *Context) LogInfo(v ...any) {
 	LogInfoCaller(2, ctx.logCtxStr(), Sprint(v...))

@@ -9,8 +9,8 @@ import (
 )
 
 func RequestSend(ctx *Context, req *http.Request) ([]byte, *Error) {
-	b, _ := json.Marshal(&ctx.ContextTrace)
-	req.Header.Set(S_TraceKey, string(b))
+	b, _ := json.Marshal(&ctx.ContextS2S)
+	req.Header.Set(S_S2S, string(b))
 	res, e := (&http.Client{}).Do(req) // 发起请求
 	if e != nil {
 		return nil, NewError(e)

@@ -1,29 +1,28 @@
-package zconfig
+package nsqservice
 
 import (
-	"fmt"
-	"zservice/service/zconfig/internal"
 	"zservice/zservice"
-	"zservice/zservice/ex/nsqservice"
 
 	"github.com/nsqio/go-nsq"
 )
 
 type NsqConsumerConfig struct {
-	Addr      string
-	IsNsqd    bool // 是否是nsqlookupd地址
+	Addr      string // 地址 多个地址用 , 隔开
+	IsNsqd    bool   // 是否是 nsqd 地址
+	Topic     string // 主题
+	Channel   string // 频道
 	OnMessage func(*nsq.Message) error
 }
 
-// 监听配置文件改变
-func NewNsqConsumer_FileConfigChange(c *NsqConsumerConfig) {
-	consumer, e := nsq.NewConsumer(internal.NSQ_FileConfig_Change, fmt.Sprintf("%s-%s", zservice.GetServiceName(), zservice.RandomXID()), nsq.NewConfig())
+// nsq consumer
+func NewNsqConsumer(c *NsqConsumerConfig) {
+	consumer, e := nsq.NewConsumer(c.Topic, c.Channel, nsq.NewConfig())
 	if e != nil {
 		zservice.LogPanic(e)
 	}
 
 	consumer.AddHandler(nsq.HandlerFunc(c.OnMessage))
-	consumer.SetLogger(&nsqservice.LogEx{}, nsq.LogLevelInfo)
+	consumer.SetLogger(&LogEx{}, nsq.LogLevelInfo)
 
 	startChan := make(chan any, 1)
 

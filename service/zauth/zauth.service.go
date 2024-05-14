@@ -1,8 +1,8 @@
 package main
 
 import (
-	_ "embed"
-	"zservice/service/zconfig/internal"
+	"zservice/service/zauth/internal"
+	"zservice/service/zconfig/zconfig"
 	"zservice/zservice"
 	"zservice/zservice/ex/etcdservice"
 	"zservice/zservice/ex/ginservice"
@@ -21,9 +21,13 @@ import (
 
 func init() {
 	zservice.Init(&zservice.ZServiceConfig{
-		Name:    "zconfig",
-		Version: "0.1.0",
+		Name:    "zauth",
+		Version: "1.0.0",
 	})
+	e := zconfig.LoadRemoteEnv(zservice.Getenv("REMOTE_ENV_ADDR"), zservice.Getenv("REMOTE_ENV_AUTH"))
+	if e != nil {
+		zservice.LogPanic(e)
+	}
 }
 
 func main() {

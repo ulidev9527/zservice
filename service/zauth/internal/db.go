@@ -10,7 +10,15 @@ var (
 	Redis *redis.Client
 )
 
-func InitMysql() {}
+func InitMysql() {
+
+	Mysql.AutoMigrate(&AccountTable{})
+	Mysql.AutoMigrate(&AccountGroupTable{})
+	Mysql.AutoMigrate(&AccountGroupBindTable{})
+	Mysql.AutoMigrate(&PermissionTable{})
+	Mysql.AutoMigrate(&PermissionLogTable{})
+	Mysql.AutoMigrate(&PermissionBindTable{})
+}
 func InitRedis() {
 
 }
