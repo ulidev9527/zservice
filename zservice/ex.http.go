@@ -84,14 +84,17 @@ func PostJson(ctx *Context, url string, params *map[string]any, header *map[stri
 }
 
 // 发送 Get 请求
-func Get(ctx *Context, url string, params *map[string]any, header *map[string]string) (body []byte, e *Error) {
+func Get(ctx *Context, url string, params *map[string]any, header *map[string]string) ([]byte, *Error) {
 	logStr := ""
 	if params != nil {
 		for k, v := range *params {
 			logStr = fmt.Sprint(logStr, "&", k, "=", v)
 		}
 	}
-	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("%v?%v", url, logStr[1:]), nil)
+	req, e := http.NewRequest(http.MethodGet, fmt.Sprintf("%v?%v", url, logStr[1:]), nil)
+	if e != nil {
+		return nil, NewError(e)
+	}
 
 	if header != nil {
 		for k, v := range *header {

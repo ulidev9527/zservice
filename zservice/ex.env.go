@@ -13,26 +13,7 @@ var envCacheMap = &sync.Map{}
 
 func MergeEnv(envs map[string]string) {
 	for k, v := range envs {
-		envCacheMap.Store(k, v)
-	}
-}
-
-func initEnv(c *ZServiceConfig) {
-	// .env 文件加载
-	if _, err := os.Stat(".env"); !os.IsNotExist(err) {
-		e := LoadFileEnv(".env") // load .env file
-		if e != nil {
-			LogError("load .env fail:", e)
-		}
-	}
-
-	if len(c.EnvFils) > 0 { // load other env files
-		for _, v := range c.EnvFils {
-			e := LoadFileEnv(v)
-			if e != nil {
-				LogError("load env files fail:", e)
-			}
-		}
+		SetEnv(k, v)
 	}
 }
 
@@ -56,6 +37,9 @@ func Getenv(key string) string {
 }
 
 func SetEnv(key string, value string) {
+	if key == ENV_ZSERVICE_VERSION && Getenv(key) != "" {
+		return
+	}
 	envCacheMap.Store(key, value)
 }
 
@@ -105,4 +89,30 @@ func LoadFileEnv(envFile string) *Error {
 	}
 	MergeEnv(mpas)
 	return nil
+}
+
+// 加载远程环境变量
+func LoadRemoteEnv(addr string, auth string) *Error {
+
+	if addr == "" {
+		return NewError("no remote env addr")
+	}
+
+	body, e := Get(NewEmptyContext(), addr, &map[string]any{"auth": auth}, nil)
+	if e != nil {
+		return e
+	}
+
+	return LoadFileEnv(string(body))
+}
+
+// 加载字符串中的环境变量
+func LoadStringEnv(envStr string) *Error {
+	envMaps, e := godotenv.Unmarshal(envStr)
+	if e != nil {
+		return NewError(e)
+	}
+	MergeEnv(envMaps)
+	return nil
+
 }

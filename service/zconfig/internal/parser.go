@@ -5,7 +5,6 @@ import (
 	"os"
 	"zservice/zglobal"
 	"zservice/zservice"
-	"zservice/zservice/ex/redisservice"
 )
 
 // 文件解析器方法接口
@@ -82,7 +81,7 @@ func ParserFile(fileName string, parserType uint32) *zservice.Error {
 
 	// 上锁
 	RK_lock := fmt.Sprintf(RK_FileConfigLcok, fileName)
-	un, e := redisservice.Lock(Redis, RK_lock)
+	un, e := Redis.Lock(RK_lock)
 	if e != nil {
 		return e
 	}
@@ -106,14 +105,14 @@ func ParserFile(fileName string, parserType uint32) *zservice.Error {
 	// md5 匹配, 没有数据或者无变化，返回 nil 进行解析
 	rKeyMd5 := fmt.Sprintf(RK_FileMD5, fileName)
 	if e := func() *zservice.Error {
-		has, e := Redis.Exists(zservice.TODO(), rKeyMd5).Result()
+		has, e := Redis.Exists(rKeyMd5).Result()
 		if e != nil {
 			return zservice.NewError(e).SetCode(zglobal.Code_Zconfig_ParserFail)
 		}
 		if has == 0 { // 不存在 需要更新
 			return nil
 		}
-		str, e := Redis.Get(zservice.TODO(), rKeyMd5).Result()
+		str, e := Redis.Get(rKeyMd5).Result()
 		if e != nil {
 			return zservice.NewError(e).SetCode(zglobal.Code_Zconfig_ParserFail)
 		}
@@ -135,11 +134,11 @@ func ParserFile(fileName string, parserType uint32) *zservice.Error {
 	rKeyFile := fmt.Sprintf(RK_FileConfig, fileName)
 	if e := func() *zservice.Error {
 
-		if e := Redis.Del(zservice.TODO(), rKeyMd5).Err(); e != nil {
+		if e := Redis.Del(rKeyMd5).Err(); e != nil {
 			return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 		}
 
-		if e := Redis.HMSet(zservice.TODO(), rKeyFile, maps).Err(); e != nil {
+		if e := Redis.HMSet(rKeyFile, maps).Err(); e != nil {
 			return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 		}
 		return nil
@@ -153,7 +152,7 @@ func ParserFile(fileName string, parserType uint32) *zservice.Error {
 	}
 
 	// 保存 md5
-	if e := Redis.Set(zservice.TODO(), rKeyMd5, fileMD5, 0).Err(); e != nil {
+	if e := Redis.Set(rKeyMd5, fileMD5, 0).Err(); e != nil {
 		zservice.LogError(e)
 	}
 

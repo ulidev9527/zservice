@@ -9,10 +9,7 @@ import (
 
 func init() {
 
-	zservice.Init(&zservice.ZServiceConfig{
-		Name:    "ginservice.test",
-		Version: "1.0.0",
-	})
+	zservice.Init("ginservice.test", "1.0.0")
 }
 
 func main() {

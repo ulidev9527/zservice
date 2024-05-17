@@ -3,7 +3,6 @@ package ginservice
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"runtime"
@@ -101,7 +100,7 @@ func GinAuthEXMiddleware(zs *zservice.ZService) gin.HandlerFunc {
 
 		// 授权查询
 		if e := zauth.CheckAuth(zctx, &zauth_pb.CheckAuth_REQ{
-			Auth: fmt.Sprint(zservice.GetServiceName(), "/http", ctx.Request.URL.Path),
+			Auth: string(zservice.JsonMustMarshal([]string{zservice.GetServiceName(), strings.ToLower(ctx.Request.Method), ctx.Request.URL.Path})),
 		}); e != nil {
 
 			ctx.JSON(http.StatusOK, &zglobal.Default_RES{

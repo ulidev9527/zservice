@@ -1,8 +1,6 @@
 package main
 
 import (
-	_ "embed"
-	"zservice/service/zconfig/zconfig"
 	"zservice/service/zsms/internal"
 	"zservice/service/zsms/zsms_pb"
 	"zservice/zservice"
@@ -11,26 +9,13 @@ import (
 	"zservice/zservice/ex/grpcservice"
 	"zservice/zservice/ex/redisservice"
 
-	"github.com/redis/go-redis/v9"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"google.golang.org/grpc"
 	"gorm.io/gorm"
 )
 
 func init() {
-
-	zservice.Init(&zservice.ZServiceConfig{
-		Name:    "zsms",
-		Version: "0.1.0",
-	})
-
-	if zservice.GetenvBool("USE_REMOTE_ENV") {
-		e := zconfig.LoadRemoteEnv(zservice.Getenv("REMOTE_ENV_ADDR"), zservice.Getenv("REMOTE_ENV_AUTH"))
-		if e != nil {
-			zservice.LogPanic(e)
-		}
-	}
-
+	zservice.Init("zsms", "1.0.0")
 }
 
 func main() {
@@ -48,7 +33,7 @@ func main() {
 	redisS := redisservice.NewRedisService(&redisservice.RedisServiceConfig{
 		Addr: zservice.Getenv("REDIS_ADDR"),
 		Pass: zservice.Getenv("REDIS_PASS"),
-		OnStart: func(db *redis.Client) {
+		OnStart: func(db *redisservice.GoRedisEX) {
 			internal.Redis = db
 			internal.InitRedis()
 		},

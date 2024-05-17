@@ -1,7 +1,6 @@
 package main
 
 import (
-	_ "embed"
 	"zservice/service/zconfig/internal"
 	"zservice/zservice"
 	"zservice/zservice/ex/etcdservice"
@@ -13,17 +12,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/nsqio/go-nsq"
-	"github.com/redis/go-redis/v9"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"google.golang.org/grpc"
 	"gorm.io/gorm"
 )
 
 func init() {
-	zservice.Init(&zservice.ZServiceConfig{
-		Name:    "zconfig",
-		Version: "0.1.0",
-	})
+	zservice.Init("zconfig", "1.0.0")
 }
 
 func main() {
@@ -41,7 +36,7 @@ func main() {
 	redisS := redisservice.NewRedisService(&redisservice.RedisServiceConfig{
 		Addr: zservice.Getenv("REDIS_ADDR"),
 		Pass: zservice.Getenv("REDIS_PASS"),
-		OnStart: func(db *redis.Client) {
+		OnStart: func(db *redisservice.GoRedisEX) {
 			internal.Redis = db
 			internal.InitRedis()
 		},

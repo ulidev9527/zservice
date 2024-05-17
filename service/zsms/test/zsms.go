@@ -10,10 +10,7 @@ import (
 )
 
 func init() {
-	zservice.Init(&zservice.ZServiceConfig{
-		Name:    "zsms.test",
-		Version: "1.0.0",
-	})
+	zservice.Init("zsms.test", "1.0.0")
 }
 func main() {
 

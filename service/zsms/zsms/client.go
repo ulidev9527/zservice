@@ -2,7 +2,6 @@ package zsms
 
 import (
 	"context"
-	_ "embed"
 	"zservice/service/zsms/zsms_pb"
 	"zservice/zservice"
 	"zservice/zservice/ex/grpcservice"

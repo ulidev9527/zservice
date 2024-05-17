@@ -28,20 +28,20 @@ func IsSmsBan(ctx *zservice.Context, phone string) (bool, error) {
 
 	// 查缓存
 	rKey := fmt.Sprintf(RK_PhoneBan, phone)
-	has, e := Redis.Exists(ctx, rKey).Result()
+	has, e := Redis.Exists(rKey).Result()
 	if e != nil {
 		return true, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 	}
 
 	if has >= 1 {
 		// 提取缓存的时间
-		tstr, e := Redis.Get(ctx, rKey).Result()
+		tstr, e := Redis.Get(rKey).Result()
 		if e != nil {
 			return true, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 		}
 		t, e := time.Parse(time.RFC3339, tstr)
 		if e != nil {
-			_, e := Redis.Del(ctx, rKey).Result()
+			_, e := Redis.Del(rKey).Result()
 			if e != nil {
 				return true, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 			}
@@ -73,7 +73,7 @@ func IsSmsBan(ctx *zservice.Context, phone string) (bool, error) {
 	}
 
 	// 缓存
-	_, e = Redis.Set(ctx, rKey, banTime.Format(time.RFC3339), time.Duration(banCache)*time.Second).Result()
+	_, e = Redis.Set(rKey, banTime.Format(time.RFC3339), time.Duration(banCache)*time.Second).Result()
 	if e != nil {
 		zservice.LogError(e)
 	}

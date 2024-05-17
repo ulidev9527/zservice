@@ -39,7 +39,7 @@ func VerifyCode(ctx *zservice.Context, in *zsms_pb.VerifyCode_REQ) (code uint32)
 
 	// 验证
 	rk := fmt.Sprintf(RK_PhoneCode, in.Phone)
-	has, e := Redis.Exists(ctx, rk).Result()
+	has, e := Redis.Exists(rk).Result()
 	if e != nil {
 		ctx.LogError(e)
 		return zglobal.Code_ErrorBreakoff
@@ -48,7 +48,7 @@ func VerifyCode(ctx *zservice.Context, in *zsms_pb.VerifyCode_REQ) (code uint32)
 		return zglobal.Code_Zsms_Phone_CodeCacheNull
 	}
 
-	codeStr, e := Redis.Get(ctx, rk).Result()
+	codeStr, e := Redis.Get(rk).Result()
 	if e != nil {
 		ctx.LogError(e)
 		return zglobal.Code_ErrorBreakoff
@@ -58,7 +58,7 @@ func VerifyCode(ctx *zservice.Context, in *zsms_pb.VerifyCode_REQ) (code uint32)
 		return zglobal.Code_Zsms_Phone_VerifyFail
 	}
 	// 清除
-	e = Redis.Del(ctx, rk).Err()
+	e = Redis.Del(rk).Err()
 	if e != nil {
 		ctx.LogError(e)
 	}

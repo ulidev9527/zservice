@@ -2,7 +2,6 @@ package main
 
 import (
 	"zservice/service/zauth/internal"
-	"zservice/service/zconfig/zconfig"
 	"zservice/zservice"
 	"zservice/zservice/ex/etcdservice"
 	"zservice/zservice/ex/ginservice"
@@ -13,26 +12,18 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/nsqio/go-nsq"
-	"github.com/redis/go-redis/v9"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"google.golang.org/grpc"
 	"gorm.io/gorm"
 )
 
 func init() {
-	zservice.Init(&zservice.ZServiceConfig{
-		Name:    "zauth",
-		Version: "1.0.0",
-	})
-	e := zconfig.LoadRemoteEnv(zservice.Getenv("REMOTE_ENV_ADDR"), zservice.Getenv("REMOTE_ENV_AUTH"))
-	if e != nil {
-		zservice.LogPanic(e)
-	}
+	zservice.Init("zauth", "1.0.0")
 }
 
 func main() {
 
-	mysqlS := gormservice.NewGormMysqlService(&gormservice.GormMysqlServiceConfig{
+	internal.MysqlService = gormservice.NewGormMysqlService(&gormservice.GormMysqlServiceConfig{
 		DBName: zservice.Getenv("MYSQL_DBNAME"),
 		Addr:   zservice.Getenv("MYSQL_ADDR"),
 		User:   zservice.Getenv("MYSQL_USER"),
@@ -42,13 +33,18 @@ func main() {
 			internal.InitMysql()
 		},
 	})
-	redisS := redisservice.NewRedisService(&redisservice.RedisServiceConfig{
+	internal.RedisService = redisservice.NewRedisService(&redisservice.RedisServiceConfig{
 		Addr: zservice.Getenv("REDIS_ADDR"),
 		Pass: zservice.Getenv("REDIS_PASS"),
-		OnStart: func(db *redis.Client) {
+		OnStart: func(db *redisservice.GoRedisEX) {
 			internal.Redis = db
 			internal.InitRedis()
 		},
+	})
+
+	systemS := zservice.NewService("system", func(z *zservice.ZService) {
+		internal.SystemService = z
+		internal.SystemInit()
 	})
 
 	nsqS := nsqservice.NewNsqProducerService(&nsqservice.NsqProducerServiceConfig{
@@ -84,24 +80,21 @@ func main() {
 		},
 	})
 
-	zservice.AddDependService(mysqlS.ZService)
-	zservice.AddDependService(redisS.ZService)
-	zservice.AddDependService(ginS.ZService)
-	zservice.AddDependService(etcdS.ZService)
-	zservice.AddDependService(grpcS.ZService)
-	zservice.AddDependService(nsqS.ZService)
+	zservice.AddDependService(
+		internal.MysqlService.ZService, internal.RedisService.ZService, systemS,
+		nsqS.ZService, etcdS.ZService, grpcS.ZService,
+		ginS.ZService,
+	)
 
-	grpcS.AddDependService(mysqlS.ZService)
-	grpcS.AddDependService(redisS.ZService)
-	grpcS.AddDependService(nsqS.ZService)
+	systemS.AddDependService(internal.MysqlService.ZService, internal.RedisService.ZService)
+
+	nsqS.AddDependService(systemS)
+
+	etcdS.AddDependService(systemS)
+
+	grpcS.AddDependService(systemS, nsqS.ZService, etcdS.ZService)
 
 	ginS.AddDependService(grpcS.ZService)
-	ginS.AddDependService(etcdS.ZService)
-	ginS.AddDependService(mysqlS.ZService)
-	ginS.AddDependService(redisS.ZService)
-	ginS.AddDependService(nsqS.ZService)
 
-	zservice.Start()
-	zservice.WaitStart()
-	zservice.WaitStop()
+	zservice.Start().WaitStart().WaitStop()
 }

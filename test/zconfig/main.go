@@ -14,10 +14,7 @@ import (
 
 func init() {
 
-	zservice.Init(&zservice.ZServiceConfig{
-		Name:    "zconfig.fileConfig",
-		Version: "0.1.0",
-	})
+	zservice.Init("zconfig.fileConfig", "0.1.0")
 }
 
 func main() {
@@ -32,6 +29,7 @@ func main() {
 
 	grpcClient := zservice.NewService("zconfig.grpc", func(z *zservice.ZService) {
 		zconfig.Init(&zconfig.ZConfigConfig{
+			EtcdServiceName: "zconfig",
 			Etcd:            etcdS.Etcd,
 			NsqConsumerAddr: zservice.Getenv("NSQ_CONSUMER_ADDR"),
 			IsNsqd:          zservice.GetenvBool("NSQ_CONSUMER_IS_NSQD"),

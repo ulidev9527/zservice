@@ -1,39 +1,62 @@
 package zservice
 
 import (
-	_ "embed"
+	"os"
 )
 
-//go:embed version
-var Version string
+var Version = "0.1.0"
 
 // 服务
 var mainService *ZService
 
-type ZServiceConfig struct {
-	Name    string   // 服务名称
-	Version string   // 服务版本
-	EnvFils []string // 环境变量文件
-}
-
-func init() {
-}
-
 // zservice 初始化
-func Init(c *ZServiceConfig) {
+func Init(serviceName, serviceVersion string) {
+	// 配置初始化环境变量
+	SetEnv(ENV_ZSERVICE_NAME, serviceName)
+	SetEnv(ENV_ZSERVICE_VERSION, serviceVersion)
 
-	LogInfof("zservice v%s", Version)
-	LogInfof("%s v%s", c.Name, c.Version)
-
-	if c.Name == "" {
-		LogPanic("zservice name is empty")
+	// 加载 .env 文件环境变量
+	if _, err := os.Stat(".env"); !os.IsNotExist(err) {
+		e := LoadFileEnv(".env") // load .env file
+		if e != nil {
+			LogError("load .env fail:", e)
+		}
 	}
-	if c.Version == "" {
-		LogPanic("zservice version is empty")
+
+	// 自定义其它文件配置
+	func() {
+		arr := GetenvStringSplit(ENV_ZSERVICE_FILES_ENV)
+		if len(arr) > 0 { // load other env files
+			for _, v := range arr {
+				e := LoadFileEnv(v)
+				if e != nil {
+					LogError("load env files fail:", e)
+				}
+			}
+		}
+	}()
+
+	// 加载远程环境变量
+	if Getenv(ENV_ZSERVICE_REMOTE_ENV_ADDR) != "" {
+		e := LoadRemoteEnv(Getenv(ENV_ZSERVICE_REMOTE_ENV_ADDR), Getenv(ENV_ZSERVICE_REMOTE_ENV_AUTH))
+		if e != nil {
+			LogError(e)
+		}
 	}
 
-	mainService = createService(c.Name, nil)
-	initEnv(c)
+	LogInfof("run service at:   zservice v%s", Version)
+
+	if Getenv(ENV_ZSERVICE_NAME) == "" {
+		LogPanic("zservice name is empty, you need run zservice.Init first")
+	}
+	if Getenv(ENV_ZSERVICE_VERSION) == "" {
+		LogPanic("zservice version is empty, you need run zservice.Init first")
+	}
+
+	LogInfof("run service up:   %s v%s", serviceName, Getenv(ENV_ZSERVICE_VERSION))
+	LogInfof("reg service name: %s", Getenv(ENV_ZSERVICE_NAME))
+
+	mainService = createService(Getenv(ENV_ZSERVICE_NAME), nil)
 }
 
 // 获取服务名称
@@ -46,8 +69,8 @@ func GetMainService() *ZService {
 	return mainService
 }
 
-func Start() {
-	mainService.start()
+func Start() *ZService {
+	return mainService.start()
 }
 
 func Stop() {
@@ -58,16 +81,19 @@ func Stop() {
 }
 
 // 添加依赖服务
-func AddDependService(s *ZService) {
-	mainService.AddDependService(s)
+func AddDependService(s ...*ZService) *ZService {
+	return mainService.AddDependService(s...)
 }
 
 // 等待启动
-func WaitStart() {
-	mainService.WaitStart()
+func WaitStart() *ZService {
+	return mainService.WaitStart()
 }
 
 // 等待停止
 func WaitStop() {
+	for i := 0; i < len(mainService.dependService); i++ {
+		mainService.dependService[i].WaitStop()
+	}
 	mainService.WaitStop()
 }

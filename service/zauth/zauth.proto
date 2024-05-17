@@ -12,7 +12,7 @@ message LoginByPhone_REQ {
 }
 
 message CheckAuth_REQ{
-    string Auth = 2;  // 权限
+    string Auth = 2;  // 权限, 字符串数组，[服务名, 动作, 路径, 目标组织]
 }
 message CheckAuth_RES{
     uint32 Code           = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回

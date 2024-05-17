@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -45,18 +44,18 @@ func GetToken(tkStr string) (*AuthToken, *zservice.Error) {
 	}
 
 	rk := fmt.Sprintf(RK_Token, tkStr)
-	if has, e := Redis.Exists(context.TODO(), rk).Result(); e != nil {
+	if has, e := Redis.Exists(rk).Result(); e != nil {
 		return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 	} else if has == 0 {
 		return nil, zservice.NewError("no token:", tkStr).SetCode(zglobal.Code_Zauth_TokenIsNil)
 	}
 
-	if res, e := Redis.Get(context.TODO(), rk).Result(); e != nil {
+	if res, e := Redis.Get(rk).Result(); e != nil {
 		return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 	} else {
 		tk := &AuthToken{}
 		if e := json.Unmarshal([]byte(res), &tk); e != nil {
-			de := Redis.Del(context.TODO(), rk).Err()
+			de := Redis.Del(rk).Err()
 			if de != nil {
 				return nil, zservice.NewError("convert token fail and del token fail:", res, e, de).SetCode(zglobal.Code_ErrorBreakoff)
 			} else {
@@ -78,7 +77,7 @@ func (l *AuthToken) GenToken() *zservice.Error {
 // 保存
 func (l *AuthToken) Save() *zservice.Error {
 	rk := fmt.Sprintf(RK_Token, l.Token)
-	_, e := Redis.Set(context.TODO(), rk, l.Token, time.Second*time.Duration(l.ExpiresSecond)).Result()
+	_, e := Redis.Set(rk, l.Token, time.Second*time.Duration(l.ExpiresSecond)).Result()
 	if e != nil {
 		return zservice.NewError(e).SetCode(zglobal.Code_Zauth_TokenSaveFail)
 	}

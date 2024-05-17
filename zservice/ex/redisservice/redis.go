@@ -3,7 +3,6 @@ package redisservice
 import (
 	"context"
 	"fmt"
-	"zservice/zglobal"
 	"zservice/zservice"
 
 	"github.com/redis/go-redis/v9"
@@ -11,23 +10,28 @@ import (
 
 type RedisService struct {
 	*zservice.ZService
-	Redis *redis.Client
+	Redis *GoRedisEX
 }
 
 // Redis 配置
 type RedisServiceConfig struct {
-	Name    string
-	Addr    string
-	Pass    string
-	OnStart func(*redis.Client) // 启动的回调
+	Name          string           // 服务名称,仅用于日志显示
+	Addr          string           // redis 连接地址
+	Pass          string           // redis 连接密码
+	KeyPrefix     string           // 前缀
+	IgnorePrefix  bool             // 是否忽略前缀 默认 false
+	KeyLockPrefix string           // 锁前缀 默认:"zservice:keylock:"
+	OnStart       func(*GoRedisEX) // 启动的回调
 }
 
 // 创建一个 redis 服务
 func NewRedisService(c *RedisServiceConfig) *RedisService {
+
 	if c == nil {
-		zservice.LogPanic("ZServiceRESTConfig is nil")
+		zservice.LogPanic("RedisServiceConfig is nil")
 		return nil
 	}
+
 	name := "RedisService"
 	if c.Name != "" {
 		name = fmt.Sprint(name, "-", c.Name)
@@ -35,14 +39,31 @@ func NewRedisService(c *RedisServiceConfig) *RedisService {
 
 	rs := &RedisService{}
 
-	rs.Redis = redis.NewClient(&redis.Options{
-		Addr:     c.Addr,
-		Password: c.Pass,
-	})
+	rs.Redis = &GoRedisEX{
+		client: redis.NewClient(&redis.Options{
+			Addr:     c.Addr,
+			Password: c.Pass,
+		}),
+		keyPrefix:       c.KeyPrefix,
+		ignoreKeyPrefix: c.IgnorePrefix,
+		keyLockPrefix:   c.KeyLockPrefix,
+	}
+
+	// key前缀处理
+	if !c.IgnorePrefix && rs.Redis.keyPrefix == "" {
+		if rs.Redis.keyPrefix == "" { // 默认使用服务名
+			rs.Redis.keyPrefix = fmt.Sprint(zservice.GetServiceName(), ":")
+		}
+		rs.Redis.keyPrefix = fmt.Sprint(c.KeyPrefix, ":")
+	}
+	// 锁前缀处理
+	if rs.Redis.keyLockPrefix == "" {
+		rs.Redis.keyLockPrefix = "zservice:keylock:"
+	}
 
 	rs.ZService = zservice.NewService(name, func(s *zservice.ZService) {
 
-		_, e := rs.Redis.Info(context.TODO(), "stats").Result()
+		_, e := rs.Redis.client.Info(context.TODO(), "stats").Result()
 		if e != nil {
 			zservice.LogPanic(e)
 		}
@@ -54,23 +75,4 @@ func NewRedisService(c *RedisServiceConfig) *RedisService {
 		s.StartDone()
 	})
 	return rs
-}
-
-// 分布式锁
-func Lock(r *redis.Client, key string) (func(), *zservice.Error) {
-	lockKey := fmt.Sprintf("%s_lock", key)
-	has, e := r.SetNX(context.TODO(), lockKey, 1, zglobal.Time_1m).Result()
-	if e != nil {
-		return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
-	}
-	if !has {
-		return nil, zservice.NewErrorf("lock %s fail", lockKey).SetCode(zglobal.Code_RedisKeyLockFail)
-	}
-
-	return func() {
-		_, e = r.Del(context.TODO(), lockKey).Result()
-		if e != nil {
-			zservice.LogErrorf("unlock %s fail: %s", lockKey, e)
-		}
-	}, nil
 }

@@ -48,10 +48,10 @@ func NewService(name string, onStart func(*ZService)) *ZService {
 }
 
 // 启动服务
-func (z *ZService) start() {
+func (z *ZService) start() *ZService {
 	z.mu.Lock()
 	if z.state != 0 {
-		return
+		return z
 	}
 	z.state = 1
 	z.startTime = time.Now()
@@ -66,6 +66,7 @@ func (z *ZService) start() {
 				go z.dependService[i].start()
 			}
 		}
+		// 等待依赖启动
 		for i := 0; i < len(z.dependService); i++ {
 			z.dependService[i].WaitStart()
 		}
@@ -81,6 +82,7 @@ func (z *ZService) start() {
 		z.LogInfo("all service start done", time.Since(z.createTime))
 		z.StartDone()
 	}
+	return z
 }
 
 // 启动完成
@@ -89,9 +91,10 @@ func (z *ZService) StartDone() {
 }
 
 // 等待启动
-func (z *ZService) WaitStart() {
+func (z *ZService) WaitStart() *ZService {
 	<-z.chanServiceStartLock
 	z.state = 2
+	return z
 }
 
 // 等待停止
@@ -100,18 +103,16 @@ func (z *ZService) WaitStop() {
 	z.state = 3
 }
 
-// 等待依赖
-func (z *ZService) AddDependService(s *ZService) {
-	for _, v := range z.dependService {
-		if v == s {
-			return
-		}
-	}
-	z.dependService = append(z.dependService, s)
+// 添加依赖
+func (z *ZService) AddDependService(sArr ...*ZService) *ZService {
+	z.dependService = append(z.dependService, sArr...)
+	return z
 }
 
 // 停止服务
 func (z *ZService) Stop() error {
+	LogInfo("stop service", z.tranceName)
+	close(z.chanServiceStopLock)
 	return nil
 }
 

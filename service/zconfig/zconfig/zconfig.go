@@ -11,13 +11,13 @@ import (
 	"zservice/zservice/ex/grpcservice"
 	"zservice/zservice/ex/nsqservice"
 
-	"github.com/joho/godotenv"
 	"github.com/nsqio/go-nsq"
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 type ZConfigConfig struct {
 	Etcd            *clientv3.Client
+	EtcdServiceName string // 对应 grpc 服务的 ZSERVICE_NAME
 	NsqConsumerAddr string // nsq consumer addr
 	IsNsqd          bool
 }
@@ -28,9 +28,13 @@ var fileConfigMap = &sync.Map{}
 // 初始化
 func Init(c *ZConfigConfig) {
 
+	if c.EtcdServiceName == "" {
+		zservice.LogPanic("EtcdServiceName is nil")
+	}
+
 	func() {
 		conn, e := grpcservice.NewGrpcClient(&grpcservice.GrpcClientConfig{
-			EtcdServiceName: "zconfig",
+			EtcdServiceName: c.EtcdServiceName,
 			EtcdServer:      c.Etcd,
 		})
 		if e != nil {
@@ -52,27 +56,6 @@ func Init(c *ZConfigConfig) {
 			return nil
 		},
 	})
-}
-
-// 加载远程环境变量
-func LoadRemoteEnv(addr string, auth string) *zservice.Error {
-
-	if addr == "" {
-		return zservice.NewError("no addr")
-	}
-
-	body, e := zservice.Get(zservice.NewEmptyContext(), addr, &map[string]any{"auth": auth}, nil)
-	if e != nil {
-		return e
-	}
-
-	envMaps, _e := godotenv.UnmarshalBytes(body)
-	if _e != nil {
-		return zservice.NewError(_e)
-	}
-
-	zservice.MergeEnv(envMaps)
-	return nil
 }
 
 // 获取指定文件的配置

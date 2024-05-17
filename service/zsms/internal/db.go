@@ -1,13 +1,14 @@
 package internal
 
 import (
-	"github.com/redis/go-redis/v9"
+	"zservice/zservice/ex/redisservice"
+
 	"gorm.io/gorm"
 )
 
 var (
 	Mysql *gorm.DB
-	Redis *redis.Client
+	Redis *redisservice.GoRedisEX
 )
 
 func InitMysql() {

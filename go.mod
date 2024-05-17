@@ -1,6 +1,6 @@
 module zservice
 
-go 1.21.6
+go 1.22.3
 
 require (
 	github.com/alibabacloud-go/darabonba-openapi/v2 v2.0.6

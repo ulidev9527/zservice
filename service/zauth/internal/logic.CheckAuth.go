@@ -37,7 +37,16 @@ func CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_pb.Chec
 	}
 
 	// 检查权限
-	// 1. 直接查询
+	// 查询用户所有的组
+	if e := Mysql.Raw(`
+	WITH RECURSIVE cte(id) AS (
+		SELECT g_id FROM account_group_bind_tables WHERE uid=? 
+		UNION ALL SELECT 
+		agt.g_id FROM cte JOIN account_group_tables agt ON cte.id = agt.id
+	) SELECT DISTINCT id FROM cte WHERE id > 0;
+	`, 1001).Find(&[]struct{}{}).Error; e != nil {
+		zservice.LogError(e)
+	}
 
 	return &zauth_pb.CheckAuth_RES{
 		Code: zglobal.Code_SUCC,

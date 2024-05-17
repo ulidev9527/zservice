@@ -11,7 +11,7 @@ import (
 // 获取文件配置
 func GetFileConfig(ctx *zservice.Context, in *zconfig_pb.GetFileConfig_REQ) (uint32, string) {
 	fKey := fmt.Sprintf(RK_FileConfig, in.FileName) // 缓存 key
-	has, e := Redis.Exists(ctx, fKey).Result()
+	has, e := Redis.Exists(fKey).Result()
 	if e != nil {
 		ctx.LogError(e)
 		return zglobal.Code_Zconfig_GetConfigFail, ""
@@ -25,7 +25,7 @@ func GetFileConfig(ctx *zservice.Context, in *zconfig_pb.GetFileConfig_REQ) (uin
 
 	// 获取全部
 	if in.Keys == "" {
-		val, e := Redis.HGetAll(ctx, fKey).Result()
+		val, e := Redis.HGetAll(fKey).Result()
 		if e != nil {
 			ctx.LogError(e)
 			return zglobal.Code_Zconfig_GetConfigFail, ""
@@ -43,7 +43,7 @@ func GetFileConfig(ctx *zservice.Context, in *zconfig_pb.GetFileConfig_REQ) (uin
 		return item != ""
 	})
 	if len(keyArr) == 1 {
-		val, e := Redis.HGet(ctx, fKey, newArr[0]).Result()
+		val, e := Redis.HGet(fKey, newArr[0]).Result()
 		if e != nil {
 			ctx.LogError(e)
 			return zglobal.Code_Zconfig_GetConfigFail, ""
@@ -53,7 +53,7 @@ func GetFileConfig(ctx *zservice.Context, in *zconfig_pb.GetFileConfig_REQ) (uin
 		}
 		return zglobal.Code_SUCC, val
 	} else {
-		valueArr, e := Redis.HMGet(ctx, fKey, keyArr...).Result()
+		valueArr, e := Redis.HMGet(fKey, keyArr...).Result()
 		if e != nil {
 			ctx.LogError(e)
 			return zglobal.Code_Zconfig_GetConfigFail, ""

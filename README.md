@@ -38,3 +38,18 @@
 
 ## Bug
 - `debug` 下 `grpc.server` 中的 `lease` 超时会断开失效，需要重连机制
+
+### 预留环境变量
+*数组类型使用 `,` 进行分割*
+模块|名称|类型|示例|说明
+-|-|-|-|-
+`zservice`
+-|`ZSERVICE_NAME`       |`string` |`service_name`|服务名称
+-|`ZSERVICE_VERSION`    |`string` |`0.1.0`| 服务版本,`仅在zservice.Init(name, version)生效，不受其他环境变量影响`
+-|`ZSERVICE_REMOTE_ENV_ADDR`| `string` |`"http://127.0.0.1/config"` | 远程环境变量地址
+-|`ZSERVICE_REMOTE_ENV_AUTH` | `string` |`"授权字符串"` | 远程环境变量授权, 会添加参数为:`?auth=***`
+-|`ZSERVICE_FILES_ENV`|`[]string`|`static/a.env,static/b.env` | 环境变量文件
+
+## 模块
+### `zservice`
+项目启动模块、框架结构

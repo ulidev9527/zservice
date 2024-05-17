@@ -36,7 +36,7 @@ func SendVerifyCode(ctx *zservice.Context, in *zsms_pb.SendVerifyCode_REQ) (code
 
 	// CD 检查
 	rKeyCD := fmt.Sprintf(RK_PhoneCD, in.Phone)
-	has, e := Redis.Exists(ctx, rKeyCD).Result()
+	has, e := Redis.Exists(rKeyCD).Result()
 	if e != nil {
 		ctx.LogError(e)
 		return zglobal.Code_ErrorBreakoff
@@ -59,13 +59,13 @@ func SendVerifyCode(ctx *zservice.Context, in *zsms_pb.SendVerifyCode_REQ) (code
 	if code == zglobal.Code_SUCC {
 
 		// CD
-		e := Redis.Set(ctx, rKeyCD, time.Now().Format(time.RFC3339), time.Duration(zservice.GetenvInt("SMS_CD_DEF"))*time.Second).Err()
+		e := Redis.Set(rKeyCD, time.Now().Format(time.RFC3339), time.Duration(zservice.GetenvInt("SMS_CD_DEF"))*time.Second).Err()
 		if e != nil {
 			ctx.LogError(e)
 		}
 
 		// 验证码
-		e = Redis.Set(ctx, fmt.Sprintf(RK_PhoneCode, in.Phone), code, time.Duration(zservice.GetenvInt("SMS_CODE_CACHE"))*time.Second).Err()
+		e = Redis.Set(fmt.Sprintf(RK_PhoneCode, in.Phone), code, time.Duration(zservice.GetenvInt("SMS_CODE_CACHE"))*time.Second).Err()
 		if e != nil {
 			ctx.LogError(e)
 			return zglobal.Code_ErrorBreakoff

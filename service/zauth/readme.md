@@ -15,9 +15,9 @@ Action | `string` | 权限动作，详情查看[PermissionTable.Action](#permiss
 
 #### `PermissionTable.Action`
 存储所有权限动作  
-权限动作由: [服务名]/[协议]/功能 组成，使用 `/` 进行分割，其中第一个和第二个为固定格式.  
+权限动作由: [服务名]/[用户组]/[协议]/功能 组成，使用 `/` 进行分割，其中第一个和第二个为固定格式.  
 
 **示例**
-- `zauth/rpc/CheckAuth`, 表示 `zauth` 服务的 `rpc` 下的 `checkauth` 操作。
-- `zauth/http_get/xxx`, 表示 `zauth` 服务的 `http_get` 协议的 `xxx` 操作。
-- `auth/http_post/xxx/xxx`, 可以多层操作
+- `zauth/0/rpc/CheckAuth`, 表示 `zauth` 服务的 `rpc` 下的 `checkauth` 操作。
+- `zauth/0/get/xxx`, 表示 `zauth` 服务的 `http get` 协议的 `xxx` 操作。
+- `auth/0/post/xxx/xxx`, 可以多层操作

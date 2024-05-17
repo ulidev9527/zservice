@@ -4,33 +4,28 @@ import (
 	"zservice/zservice"
 
 	"zservice/zservice/ex/redisservice"
-
-	"github.com/redis/go-redis/v9"
 )
 
 func init() {
 
-	zservice.Init(&zservice.ZServiceConfig{
-		Name:    "redis_test",
-		Version: "1.0.0",
-	})
+	zservice.Init("redis_test", "1.0.0")
 }
 func main() {
 
 	redisS := redisservice.NewRedisService(&redisservice.RedisServiceConfig{
 		Addr: zservice.Getenv("REDIS_ADDR"),
 		Pass: zservice.Getenv("REDIS_PASS"),
-		OnStart: func(db *redis.Client) {
+		OnStart: func(db *redisservice.GoRedisEX) {
 
 			zservice.TestAction("get test", func() {
 
-				has, e := db.Exists(zservice.TODO(), "key").Result()
+				has, e := db.Exists("key").Result()
 				if e != nil {
 					zservice.LogError(e)
 				}
 				zservice.LogInfo(has)
 
-				s, e := db.Get(zservice.TODO(), "key").Result()
+				s, e := db.Get("key").Result()
 				if e != nil {
 					zservice.LogError(e)
 				}
