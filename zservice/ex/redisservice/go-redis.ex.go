@@ -111,13 +111,6 @@ func (r *GoRedisEX) ExpireCtx(ctx context.Context, key string, expiration time.D
 	return r.client.Expire(ctx, r.AddKeyPrefix(key), expiration)
 }
 
-func (r *GoRedisEX) HMSet(key string, values ...any) *redis.BoolCmd {
-	return r.HMSetCtx(context.TODO(), key, values...)
-}
-func (r *GoRedisEX) HMSetCtx(ctx context.Context, key string, values ...any) *redis.BoolCmd {
-	return r.client.HMSet(ctx, r.AddKeyPrefix(key), values...)
-}
-
 func (r *GoRedisEX) HMGet(key string, fields ...string) *redis.SliceCmd {
 	return r.HMGetCtx(context.TODO(), key, fields...)
 }
@@ -137,4 +130,10 @@ func (r *GoRedisEX) HGet(key, field string) *redis.StringCmd {
 }
 func (r *GoRedisEX) HGetCtx(ctx context.Context, key, field string) *redis.StringCmd {
 	return r.client.HGet(ctx, r.AddKeyPrefix(key), field)
+}
+func (r *GoRedisEX) HSet(key string, values ...any) *redis.IntCmd {
+	return r.HSetCtx(context.TODO(), key, values...)
+}
+func (r *GoRedisEX) HSetCtx(ctx context.Context, key string, values ...any) *redis.IntCmd {
+	return r.client.HSet(ctx, r.AddKeyPrefix(key), values...)
 }

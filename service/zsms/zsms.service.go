@@ -48,7 +48,7 @@ func main() {
 	})
 
 	grpcS := grpcservice.NewGrpcService(&grpcservice.GrpcServiceConfig{
-		Addr:       zservice.Getenv("GRPC_ADDR"),
+		ListenAddr: zservice.Getenv("GRPC_ADDR"),
 		EtcdServer: etcdS.Etcd,
 		OnStart: func(grpc *grpc.Server) {
 			zsms_pb.RegisterZsmsServer(grpc, internal.NewZsmsServer())

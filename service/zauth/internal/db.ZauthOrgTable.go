@@ -28,10 +28,16 @@ func CreateRootOrg(ctx *zservice.Context, name string) (*ZauthOrgTable, *zservic
 	}
 	defer un()
 
+	// 获取一个未使用的组织 ID
+	orgID, e := GetNewOrgID(ctx)
+	if e != nil {
+		return nil, e
+	}
+
 	return (&ZauthOrgTable{
 		Name:      name,
-		OrgID:     1,
-		RootOrgID: 1,
+		OrgID:     orgID,
+		RootOrgID: orgID,
 	}).Save(ctx)
 }
 
@@ -84,7 +90,7 @@ func SyncOrgTableCache(ctx *zservice.Context) *zservice.Error {
 
 // 获取一个全新的组织ID
 func GetNewOrgID(ctx *zservice.Context) (uint, *zservice.Error) {
-	return GetNewID(ctx, func() uint {
+	return GetNewTableID(ctx, func() uint {
 		return uint(zservice.RandomIntRange(100000, 99999999)) // 1 是根权限，并且预留 10w 以下的id
 	}, HasOrgByID, func(e *zservice.Error) *zservice.Error {
 		if e.GetCode() == zglobal.Code_Zauth_GenIDCountMaxErr {
@@ -127,10 +133,9 @@ func (z *ZauthOrgTable) Save(ctx *zservice.Context) (*ZauthOrgTable, *zservice.E
 		}
 	}
 
-	// 删 redis
+	// 删缓存
 	if e := Redis.Del(rk_info).Err(); e != nil {
-		ctx.LogError(e)
+		return z, zservice.NewError(e).SetCode(zglobal.Code_Redis_DelFail)
 	}
-
 	return z, nil
 }

@@ -34,8 +34,8 @@ type GinService struct {
 }
 
 type GinServiceConfig struct {
-	Name string // 服务名
-	Addr string // 监听地址
+	Name       string // 服务名
+	ListenAddr string // 监听地址
 
 	OnStart func(*gin.Engine) // 启动的回调
 }
@@ -67,8 +67,8 @@ func NewGinService(c *GinServiceConfig) *GinService {
 		}
 
 		go func() {
-			gs.LogInfof("ginService listen on %v", c.Addr)
-			e := gs.Ginengine.Run(c.Addr)
+			gs.LogInfof("ginService listen on %v", c.ListenAddr)
+			e := gs.Ginengine.Run(c.ListenAddr)
 			if e != nil {
 				s.LogPanic(e)
 			}

@@ -138,7 +138,7 @@ func ParserFile(fileName string, parserType uint32) *zservice.Error {
 			return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 		}
 
-		if e := Redis.HMSet(rKeyFile, maps).Err(); e != nil {
+		if e := Redis.HSet(rKeyFile, maps).Err(); e != nil {
 			return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 		}
 		return nil

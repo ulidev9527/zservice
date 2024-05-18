@@ -15,7 +15,7 @@ func _paramSignEncode(data map[string]interface{}, aid string, cv string, sv str
 	k := data["k"].(string)
 
 	// 参数排序
-	str := Convert_StructToJson(data)
+	str := string(JsonMustMarshal(data))
 
 	str = strings.ReplaceAll(str, "{}", "")
 	str = strings.ReplaceAll(str, "[]", "")
@@ -38,7 +38,7 @@ type T_ParamSignArgs struct {
 
 // 参数签名
 func ParamSign(o any, psa T_ParamSignArgs) any {
-	jObj := gjson.Parse(Convert_StructToJson(o))
+	jObj := gjson.Parse(string(JsonMustMarshal(o)))
 	useData := make(map[string]interface{})
 
 	// 赋值

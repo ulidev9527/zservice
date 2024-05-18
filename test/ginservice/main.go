@@ -14,7 +14,7 @@ func init() {
 
 func main() {
 	ginS := ginservice.NewGinService(&ginservice.GinServiceConfig{
-		Addr: zservice.Getenv("GIN_ADDR"),
+		ListenAddr: zservice.Getenv("GIN_ADDR"),
 		OnStart: func(engine *gin.Engine) {
 			engine.GET("/test_auth", func(ctx *gin.Context) {
 

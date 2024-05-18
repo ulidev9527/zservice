@@ -16,7 +16,8 @@ const (
 	Code_EmptyFile        = 104 // 文件为空
 	Code_RedisKeyLockFail = 105 // redis 锁失败
 
-	Code_DB_SaveFail = 201 // 数据存储失败
+	Code_DB_SaveFail   = 201 // 数据存储失败
+	Code_Redis_DelFail = 202 // redis 删除失败
 
 	Code_Zsms_Phone_NULL          = 1001 // 手机号为空
 	Code_Zsms_Phone_VerifyFail    = 1002 // 手机号验证失败
@@ -56,8 +57,13 @@ const (
 	Code_Zauth_AccountGenIDCountMaxErr       = 3301 // 生成账号ID错误次数超上限
 	Code_Zauth_AccountAlreadyJoin_Org        = 3302 // 账号已经加入组织
 	Code_Zauth_AccountAlreadyExist_LoginName = 3303 // 账号已经存在
+	Code_Zauth_Account_NotFund               = 3304 // 账号不存在
 
-	Code_Zauth_PermissionGenIDCountMaxErr = 3401 // 生成权限ID错误次数超上限
+	Code_Zauth_PermissionGenIDCountMaxErr     = 3401 // 生成权限ID错误次数超上限
+	Code_Zauth_PermissionBind_TargetTypeErr   = 3402 // 权限绑定目标类型错误
+	Code_Zauth_PermissionBind_TargetIDErr     = 3403 // 权限绑定目标ID错误
+	Code_Zauth_PermissionBind_PermissionIDErr = 3404 // 权限绑定权限ID错误
+	Code_Zauth_PermissionBind_Already_Bind    = 3405 // 权限已经绑定
 
 	E_ZConfig_Parser_Excel = 1 // excel 解析器
 

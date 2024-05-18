@@ -13,7 +13,7 @@ type ZauthAccountTable struct {
 	gorm.Model
 	AccountID     uint   `gorm:"unique"` // 用户唯一ID
 	LoginName     string `gorm:"unique"` // 登陆账号
-	LoginPassword string // 登陆密码
+	LoginPass     string // 登陆密码
 	Phone         string `gorm:"unique"`    // 手机号 含区号 +86******
 	State         uint   `gorm:"default:1"` // 账号状态 0 禁用 1 启用
 	PasswordToken string // 密码令牌
@@ -30,7 +30,7 @@ func CreateAccount(ctx *zservice.Context) (*ZauthAccountTable, *zservice.Error) 
 
 // 获取一个新的账号ID
 func GetNewAccountID(ctx *zservice.Context) (uint, *zservice.Error) {
-	return GetNewID(ctx, func() uint {
+	return GetNewTableID(ctx, func() uint {
 		return uint(zservice.RandomIntRange(1000000, 999999999)) // 7-9位数
 	}, HasAccountByID, func(e *zservice.Error) *zservice.Error {
 		if e.GetCode() == zglobal.Code_Zauth_GenIDCountMaxErr {
@@ -70,7 +70,7 @@ func (z *ZauthAccountTable) AddLoginNameAndPassword(ctx *zservice.Context, name,
 
 	z.LoginName = name
 	z.PasswordToken = zservice.RandomMD5()
-	z.LoginPassword = zservice.MD5String(fmt.Sprint(z.AccountID, z.PasswordToken, password))
+	z.LoginPass = zservice.MD5String(fmt.Sprint(z.AccountID, z.PasswordToken, password))
 
 	_, e = z.Save(ctx)
 	return e
@@ -92,18 +92,18 @@ func (z *ZauthAccountTable) Save(ctx *zservice.Context) (*ZauthAccountTable, *zs
 	defer un()
 
 	if z.ID == 0 { // 创建
-		if e := Mysql.Create(&z).Error; e != nil {
+		if e := Mysql.Create(z).Error; e != nil {
 			return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 		}
 	} else { // 更新
-		if e := Mysql.Save(&z).Error; e != nil {
+		if e := Mysql.Save(z).Error; e != nil {
 			return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 		}
 	}
 
-	// 存 redis
-	if e := Redis.HMSet(rk_info, &z).Err(); e != nil {
-		ctx.LogError(e)
+	// 删缓存
+	if e := Redis.Del(rk_info).Err(); e != nil {
+		return z, zservice.NewError(e).SetCode(zglobal.Code_Redis_DelFail)
 	}
 
 	return z, nil

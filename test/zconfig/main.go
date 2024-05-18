@@ -39,7 +39,7 @@ func main() {
 	})
 
 	ginS := ginservice.NewGinService(&ginservice.GinServiceConfig{
-		Addr: zservice.Getenv("GIN_ADDR"),
+		ListenAddr: zservice.Getenv("GIN_ADDR"),
 		OnStart: func(engine *gin.Engine) {
 			engine.GET("/", func(ctx *gin.Context) {
 				zctx := ginservice.GetCtxEX(ctx)

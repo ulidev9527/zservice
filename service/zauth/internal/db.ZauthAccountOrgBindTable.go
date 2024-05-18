@@ -28,23 +28,26 @@ func AccountJoinOrg(ctx *zservice.Context, accountID uint, orgID uint, Expires *
 		return nil, zservice.NewError("org not found:", orgID).SetCode(zglobal.Code_Zauth_OrgNotFund)
 	}
 
-	// 是否已经绑定
-	rk_info := fmt.Sprintf(RK_AccountBindOrgInfo, orgID, accountID)
-	// 上锁
-	un, e := Redis.Lock(rk_info)
-	if e != nil {
+	if has, e := HasAccountByID(ctx, accountID); e != nil {
 		return nil, e
+	} else if !has {
+		return nil, zservice.NewError("account not found:", accountID).SetCode(zglobal.Code_Zauth_Account_NotFund)
 	}
-	defer un()
 
-	// 查数数据是否已经存在
-	// 查缓存
-
-	if has, e := HasTableValue(ctx, &ZauthAccountOrgBindTable{}, rk_info, fmt.Sprintf("account_id = %v and org_id = %v", accountID, orgID)); e != nil {
+	// 是否已经绑定
+	if has, e := HasAccountOrgBindByAOID(ctx, accountID, orgID); e != nil {
 		return nil, e
 	} else if has {
 		return nil, zservice.NewError("account already join org:", accountID, orgID).SetCode(zglobal.Code_Zauth_AccountAlreadyJoin_Org)
 	}
+
+	rk_lock := fmt.Sprintf(RK_AOBind_CreateLock, orgID, accountID)
+	// 上锁
+	un, e := Redis.Lock(rk_lock)
+	if e != nil {
+		return nil, e
+	}
+	defer un()
 
 	// 准备写入数据
 	z := &ZauthAccountOrgBindTable{
@@ -53,15 +56,12 @@ func AccountJoinOrg(ctx *zservice.Context, accountID uint, orgID uint, Expires *
 		Expires:   Expires,
 	}
 
-	if e := Mysql.Create(&z).Error; e != nil {
-		return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
-	}
+	return z.Save(ctx)
+}
 
-	// 存 redis
-	if e := Redis.HMSet(rk_info, &z).Err(); e != nil {
-		ctx.LogError(e)
-	}
-	return z, nil
+// 是否有账号和组织绑定
+func HasAccountOrgBindByAOID(ctx *zservice.Context, accountID uint, orgID uint) (bool, *zservice.Error) {
+	return HasTableValue(ctx, &ZauthAccountOrgBindTable{}, fmt.Sprintf(RK_AOBind_Info, orgID, accountID), fmt.Sprintf("account_id = %v and org_id = %v", accountID, orgID))
 }
 
 // 是否过期
@@ -79,20 +79,26 @@ func (z *ZauthAccountOrgBindTable) Save(ctx *zservice.Context) (*ZauthAccountOrg
 		return nil, zservice.NewError("param error").SetCode(zglobal.Code_ParamsErr)
 	}
 
-	rk_info := fmt.Sprintf(RK_AccountBindOrgInfo, z.OrgID, z.AccountID)
+	rk_info := fmt.Sprintf(RK_AOBind_Info, z.OrgID, z.AccountID)
 	un, e := Redis.Lock(rk_info)
 	if e != nil {
 		return nil, e
 	}
 	defer un()
 
-	if e := Mysql.Save(&z).Error; e != nil {
-		return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+	if z.ID == 0 { // 创建
+		if e := Mysql.Create(&z).Error; e != nil {
+			return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+		}
+	} else { // 更新
+		if e := Mysql.Save(&z).Error; e != nil {
+			return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+		}
 	}
 
-	// 存 redis
-	if e := Redis.HMSet(rk_info, &z).Err(); e != nil {
-		ctx.LogError(e)
+	// 删缓存
+	if e := Redis.Del(rk_info).Err(); e != nil {
+		return z, zservice.NewError(e).SetCode(zglobal.Code_Redis_DelFail)
 	}
 	return z, nil
 }

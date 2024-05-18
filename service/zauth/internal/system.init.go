@@ -17,7 +17,7 @@ func SystemDBInit() {
 	ctx := zservice.NewEmptyContext()
 	// 检查是否有管理员账号，有管理员账号表示已经初始化过了
 	count := int64(0)
-	if e := Mysql.Model(&ZauthAccountTable{}).Where("account = ?", "admin").Count(&count).Error; e != nil {
+	if e := Mysql.Model(&ZauthAccountTable{}).Where("login_name = ?", "admin").Count(&count).Error; e != nil {
 		ctx.LogPanic(e)
 	}
 
@@ -58,36 +58,10 @@ func SystemDBInit() {
 		ctx.LogPanic(e)
 	}
 
-	// 添加权限
+	// 添加权限/权限绑定
 	func() {
-
-		type T_Permission struct {
-			Name    string // 权限名称
-			Service string // 权限服务
-			Action  string // 权限动作
-			Path    string // 权限路径
-			State   uint   // 权限状态
-			Child   []T_Permission
-		}
-
-		pObj := T_Permission{
-			Name: "认证服务", Service: "zauth", State: 2,
-			Child: []T_Permission{
-				{Name: "授权管理", Service: "zauth", Action: "", Path: "/permission", State: 3, Child: []T_Permission{
-					{Name: "获取权限", Service: "zauth", Action: "get", Path: "/permission", State: 3},
-					{Name: "创建权限", Service: "zauth", Action: "post", Path: "/permission", State: 3},
-					{Name: "修改权限", Service: "zauth", Action: "put", Path: "/permission", State: 3},
-				}},
-				{Name: "组织管理", Service: "zauth", Action: "", Path: "/org", State: 3, Child: []T_Permission{
-					{Name: "获取组织", Service: "zauth", Action: "get", Path: "/org", State: 3},
-					{Name: "创建组织", Service: "zauth", Action: "post", Path: "/org", State: 3},
-					{Name: "修改组织", Service: "zauth", Action: "put", Path: "/org", State: 3},
-				}},
-			},
-		}
-		ctx.LogInfo(pObj)
-
-		_, e := CreatePermission(ctx, ZauthPermissionTable{
+		// 创建权限
+		pt, e := CreatePermission(ctx, ZauthPermissionTable{
 			Name:    "权限服务",
 			Service: "zauth",
 			State:   2,
@@ -95,6 +69,13 @@ func SystemDBInit() {
 		if e != nil {
 			ctx.LogPanic(e)
 		}
+
+		// 权限绑定
+		_, e = PermissionBind(ctx, 1, adminOrg.OrgID, pt.PermissionID, nil, 1)
+		if e != nil {
+			ctx.LogPanic(e)
+		}
+
 	}()
 
 	ctx.LogInfo("DB init end")

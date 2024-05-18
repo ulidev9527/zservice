@@ -23,7 +23,7 @@ type GrpcService struct {
 
 type GrpcServiceConfig struct {
 	Name       string // 服务名
-	Addr       string // 监听地址
+	ListenAddr string // 监听地址
 	EtcdServer *clientv3.Client
 	OnStart    func(*grpc.Server) // 启 动的回调
 }
@@ -46,7 +46,7 @@ func NewGrpcService(c *GrpcServiceConfig) *GrpcService {
 
 		// https://ayang.ink/分布式_grpc-基于-etcd-的服务发现/#grpc-服务端
 
-		lis, e := net.Listen("tcp", c.Addr)
+		lis, e := net.Listen("tcp", c.ListenAddr)
 		if e != nil {
 			s.LogPanic(e)
 		}
@@ -71,22 +71,22 @@ func NewGrpcService(c *GrpcServiceConfig) *GrpcService {
 				s.LogPanic(e)
 			}
 
-			endpointKey := fmt.Sprintf("%s/%s", mgrTarget, c.Addr)
+			endpointKey := fmt.Sprintf("%s/%s", mgrTarget, c.ListenAddr)
 			s.LogInfo("grcp endpointKey:", endpointKey)
 			// 添加注册节点到 etcd 中，并且携带上租约 id
 			// 以 serverName/serverAddr 为 key，serverAddr 为 value
 			// serverName/serverAddr 中的 serverAddr 可以自定义，只要能够区分同一个 grpc 服务器功能的不同机器即可
-			e = mgr.AddEndpoint(c.EtcdServer.Ctx(), endpointKey, endpoints.Endpoint{Addr: c.Addr}, clientv3.WithLease(lease.ID))
+			e = mgr.AddEndpoint(c.EtcdServer.Ctx(), endpointKey, endpoints.Endpoint{Addr: c.ListenAddr}, clientv3.WithLease(lease.ID))
 			if e != nil {
 				s.LogPanic(e)
 			}
 
 			// 每隔 5 s进行一次延续租约的动作
+			retryCount := 0
 			go func() {
 				for {
 					select {
 					case <-time.After(5 * time.Second):
-						retryCount := 0
 						// 续约操作
 						_, e := c.EtcdServer.KeepAliveOnce(c.EtcdServer.Ctx(), lease.ID)
 						if e != nil {
@@ -110,7 +110,7 @@ func NewGrpcService(c *GrpcServiceConfig) *GrpcService {
 
 		// 启动服务
 		go func() {
-			s.LogInfof("grpcService listen on %v", c.Addr)
+			s.LogInfof("grpcService listen on %v", c.ListenAddr)
 			e := gs.Server.Serve(lis)
 			if e != nil {
 				s.LogPanic(e)

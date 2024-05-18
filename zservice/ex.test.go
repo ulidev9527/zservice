@@ -8,6 +8,5 @@ func TestAction(name string, cb func()) {
 
 	cb()
 
-	LogInfo("TestAction useTime", name, time.Since(t))
-	LogInfo("TestAction end", name)
+	LogInfo("TestAction end", name, time.Since(t))
 }

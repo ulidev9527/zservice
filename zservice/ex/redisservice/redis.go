@@ -53,8 +53,9 @@ func NewRedisService(c *RedisServiceConfig) *RedisService {
 	if !c.IgnorePrefix && rs.Redis.keyPrefix == "" {
 		if rs.Redis.keyPrefix == "" { // 默认使用服务名
 			rs.Redis.keyPrefix = fmt.Sprint(zservice.GetServiceName(), ":")
+		} else {
+			rs.Redis.keyPrefix = fmt.Sprint(c.KeyPrefix, ":")
 		}
-		rs.Redis.keyPrefix = fmt.Sprint(c.KeyPrefix, ":")
 	}
 	// 锁前缀处理
 	if rs.Redis.keyLockPrefix == "" {

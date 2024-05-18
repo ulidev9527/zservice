@@ -59,7 +59,7 @@ func main() {
 	})
 
 	grpcS := grpcservice.NewGrpcService(&grpcservice.GrpcServiceConfig{
-		Addr:       zservice.Getenv("GRPC_ADDR"),
+		ListenAddr: zservice.Getenv("GRPC_ADDR"),
 		EtcdServer: etcdS.Etcd,
 		OnStart: func(grpc *grpc.Server) {
 			internal.Grpc = grpc
@@ -68,7 +68,7 @@ func main() {
 	})
 
 	ginS := ginservice.NewGinService(&ginservice.GinServiceConfig{
-		Addr: zservice.Getenv("GIN_ADDR"),
+		ListenAddr: zservice.Getenv("GIN_ADDR"),
 		OnStart: func(engine *gin.Engine) {
 			internal.Gin = engine
 			internal.InitGin()

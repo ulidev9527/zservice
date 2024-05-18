@@ -57,10 +57,11 @@ func SyncPermissionTableCache(ctx *zservice.Context) *zservice.Error {
 	})
 }
 
+// 获取一个未使用的权限 ID
 func GetNewPermissionID(ctx *zservice.Context) (uint, *zservice.Error) {
-	return GetNewID(ctx, func() uint {
+	return GetNewTableID(ctx, func() uint {
 		return uint(zservice.RandomIntRange(1, 9999999))
-	}, HasOrgByID, func(e *zservice.Error) *zservice.Error {
+	}, HasPermissionByID, func(e *zservice.Error) *zservice.Error {
 		if e.GetCode() == zglobal.Code_Zauth_GenIDCountMaxErr {
 			return e.SetCode(zglobal.Code_Zauth_PermissionGenIDCountMaxErr)
 		}
@@ -68,28 +69,33 @@ func GetNewPermissionID(ctx *zservice.Context) (uint, *zservice.Error) {
 	})
 }
 
+// 权限是否存在
+func HasPermissionByID(ctx *zservice.Context, id uint) (bool, *zservice.Error) {
+	return HasTableValue(ctx, &ZauthPermissionTable{}, fmt.Sprintf(RK_PermissionInfo, id), fmt.Sprintf("permission_id = %v", id))
+}
+
 func (z *ZauthPermissionTable) Save(ctx *zservice.Context) (*ZauthPermissionTable, *zservice.Error) {
-	rk := fmt.Sprintf(RK_PermissionInfo, z.PermissionID)
+	rk_info := fmt.Sprintf(RK_PermissionInfo, z.PermissionID)
 
 	// 上锁
-	un, e := Redis.Lock(rk)
+	un, e := Redis.Lock(rk_info)
 	if e != nil {
 		return nil, e
 	}
 	defer un()
 
 	if z.ID == 0 { // 创建
-		if e := Mysql.Create(&z).Error; e != nil {
+		if e := Mysql.Create(z).Error; e != nil {
 			return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 		}
 	} else { // 更新
-		if e := Mysql.Save(&z).Error; e != nil {
+		if e := Mysql.Save(z).Error; e != nil {
 			return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 		}
 	}
 
-	// 存 redis
-	if e := Redis.HMSet(rk, &z).Err(); e != nil {
+	// 删除缓存
+	if e := Redis.Del(rk_info).Err(); e != nil {
 		ctx.LogError(e)
 	}
 

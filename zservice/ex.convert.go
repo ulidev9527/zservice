@@ -2,37 +2,10 @@ package zservice
 
 import (
 	"encoding/binary"
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
 )
-
-// 结构体转json
-func Convert_StructToJson(o any) string {
-	v, err := json.Marshal(o)
-	if err != nil {
-		println(err.Error())
-		return ""
-	}
-
-	return string(v)
-}
-
-// json 转结构体
-func TryConvert_JsonToStruct(jsonStr string, o interface{}) bool {
-	err := json.Unmarshal([]byte(jsonStr), &o)
-	if err != nil {
-		fmt.Println(err)
-		return false
-	}
-	return true
-}
-
-// json 转 结构体
-func Convert_JsonToStruct(jsonStr string, o interface{}) error {
-	return json.Unmarshal([]byte(jsonStr), &o)
-}
 
 func Convert_Int64ToByte(i int64) []byte {
 	buf := make([]byte, 8)

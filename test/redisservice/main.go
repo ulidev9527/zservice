@@ -19,17 +19,42 @@ func main() {
 
 			zservice.TestAction("get test", func() {
 
-				has, e := db.Exists("key").Result()
+				rk := "getKey"
+				s, e := db.Set(rk, "value", 0).Result()
+				if e != nil {
+					zservice.LogError(e)
+				}
+				zservice.LogInfo(s)
+
+				has, e := db.Exists(rk).Result()
 				if e != nil {
 					zservice.LogError(e)
 				}
 				zservice.LogInfo(has)
 
-				s, e := db.Get("key").Result()
+				s, e = db.Get(rk).Result()
 				if e != nil {
 					zservice.LogError(e)
 				}
 				zservice.LogInfo(s)
+			})
+
+			zservice.TestAction("hset test", func() {
+				rk := "hsetKey"
+				var maps = &struct {
+					ID   uint
+					Name string
+				}{
+					ID:   10,
+					Name: "dddd",
+				}
+				zservice.LogInfo(maps)
+				zservice.LogInfo(string(zservice.JsonMustMarshal(&maps)))
+
+				if e := db.HSet(rk, zservice.JsonMustUnmarshal_MapAny(zservice.JsonMustMarshal(maps))).Err(); e != nil {
+					zservice.LogError(e)
+				}
+
 			})
 
 		},
@@ -38,6 +63,5 @@ func main() {
 	zservice.AddDependService(redisS.ZService)
 
 	zservice.Start()
-	zservice.WaitStop()
 
 }

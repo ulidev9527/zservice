@@ -63,7 +63,7 @@ func SyncTableCache(ctx *zservice.Context, tabArr any, getRK func(v any) string)
 			}
 			defer un()
 
-			if e := Redis.HMSet(rk_info, &v).Err(); e != nil {
+			if e := Redis.HSet(rk_info, &v).Err(); e != nil {
 				ctx.LogError(e)
 				errorCount++
 			} else {
@@ -109,7 +109,7 @@ func HasTableValue(ctx *zservice.Context, tab any, rk string, sqlWhere string) (
 }
 
 // 获取一个新的ID
-func GetNewID(
+func GetNewTableID(
 	ctx *zservice.Context,
 	genID func() uint,
 	verifyFN func(ctx *zservice.Context, id uint) (bool, *zservice.Error),
