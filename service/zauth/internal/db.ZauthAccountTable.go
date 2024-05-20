@@ -46,7 +46,7 @@ func GetNewAccountID(ctx *zservice.Context) (uint, *zservice.Error) {
 
 // 是否存在这个账号
 func HasAccountByID(ctx *zservice.Context, accountID uint) (bool, *zservice.Error) {
-	return dbhelper.HasTableValue(ctx, &ZauthAccountTable{}, fmt.Sprintf(RK_AccountInfo, accountID), fmt.Sprintf("account_id = %v", accountID))
+	return dbhelper.HasTableValue(ctx, &ZauthAccountTable{}, fmt.Sprintf(RK_AccountInfo, accountID), fmt.Sprintf("uid = %v", accountID))
 }
 
 // 是否存在这个账号

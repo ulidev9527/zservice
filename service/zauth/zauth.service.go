@@ -47,7 +47,7 @@ func main() {
 		internal.ZAuthInit()
 	})
 
-	nsqS := nsqservice.NewNsqProducerService(&nsqservice.NsqProducerServiceConfig{
+	internal.NsqService = nsqservice.NewNsqProducerService(&nsqservice.NsqProducerServiceConfig{
 		Addr: zservice.Getenv("NSQD_ADDR"),
 		OnStart: func(producer *nsq.Producer) {
 			internal.Nsq = producer
@@ -55,7 +55,7 @@ func main() {
 		},
 	})
 
-	etcdS := etcdservice.NewEtcdService(&etcdservice.EtcdServiceConfig{
+	internal.EtcdService = etcdservice.NewEtcdService(&etcdservice.EtcdServiceConfig{
 		Addr: zservice.Getenv("ETCD_ADDR"),
 		OnStart: func(etcd *clientv3.Client) {
 			internal.Etcd = etcd
@@ -63,16 +63,16 @@ func main() {
 		},
 	})
 
-	grpcS := grpcservice.NewGrpcService(&grpcservice.GrpcServiceConfig{
+	internal.GrpcService = grpcservice.NewGrpcService(&grpcservice.GrpcServiceConfig{
 		ListenAddr: zservice.Getenv("GRPC_LISTEN_ADDR"),
-		EtcdServer: etcdS.Etcd,
+		EtcdServer: internal.Etcd,
 		OnStart: func(grpc *grpc.Server) {
 			internal.Grpc = grpc
 			internal.InitGrpc()
 		},
 	})
 
-	ginS := ginservice.NewGinService(&ginservice.GinServiceConfig{
+	internal.GinService = ginservice.NewGinService(&ginservice.GinServiceConfig{
 		ListenAddr: zservice.Getenv("GIN_LISTEN_ADDR"),
 		OnStart: func(engine *gin.Engine) {
 			internal.Gin = engine
@@ -82,19 +82,19 @@ func main() {
 
 	zservice.AddDependService(
 		internal.MysqlService.ZService, internal.RedisService.ZService, systemS,
-		nsqS.ZService, etcdS.ZService, grpcS.ZService,
-		ginS.ZService,
+		internal.NsqService.ZService, internal.EtcdService.ZService, internal.GrpcService.ZService,
+		internal.GinService.ZService,
 	)
 
 	systemS.AddDependService(internal.MysqlService.ZService, internal.RedisService.ZService)
 
-	nsqS.AddDependService(systemS)
+	internal.NsqService.AddDependService(systemS)
 
-	etcdS.AddDependService(systemS)
+	internal.EtcdService.AddDependService(systemS)
 
-	grpcS.AddDependService(systemS, nsqS.ZService, etcdS.ZService)
+	internal.GrpcService.AddDependService(systemS, internal.NsqService.ZService, internal.EtcdService.ZService)
 
-	ginS.AddDependService(grpcS.ZService)
+	internal.GinService.AddDependService(internal.GrpcService.ZService)
 
 	zservice.Start().WaitStart().WaitStop()
 }
