@@ -43,8 +43,8 @@ func main() {
 	})
 
 	systemS := zservice.NewService("system", func(z *zservice.ZService) {
-		internal.SystemService = z
-		internal.SystemInit()
+		internal.ZauthInitService = z
+		internal.ZAuthInit()
 	})
 
 	nsqS := nsqservice.NewNsqProducerService(&nsqservice.NsqProducerServiceConfig{

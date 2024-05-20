@@ -9,13 +9,12 @@ import (
 )
 
 type AuthToken struct {
-	UID              uint64    // 用户ID
-	Token            string    // 令牌
-	ExpiresSecond    uint32    // 过期时间 单位: 秒
-	Expires          time.Time // 过期时间 单位: 秒
-	RefreshTokenTime time.Time // 下次刷新token时间, 用于自动刷新
-	NewToken         string    // 新令牌
-	Sign             string    // 签名，用于生成 token 和验证
+	UID           uint      // 用户ID
+	Token         string    // 令牌
+	ExpiresSecond uint32    // 过期时间 单位: 秒
+	Expires       time.Time // 过期时间 单位: 秒
+	Sign          string    // 签名，用于生成 token 和验证
+	LoginTarget   string    // 登陆的目标平台
 }
 
 // 创建一个 token
@@ -30,7 +29,9 @@ func CreateToken(ctx *zservice.Context) (*AuthToken, *zservice.Error) {
 		Sign:          zservice.MD5String(fmt.Sprint(0, ctx.AuthSign)),
 	}
 
-	if e := tk.GenToken(); e != nil {
+	tk.Token = zservice.MD5String(fmt.Sprint(tk.Sign, zservice.RandomXID()))
+
+	if e := tk.Save(); e != nil {
 		return nil, e
 	}
 
@@ -66,20 +67,34 @@ func GetToken(tkStr string) (*AuthToken, *zservice.Error) {
 	}
 }
 
-// 刷新 token
-func (l *AuthToken) GenToken() *zservice.Error {
-
-	l.Token = zservice.MD5String(fmt.Sprint(l.Sign, zservice.RandomXID()))
-
-	return l.Save()
-}
-
 // 保存
 func (l *AuthToken) Save() *zservice.Error {
 	rk := fmt.Sprintf(RK_Token, l.Token)
-	_, e := Redis.SetEx(rk, l.Token, time.Second*time.Duration(l.ExpiresSecond)).Result()
-	if e != nil {
+
+	l.Expires = time.Now().Add(time.Second * time.Duration(l.ExpiresSecond))
+
+	if l.UID != 0 { // 登录 token 存储
+		if e := Redis.SetEx(fmt.Sprintf(RK_AccountLoginToken, l.UID, l.Token), l.Token, time.Since(l.Expires)*time.Second).Err(); e != nil {
+			return zservice.NewError(e).SetCode(zglobal.Code_Zauth_TokenSaveFail)
+		}
+	}
+
+	if e := Redis.SetEx(rk, l.Token, time.Since(l.Expires)*time.Second).Err(); e != nil {
 		return zservice.NewError(e).SetCode(zglobal.Code_Zauth_TokenSaveFail)
+	}
+	return nil
+}
+
+// 删除 token
+func (l *AuthToken) Del() *zservice.Error {
+
+	rk := fmt.Sprintf(RK_Token, l.Token)
+
+	if e := Redis.Del(fmt.Sprintf(RK_AccountLoginToken, l.UID, l.Token)).Err(); e != nil {
+		return zservice.NewError(e).SetCode(zglobal.Code_Zauth_TokenDelFail)
+	}
+	if e := Redis.Del(rk).Err(); e != nil {
+		return zservice.NewError(e).SetCode(zglobal.Code_Zauth_TokenDelFail)
 	}
 	return nil
 }

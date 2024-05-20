@@ -11,7 +11,7 @@ import (
 // 账号表
 type ZauthAccountTable struct {
 	gorm.Model
-	AccountID     uint   `gorm:"unique"` // 用户唯一ID
+	UID           uint   `gorm:"unique"` // 用户唯一ID
 	LoginName     string `gorm:"unique"` // 登陆账号
 	LoginPass     string // 登陆密码
 	Phone         string `gorm:"unique"`    // 手机号 含区号 +86******
@@ -25,7 +25,7 @@ func CreateAccount(ctx *zservice.Context) (*ZauthAccountTable, *zservice.Error) 
 	if e != nil {
 		return nil, e
 	}
-	z := &ZauthAccountTable{AccountID: accID}
+	z := &ZauthAccountTable{UID: accID}
 	if e := z.Save(ctx); e != nil {
 		return nil, e
 	}
@@ -56,7 +56,7 @@ func HasAccountByLoginName(ctx *zservice.Context, loginName string) (bool, *zser
 
 // 账号密码签名
 func AccountPassSign(z *ZauthAccountTable, password string) string {
-	return zservice.MD5String(fmt.Sprint(z.AccountID, z.PasswordToken, password))
+	return zservice.MD5String(fmt.Sprint(z.UID, z.PasswordToken, password))
 }
 
 // 获取账号
@@ -71,10 +71,74 @@ func GetAccountByAccountID(ctx *zservice.Context, accountID uint) (*ZauthAccount
 
 // 根据登陆名获取账号
 func GetAccountByLoginName(ctx *zservice.Context, loginName string) (*ZauthAccountTable, *zservice.Error) {
-	tab := ZauthAccountTable{}
-	if e := dbhelper.GetTableValue(ctx, &tab, fmt.Sprintf(RK_AccountLoginName, loginName), fmt.Sprintf("login_name = '%v'", loginName)); e != nil {
-		return nil, e
+
+	rk := fmt.Sprintf(RK_AccountLoginName, loginName)
+	if has, e := Redis.Exists(rk).Result(); e != nil { // 是否有缓存
+		return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+	} else if has >= 0 {
+		if s, e := Redis.Get(rk).Result(); e != nil { // 是否有数据
+			return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+		} else {
+			if tab, e := GetAccountByAccountID(ctx, zservice.StringToUint(s)); e != nil {
+				return nil, e
+			} else {
+				return tab, nil
+			}
+		}
 	}
+
+	// 未找到 查表
+	tab := ZauthAccountTable{}
+
+	// 验证数据库中是否存在
+	if e := Mysql.Model(&tab).Where(fmt.Sprintf("login_name = '%v'", loginName)).First(&tab).Error; e != nil {
+		return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+	}
+
+	// 更新缓存
+	if e := Redis.Set(rk, zservice.UIntToString(tab.UID)).Err(); e != nil {
+		ctx.LogError(e)
+	}
+	if e := Redis.Set(fmt.Sprintf(RK_AccountInfo, tab.UID), zservice.JsonMustMarshalString(tab)).Err(); e != nil {
+		ctx.LogError(e)
+	}
+
+	return &tab, nil
+}
+
+// 根据手机号获取账号
+func GetAccountByPhone(ctx *zservice.Context, phone string) (*ZauthAccountTable, *zservice.Error) {
+	rk := fmt.Sprintf(RK_AccountLoginPhone, phone)
+	if has, e := Redis.Exists(rk).Result(); e != nil { // 是否有缓存
+		return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+	} else if has >= 0 {
+		if s, e := Redis.Get(rk).Result(); e != nil { // 是否有数据
+			return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+		} else {
+			if tab, e := GetAccountByAccountID(ctx, zservice.StringToUint(s)); e != nil {
+				return nil, e
+			} else {
+				return tab, nil
+			}
+		}
+	}
+
+	// 未找到 查表
+	tab := ZauthAccountTable{}
+
+	// 验证数据库中是否存在
+	if e := Mysql.Model(&tab).Where(fmt.Sprintf("phone = '%v'", phone)).First(&tab).Error; e != nil {
+		return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+	}
+
+	// 更新缓存
+	if e := Redis.Set(rk, zservice.UIntToString(tab.UID)).Err(); e != nil {
+		ctx.LogError(e)
+	}
+	if e := Redis.Set(fmt.Sprintf(RK_AccountInfo, tab.UID), zservice.JsonMustMarshalString(tab)).Err(); e != nil {
+		ctx.LogError(e)
+	}
+
 	return &tab, nil
 }
 
@@ -110,11 +174,11 @@ func (z *ZauthAccountTable) VerifyPass(ctx *zservice.Context, password string) b
 
 // 存储
 func (z *ZauthAccountTable) Save(ctx *zservice.Context) *zservice.Error {
-	if z.AccountID == 0 {
+	if z.UID == 0 {
 		return zservice.NewError("no account id").SetCode(zglobal.Code_ParamsErr)
 	}
 
-	rk_info := fmt.Sprintf(RK_AccountInfo, z.AccountID)
+	rk_info := fmt.Sprintf(RK_AccountInfo, z.UID)
 
 	// 上锁
 	un, e := Redis.Lock(rk_info)

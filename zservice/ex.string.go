@@ -33,3 +33,49 @@ func StringSplit(s string, sep string, clearEmpty ...bool) []string {
 	}
 	return arr
 }
+
+// string to boolean
+func StringToBoolean(s string) bool {
+	s = strings.ToLower(s)
+	if s == "" || s == "false" || s == "0" {
+		return false
+	} else {
+		return true
+	}
+}
+
+// string to int
+func StringToInt(str string) int {
+	i, err := strconv.Atoi(str)
+	if err != nil {
+		i = 0
+	}
+	return i
+}
+
+// string to float32
+func StringToFloat32(str string) float32 {
+	i, err := strconv.ParseFloat(str, 32)
+	if err != nil {
+		i = 0
+	}
+	return float32(i)
+}
+
+// string to uint
+func StringToUint(str string) uint {
+	i, err := strconv.ParseUint(str, 10, 64)
+	if err != nil {
+		return 0
+	}
+	return uint(i)
+}
+
+// string to int64
+func StringToInt64(str string) int64 {
+	i, err := strconv.ParseInt(str, 10, 64)
+	if err != nil {
+		i = 0
+	}
+	return i
+}

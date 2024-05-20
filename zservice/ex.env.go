@@ -44,14 +44,14 @@ func SetEnv(key string, value string) {
 }
 
 func GetenvInt(key string) int {
-	return Convert_StringToInt(Getenv(key))
+	return StringToInt(Getenv(key))
 }
 
 func GetenvUInt32(key string) int32 {
 	return int32(GetenvInt(key))
 }
 func GetenvBool(key string) bool {
-	return Convert_StringToBoolean(Getenv(key))
+	return StringToBoolean(Getenv(key))
 }
 
 // json

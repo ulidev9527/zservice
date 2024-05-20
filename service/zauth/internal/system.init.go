@@ -2,18 +2,18 @@ package internal
 
 import "zservice/zservice"
 
-var SystemService *zservice.ZService
+var ZauthInitService *zservice.ZService
 
 // 系统初始化
-func SystemInit() {
+func ZAuthInit() {
 
-	SystemDBInit()
+	ZauthDBInit()
 
-	SystemService.StartDone()
+	ZauthInitService.StartDone()
 }
 
 // 系统数据库数据初始化
-func SystemDBInit() {
+func ZauthDBInit() {
 	ctx := zservice.NewEmptyContext()
 	// 检查账号表是否为空，为空表示未初始化
 	count := int64(0)
@@ -53,11 +53,11 @@ func SystemDBInit() {
 	}
 
 	// 账号和组绑定
-	_, e = AccountJoinOrg(ctx, admAcc.AccountID, sysOrg.OrgID, nil) // 加入系统组
+	_, e = AccountJoinOrg(ctx, admAcc.UID, sysOrg.OrgID, nil) // 加入系统组
 	if e != nil {
 		ctx.LogPanic(e)
 	}
-	_, e = AccountJoinOrg(ctx, admAcc.AccountID, adminOrg.OrgID, nil) // 加入超级管理员组
+	_, e = AccountJoinOrg(ctx, admAcc.UID, adminOrg.OrgID, nil) // 加入超级管理员组
 	if e != nil {
 		ctx.LogPanic(e)
 	}

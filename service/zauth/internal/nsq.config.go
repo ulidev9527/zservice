@@ -3,15 +3,7 @@ package internal
 import (
 	"zservice/zservice"
 	"zservice/zservice/zglobal"
-
-	"github.com/nsqio/go-nsq"
 )
-
-var Nsq *nsq.Producer
-
-func InitNsq() {
-
-}
 
 // 文件配置改变
 func NsqFileConfigChange(fileName string) *zservice.Error {

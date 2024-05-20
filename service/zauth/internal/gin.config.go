@@ -9,9 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var Gin *gin.Engine
+func initConfig() {
 
-func InitGin() {
 	Gin.GET("/config", func(ctx *gin.Context) {
 		zctx := ginservice.GetCtxEX(ctx)
 
@@ -32,10 +31,5 @@ func InitGin() {
 			ctx.String(200, "ok")
 		}
 
-	})
-
-	Gin.GET("/version", func(ctx *gin.Context) {
-		zctx := ginservice.GetCtxEX(ctx)
-		zctx.LogPanic("eeeeeee")
 	})
 }

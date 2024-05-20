@@ -79,16 +79,16 @@ func getFileMD5(fullPath string) (md5Str string, e *zservice.Error) {
 // 解析文件
 func ParserFile(fileName string, parserType uint32) *zservice.Error {
 
+	// 全路径
+	fullPath := fmt.Sprintf("%s/%s", FI_StaticRoot, fileName)
+
 	// 上锁
-	RK_lock := fmt.Sprintf(RK_FileConfigLcok, fileName)
-	un, e := Redis.Lock(RK_lock)
+	rKeyFile := fmt.Sprintf(RK_FileConfig, fileName)
+	un, e := Redis.Lock(rKeyFile)
 	if e != nil {
 		return e
 	}
 	defer un()
-
-	// 全路径
-	fullPath := fmt.Sprintf("%s/%s", FI_StaticRoot, fileName)
 
 	// 解析器获取
 	parserFN, ok := fileParserMap[parserType]
@@ -131,7 +131,6 @@ func ParserFile(fileName string, parserType uint32) *zservice.Error {
 	}
 
 	// 存储到 redis
-	rKeyFile := fmt.Sprintf(RK_FileConfig, fileName)
 	if e := func() *zservice.Error {
 
 		if e := Redis.Del(rKeyMd5).Err(); e != nil {

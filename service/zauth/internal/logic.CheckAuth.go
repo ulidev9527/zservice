@@ -6,6 +6,7 @@ import (
 	"zservice/zservice/zglobal"
 )
 
+// 检查权限
 func CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_pb.CheckAuth_RES {
 
 	// 获取 token

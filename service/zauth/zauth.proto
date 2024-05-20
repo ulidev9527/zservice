@@ -2,6 +2,7 @@ syntax = "proto3";
 package zauth_pb;
 option go_package="./zauth_pb";
 
+message Default_REQ{} // 默认请求
 message Default_RES {
     uint32 Code = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
 }
@@ -9,14 +10,15 @@ message Default_RES {
 message LoginByPhone_REQ {
     string Phone       = 1;   // 手机号 +86****
     uint32 Expires     = 2;   // 过期时间 没有传入 (单位: 秒)，最小 30s，过期时间到了后需要重新授权
-    uint32 LoginTarget = 3 ;  // 登陆目标
+    string LoginTarget = 3 ;  // 登陆目标
+    string VerifyCode  = 4 ;  // 验证码
 }
 
 message LoginByAccount_REQ {
     string Account     = 1;   // 账号
     string Password    = 2;   // 密码
     uint32 Expires     = 3;   // 过期时间 没有传入 (单位: 秒)，最小 30s，过期时间到了后需要重新授权
-    uint32 LoginTarget = 4 ;  // 登陆目标
+    string LoginTarget = 4 ;  // 登陆目标
 }
 
 message CheckAuth_REQ{
@@ -28,8 +30,45 @@ message CheckAuth_RES{
     string Token          = 3;  // 新的令牌， IsTokenRefresh 和 Token 为固定格式，不受错误码影响
 }
 
+
+message SMSSendVerifyCode_REQ { // 发送验证码 请求
+    string Phone  = 1;  // 手机号 必须带有 +86
+    string Serive = 2;  // 服务标识，哪个服务发起的验证码请求，可以为空字符串
+}
+
+message SMSSendVerifyCode_RES {
+    uint32 Code       = 1;  // 状态
+    string VerifyCode = 2;  // 验证码
+
+}
+
+message SMSVerifyCode_REQ { // 发送验证码 请求
+    string Phone      = 1;  // 手机号 必须带有 +86
+    string Serive     = 2;  // 服务标识，哪个服务发起的验证码请求，可以为空字符串
+    string VerifyCode = 3;  // 验证码
+}
+
+
+message GetFileConfig_REQ {
+    string FileName = 1;  // 文件名
+    string Keys     = 2;  // key 需要返回哪些值, 空值返回全部
+}
+message GetFileConfig_RES{
+    uint32 Code  = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
+    string value = 2;  // 返回的数据，根据情况不同返回数据不同
+}
+
 service zauth{
-    rpc LoginByPhone(LoginByPhone_REQ) returns(Default_RES);        // 手机号登陆
-    rpc LoginByLoginName(LoginByAccount_REQ) returns(Default_RES);  // 账户登陆
-    rpc CheckAuth(CheckAuth_REQ) returns(CheckAuth_RES);            // 检查权限
+
+    rpc Logout(Default_REQ) returns(Default_RES);                                 // 登出
+    rpc LoginByPhone(LoginByPhone_REQ) returns(Default_RES);                      // 手机号登陆
+    rpc LoginByLoginName(LoginByAccount_REQ) returns(Default_RES);                // 账户登陆
+    
+    rpc SMSSendVerifyCode(SMSSendVerifyCode_REQ) returns(SMSSendVerifyCode_RES);  // 发送验证码
+    rpc SMSVerifyCode(SMSVerifyCode_REQ) returns(Default_RES);                    // 验证验证码
+
+    rpc CheckAuth(CheckAuth_REQ) returns(CheckAuth_RES);                          // 检查权限
+
+    rpc GetFileConfig(GetFileConfig_REQ) returns(GetFileConfig_RES);  // 获取文件配置
+    
 }

@@ -18,7 +18,7 @@ type SmsBanTable struct {
 }
 
 // 账号是否封禁
-func IsSmsBan(ctx *zservice.Context, phone string) (bool, error) {
+func IsSmsBan(ctx *zservice.Context, phone string) (bool, *zservice.Error) {
 	if phone == "" {
 		return false, nil
 	}

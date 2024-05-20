@@ -130,6 +130,15 @@ func (db *DBHelper) GetTableValue(ctx *zservice.Context, tab any, rk string, sql
 	}
 
 	// 验证数据库中是否存在
+	count := int64(0)
+	wh := db.Mysql.Model(&tab).Where(sqlWhere)
+
+	if e := wh.Count(&count).Error; e != nil {
+		return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+	}
+	if count == 0 {
+		return zservice.NewError("not found").SetCode(zglobal.Code_Zauth_Account_NotFund)
+	}
 	if e := db.Mysql.Model(&tab).Where(sqlWhere).First(&tab).Error; e != nil {
 		return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 	}

@@ -19,7 +19,7 @@ type aliyunSMSSendConfig struct {
 	SignName     string
 }
 
-func aliyunSMSSend(ctx *zservice.Context, c *aliyunSMSSendConfig) (code uint32) {
+func aliyunSMSSend(ctx *zservice.Context, c *aliyunSMSSendConfig) *zservice.Error {
 	// 验证
 	if c.Phone == "" ||
 		c.VerifyCode == "" ||
@@ -27,7 +27,7 @@ func aliyunSMSSend(ctx *zservice.Context, c *aliyunSMSSendConfig) (code uint32) 
 		c.Secret == "" ||
 		c.TemplateCode == "" ||
 		c.SignName == "" {
-		return zglobal.Code_Zsms_SendParamsErr
+		return zservice.NewError("param err").SetCode(zglobal.Code_ParamsErr)
 	}
 
 	// 请确保代码运行环境设置了环境变量 ALIBABA_CLOUD_ACCESS_KEY_ID 和 ALIBABA_CLOUD_ACCESS_KEY_SECRET��
@@ -47,8 +47,7 @@ func aliyunSMSSend(ctx *zservice.Context, c *aliyunSMSSendConfig) (code uint32) 
 	}()
 
 	if e != nil {
-		ctx.LogError(e)
-		return zglobal.Code_Zsms_ErrorBreakoff
+		return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 	}
 
 	sendSmsRequest := &dysmsapi20170525.SendSmsRequest{
@@ -78,7 +77,7 @@ func aliyunSMSSend(ctx *zservice.Context, c *aliyunSMSSendConfig) (code uint32) 
 	}()
 
 	if tryErr != nil {
-		return zglobal.Code_Zsms_ErrorBreakoff
+		return zservice.NewError(tryErr).SetCode(zglobal.Code_ErrorBreakoff)
 	}
-	return zglobal.Code_SUCC
+	return nil
 }

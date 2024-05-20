@@ -9,6 +9,8 @@ import (
 var Gin *gin.Engine
 
 func InitGin() {
+	initConfig()
+
 	Gin.GET("/config", func(ctx *gin.Context) {
 		zctx := ginservice.GetCtxEX(ctx)
 

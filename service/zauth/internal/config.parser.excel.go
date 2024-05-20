@@ -104,13 +104,13 @@ func ParserExcel(fullPath string) (map[string]string, *zservice.Error) {
 
 				switch strings.ToLower(vtype) {
 				case "int":
-					data[field] = zservice.Convert_StringToInt(value)
+					data[field] = zservice.StringToInt(value)
 					continue
 				case "int[]":
 					arr := strings.Split(value, ",")
 					list := []int{}
 					for i := 0; i < len(arr); i++ {
-						list = append(list, zservice.Convert_StringToInt(arr[i]))
+						list = append(list, zservice.StringToInt(arr[i]))
 					}
 					data[field] = list
 					continue

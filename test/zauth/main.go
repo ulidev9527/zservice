@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 	"strings"
-	"zservice/service/zconfig/zconfig"
+	"zservice/service/zauth/zauth"
 	"zservice/zservice"
 	"zservice/zservice/ex/etcdservice"
 	"zservice/zservice/ex/ginservice"
@@ -14,7 +14,7 @@ import (
 
 func init() {
 
-	zservice.Init("zconfig.fileConfig", "0.1.0")
+	zservice.Init("zauth.fileConfig", "0.1.0")
 }
 
 func main() {
@@ -27,14 +27,12 @@ func main() {
 		},
 	})
 
-	grpcClient := zservice.NewService("zconfig.grpc", func(z *zservice.ZService) {
-		zconfig.Init(&zconfig.ZConfigConfig{
-			EtcdServiceName: "zconfig",
-			Etcd:            etcdS.Etcd,
-			NsqConsumerAddr: zservice.Getenv("NSQ_CONSUMER_ADDR"),
-			IsNsqd:          zservice.GetenvBool("NSQ_CONSUMER_IS_NSQD"),
-		})
+	grpcClient := zservice.NewService("zauth.grpc", func(z *zservice.ZService) {
 
+		zauth.Init(&zauth.ZAuthConfig{
+			EtcdServiceName: "zauth",
+			Etcd:            etcdS.Etcd,
+		})
 		z.StartDone()
 	})
 
@@ -54,7 +52,7 @@ func main() {
 						LimitCount uint32 `json:"limit_count"`
 					}{}
 
-					e := zconfig.GetFileConfig(zctx, "test.xlsx", &arr)
+					e := zauth.GetFileConfig(zctx, "test.xlsx", &arr)
 					if e != nil {
 						zctx.LogError(e)
 					}
@@ -68,7 +66,7 @@ func main() {
 						LimitCount uint32 `json:"limit_count"`
 					}{}
 
-					e := zconfig.GetFileConfig(zctx, "test.xlsx", &arr, zservice.StringSplit(id, ",")...)
+					e := zauth.GetFileConfig(zctx, "test.xlsx", &arr, zservice.StringSplit(id, ",")...)
 					if e != nil {
 						zctx.LogError(e)
 					}
@@ -82,7 +80,7 @@ func main() {
 						Icon       string `json:"icon"`
 						LimitCount uint32 `json:"limit_count"`
 					}{}
-					e := zconfig.GetFileConfig(zctx, "test.xlsx", &m, id)
+					e := zauth.GetFileConfig(zctx, "test.xlsx", &m, id)
 					if e != nil {
 						zctx.LogError(e)
 					}

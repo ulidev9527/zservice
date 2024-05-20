@@ -23,6 +23,7 @@ func InitMysql() {
 	Mysql.AutoMigrate(&ZauthPermissionTable{})
 	Mysql.AutoMigrate(&ZauthAccountOrgBindTable{})
 	Mysql.AutoMigrate(&ZauthPermissionBindTable{})
+	Mysql.AutoMigrate(&SmsBanTable{})
 
 	dbhelper = zhelper.NewDBHelper(Redis, Mysql)
 }

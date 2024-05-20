@@ -20,6 +20,44 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type Default_REQ struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *Default_REQ) Reset() {
+	*x = Default_REQ{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_zauth_proto_msgTypes[0]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Default_REQ) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Default_REQ) ProtoMessage() {}
+
+func (x *Default_REQ) ProtoReflect() protoreflect.Message {
+	mi := &file_zauth_proto_msgTypes[0]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Default_REQ.ProtoReflect.Descriptor instead.
+func (*Default_REQ) Descriptor() ([]byte, []int) {
+	return file_zauth_proto_rawDescGZIP(), []int{0}
+}
+
 type Default_RES struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -31,7 +69,7 @@ type Default_RES struct {
 func (x *Default_RES) Reset() {
 	*x = Default_RES{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_zauth_proto_msgTypes[0]
+		mi := &file_zauth_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -44,7 +82,7 @@ func (x *Default_RES) String() string {
 func (*Default_RES) ProtoMessage() {}
 
 func (x *Default_RES) ProtoReflect() protoreflect.Message {
-	mi := &file_zauth_proto_msgTypes[0]
+	mi := &file_zauth_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -57,7 +95,7 @@ func (x *Default_RES) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Default_RES.ProtoReflect.Descriptor instead.
 func (*Default_RES) Descriptor() ([]byte, []int) {
-	return file_zauth_proto_rawDescGZIP(), []int{0}
+	return file_zauth_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *Default_RES) GetCode() uint32 {
@@ -72,15 +110,16 @@ type LoginByPhone_REQ struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Phone       string `protobuf:"bytes,1,opt,name=Phone,proto3" json:"Phone,omitempty"`              // 手机号 +86****
-	Expires     uint32 `protobuf:"varint,2,opt,name=Expires,proto3" json:"Expires,omitempty"`         // 过期时间 没有传入 (单位: 秒)，最小 30s，过期时间到了后需要重新授权
-	LoginTarget uint32 `protobuf:"varint,3,opt,name=LoginTarget,proto3" json:"LoginTarget,omitempty"` // 登陆目标
+	Phone       string `protobuf:"bytes,1,opt,name=Phone,proto3" json:"Phone,omitempty"`             // 手机号 +86****
+	Expires     uint32 `protobuf:"varint,2,opt,name=Expires,proto3" json:"Expires,omitempty"`        // 过期时间 没有传入 (单位: 秒)，最小 30s，过期时间到了后需要重新授权
+	LoginTarget string `protobuf:"bytes,3,opt,name=LoginTarget,proto3" json:"LoginTarget,omitempty"` // 登陆目标
+	VerifyCode  string `protobuf:"bytes,4,opt,name=VerifyCode,proto3" json:"VerifyCode,omitempty"`   // 验证码
 }
 
 func (x *LoginByPhone_REQ) Reset() {
 	*x = LoginByPhone_REQ{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_zauth_proto_msgTypes[1]
+		mi := &file_zauth_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -93,7 +132,7 @@ func (x *LoginByPhone_REQ) String() string {
 func (*LoginByPhone_REQ) ProtoMessage() {}
 
 func (x *LoginByPhone_REQ) ProtoReflect() protoreflect.Message {
-	mi := &file_zauth_proto_msgTypes[1]
+	mi := &file_zauth_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -106,7 +145,7 @@ func (x *LoginByPhone_REQ) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoginByPhone_REQ.ProtoReflect.Descriptor instead.
 func (*LoginByPhone_REQ) Descriptor() ([]byte, []int) {
-	return file_zauth_proto_rawDescGZIP(), []int{1}
+	return file_zauth_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *LoginByPhone_REQ) GetPhone() string {
@@ -123,11 +162,18 @@ func (x *LoginByPhone_REQ) GetExpires() uint32 {
 	return 0
 }
 
-func (x *LoginByPhone_REQ) GetLoginTarget() uint32 {
+func (x *LoginByPhone_REQ) GetLoginTarget() string {
 	if x != nil {
 		return x.LoginTarget
 	}
-	return 0
+	return ""
+}
+
+func (x *LoginByPhone_REQ) GetVerifyCode() string {
+	if x != nil {
+		return x.VerifyCode
+	}
+	return ""
 }
 
 type LoginByAccount_REQ struct {
@@ -135,16 +181,16 @@ type LoginByAccount_REQ struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Account     string `protobuf:"bytes,1,opt,name=Account,proto3" json:"Account,omitempty"`          // 账号
-	Password    string `protobuf:"bytes,2,opt,name=Password,proto3" json:"Password,omitempty"`        // 密码
-	Expires     uint32 `protobuf:"varint,3,opt,name=Expires,proto3" json:"Expires,omitempty"`         // 过期时间 没有传入 (单位: 秒)，最小 30s，过期时间到了后需要重新授权
-	LoginTarget uint32 `protobuf:"varint,4,opt,name=LoginTarget,proto3" json:"LoginTarget,omitempty"` // 登陆目标
+	Account     string `protobuf:"bytes,1,opt,name=Account,proto3" json:"Account,omitempty"`         // 账号
+	Password    string `protobuf:"bytes,2,opt,name=Password,proto3" json:"Password,omitempty"`       // 密码
+	Expires     uint32 `protobuf:"varint,3,opt,name=Expires,proto3" json:"Expires,omitempty"`        // 过期时间 没有传入 (单位: 秒)，最小 30s，过期时间到了后需要重新授权
+	LoginTarget string `protobuf:"bytes,4,opt,name=LoginTarget,proto3" json:"LoginTarget,omitempty"` // 登陆目标
 }
 
 func (x *LoginByAccount_REQ) Reset() {
 	*x = LoginByAccount_REQ{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_zauth_proto_msgTypes[2]
+		mi := &file_zauth_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -157,7 +203,7 @@ func (x *LoginByAccount_REQ) String() string {
 func (*LoginByAccount_REQ) ProtoMessage() {}
 
 func (x *LoginByAccount_REQ) ProtoReflect() protoreflect.Message {
-	mi := &file_zauth_proto_msgTypes[2]
+	mi := &file_zauth_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -170,7 +216,7 @@ func (x *LoginByAccount_REQ) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoginByAccount_REQ.ProtoReflect.Descriptor instead.
 func (*LoginByAccount_REQ) Descriptor() ([]byte, []int) {
-	return file_zauth_proto_rawDescGZIP(), []int{2}
+	return file_zauth_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *LoginByAccount_REQ) GetAccount() string {
@@ -194,11 +240,11 @@ func (x *LoginByAccount_REQ) GetExpires() uint32 {
 	return 0
 }
 
-func (x *LoginByAccount_REQ) GetLoginTarget() uint32 {
+func (x *LoginByAccount_REQ) GetLoginTarget() string {
 	if x != nil {
 		return x.LoginTarget
 	}
-	return 0
+	return ""
 }
 
 type CheckAuth_REQ struct {
@@ -212,7 +258,7 @@ type CheckAuth_REQ struct {
 func (x *CheckAuth_REQ) Reset() {
 	*x = CheckAuth_REQ{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_zauth_proto_msgTypes[3]
+		mi := &file_zauth_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -225,7 +271,7 @@ func (x *CheckAuth_REQ) String() string {
 func (*CheckAuth_REQ) ProtoMessage() {}
 
 func (x *CheckAuth_REQ) ProtoReflect() protoreflect.Message {
-	mi := &file_zauth_proto_msgTypes[3]
+	mi := &file_zauth_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -238,7 +284,7 @@ func (x *CheckAuth_REQ) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckAuth_REQ.ProtoReflect.Descriptor instead.
 func (*CheckAuth_REQ) Descriptor() ([]byte, []int) {
-	return file_zauth_proto_rawDescGZIP(), []int{3}
+	return file_zauth_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *CheckAuth_REQ) GetAuth() string {
@@ -261,7 +307,7 @@ type CheckAuth_RES struct {
 func (x *CheckAuth_RES) Reset() {
 	*x = CheckAuth_RES{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_zauth_proto_msgTypes[4]
+		mi := &file_zauth_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -274,7 +320,7 @@ func (x *CheckAuth_RES) String() string {
 func (*CheckAuth_RES) ProtoMessage() {}
 
 func (x *CheckAuth_RES) ProtoReflect() protoreflect.Message {
-	mi := &file_zauth_proto_msgTypes[4]
+	mi := &file_zauth_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -287,7 +333,7 @@ func (x *CheckAuth_RES) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckAuth_RES.ProtoReflect.Descriptor instead.
 func (*CheckAuth_RES) Descriptor() ([]byte, []int) {
-	return file_zauth_proto_rawDescGZIP(), []int{4}
+	return file_zauth_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *CheckAuth_RES) GetCode() uint32 {
@@ -311,19 +357,305 @@ func (x *CheckAuth_RES) GetToken() string {
 	return ""
 }
 
+type SMSSendVerifyCode_REQ struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Phone  string `protobuf:"bytes,1,opt,name=Phone,proto3" json:"Phone,omitempty"`   // 手机号 必须带有 +86
+	Serive string `protobuf:"bytes,2,opt,name=Serive,proto3" json:"Serive,omitempty"` // 服务标识，哪个服务发起的验证码请求，可以为空字符串
+}
+
+func (x *SMSSendVerifyCode_REQ) Reset() {
+	*x = SMSSendVerifyCode_REQ{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_zauth_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SMSSendVerifyCode_REQ) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SMSSendVerifyCode_REQ) ProtoMessage() {}
+
+func (x *SMSSendVerifyCode_REQ) ProtoReflect() protoreflect.Message {
+	mi := &file_zauth_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SMSSendVerifyCode_REQ.ProtoReflect.Descriptor instead.
+func (*SMSSendVerifyCode_REQ) Descriptor() ([]byte, []int) {
+	return file_zauth_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *SMSSendVerifyCode_REQ) GetPhone() string {
+	if x != nil {
+		return x.Phone
+	}
+	return ""
+}
+
+func (x *SMSSendVerifyCode_REQ) GetSerive() string {
+	if x != nil {
+		return x.Serive
+	}
+	return ""
+}
+
+type SMSSendVerifyCode_RES struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Code       uint32 `protobuf:"varint,1,opt,name=Code,proto3" json:"Code,omitempty"`            // 状态
+	VerifyCode string `protobuf:"bytes,2,opt,name=VerifyCode,proto3" json:"VerifyCode,omitempty"` // 验证码
+}
+
+func (x *SMSSendVerifyCode_RES) Reset() {
+	*x = SMSSendVerifyCode_RES{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_zauth_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SMSSendVerifyCode_RES) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SMSSendVerifyCode_RES) ProtoMessage() {}
+
+func (x *SMSSendVerifyCode_RES) ProtoReflect() protoreflect.Message {
+	mi := &file_zauth_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SMSSendVerifyCode_RES.ProtoReflect.Descriptor instead.
+func (*SMSSendVerifyCode_RES) Descriptor() ([]byte, []int) {
+	return file_zauth_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *SMSSendVerifyCode_RES) GetCode() uint32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *SMSSendVerifyCode_RES) GetVerifyCode() string {
+	if x != nil {
+		return x.VerifyCode
+	}
+	return ""
+}
+
+type SMSVerifyCode_REQ struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Phone      string `protobuf:"bytes,1,opt,name=Phone,proto3" json:"Phone,omitempty"`           // 手机号 必须带有 +86
+	Serive     string `protobuf:"bytes,2,opt,name=Serive,proto3" json:"Serive,omitempty"`         // 服务标识，哪个服务发起的验证码请求，可以为空字符串
+	VerifyCode string `protobuf:"bytes,3,opt,name=VerifyCode,proto3" json:"VerifyCode,omitempty"` // 验证码
+}
+
+func (x *SMSVerifyCode_REQ) Reset() {
+	*x = SMSVerifyCode_REQ{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_zauth_proto_msgTypes[8]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SMSVerifyCode_REQ) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SMSVerifyCode_REQ) ProtoMessage() {}
+
+func (x *SMSVerifyCode_REQ) ProtoReflect() protoreflect.Message {
+	mi := &file_zauth_proto_msgTypes[8]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SMSVerifyCode_REQ.ProtoReflect.Descriptor instead.
+func (*SMSVerifyCode_REQ) Descriptor() ([]byte, []int) {
+	return file_zauth_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *SMSVerifyCode_REQ) GetPhone() string {
+	if x != nil {
+		return x.Phone
+	}
+	return ""
+}
+
+func (x *SMSVerifyCode_REQ) GetSerive() string {
+	if x != nil {
+		return x.Serive
+	}
+	return ""
+}
+
+func (x *SMSVerifyCode_REQ) GetVerifyCode() string {
+	if x != nil {
+		return x.VerifyCode
+	}
+	return ""
+}
+
+type GetFileConfig_REQ struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	FileName string `protobuf:"bytes,1,opt,name=FileName,proto3" json:"FileName,omitempty"` // 文件名
+	Keys     string `protobuf:"bytes,2,opt,name=Keys,proto3" json:"Keys,omitempty"`         // key 需要返回哪些值, 空值返回全部
+}
+
+func (x *GetFileConfig_REQ) Reset() {
+	*x = GetFileConfig_REQ{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_zauth_proto_msgTypes[9]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetFileConfig_REQ) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetFileConfig_REQ) ProtoMessage() {}
+
+func (x *GetFileConfig_REQ) ProtoReflect() protoreflect.Message {
+	mi := &file_zauth_proto_msgTypes[9]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetFileConfig_REQ.ProtoReflect.Descriptor instead.
+func (*GetFileConfig_REQ) Descriptor() ([]byte, []int) {
+	return file_zauth_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *GetFileConfig_REQ) GetFileName() string {
+	if x != nil {
+		return x.FileName
+	}
+	return ""
+}
+
+func (x *GetFileConfig_REQ) GetKeys() string {
+	if x != nil {
+		return x.Keys
+	}
+	return ""
+}
+
+type GetFileConfig_RES struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Code  uint32 `protobuf:"varint,1,opt,name=Code,proto3" json:"Code,omitempty"`  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
+	Value string `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"` // 返回的数据，根据情况不同返回数据不同
+}
+
+func (x *GetFileConfig_RES) Reset() {
+	*x = GetFileConfig_RES{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_zauth_proto_msgTypes[10]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetFileConfig_RES) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetFileConfig_RES) ProtoMessage() {}
+
+func (x *GetFileConfig_RES) ProtoReflect() protoreflect.Message {
+	mi := &file_zauth_proto_msgTypes[10]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetFileConfig_RES.ProtoReflect.Descriptor instead.
+func (*GetFileConfig_RES) Descriptor() ([]byte, []int) {
+	return file_zauth_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *GetFileConfig_RES) GetCode() uint32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *GetFileConfig_RES) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
+}
+
 var File_zauth_proto protoreflect.FileDescriptor
 
 var file_zauth_proto_rawDesc = []byte{
 	0x0a, 0x0b, 0x7a, 0x61, 0x75, 0x74, 0x68, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x08, 0x7a,
-	0x61, 0x75, 0x74, 0x68, 0x5f, 0x70, 0x62, 0x22, 0x21, 0x0a, 0x0b, 0x44, 0x65, 0x66, 0x61, 0x75,
-	0x6c, 0x74, 0x5f, 0x52, 0x45, 0x53, 0x12, 0x12, 0x0a, 0x04, 0x43, 0x6f, 0x64, 0x65, 0x18, 0x01,
-	0x20, 0x01, 0x28, 0x0d, 0x52, 0x04, 0x43, 0x6f, 0x64, 0x65, 0x22, 0x64, 0x0a, 0x10, 0x4c, 0x6f,
+	0x61, 0x75, 0x74, 0x68, 0x5f, 0x70, 0x62, 0x22, 0x0d, 0x0a, 0x0b, 0x44, 0x65, 0x66, 0x61, 0x75,
+	0x6c, 0x74, 0x5f, 0x52, 0x45, 0x51, 0x22, 0x21, 0x0a, 0x0b, 0x44, 0x65, 0x66, 0x61, 0x75, 0x6c,
+	0x74, 0x5f, 0x52, 0x45, 0x53, 0x12, 0x12, 0x0a, 0x04, 0x43, 0x6f, 0x64, 0x65, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x0d, 0x52, 0x04, 0x43, 0x6f, 0x64, 0x65, 0x22, 0x84, 0x01, 0x0a, 0x10, 0x4c, 0x6f,
 	0x67, 0x69, 0x6e, 0x42, 0x79, 0x50, 0x68, 0x6f, 0x6e, 0x65, 0x5f, 0x52, 0x45, 0x51, 0x12, 0x14,
 	0x0a, 0x05, 0x50, 0x68, 0x6f, 0x6e, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x50,
 	0x68, 0x6f, 0x6e, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x45, 0x78, 0x70, 0x69, 0x72, 0x65, 0x73, 0x18,
 	0x02, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x07, 0x45, 0x78, 0x70, 0x69, 0x72, 0x65, 0x73, 0x12, 0x20,
 	0x0a, 0x0b, 0x4c, 0x6f, 0x67, 0x69, 0x6e, 0x54, 0x61, 0x72, 0x67, 0x65, 0x74, 0x18, 0x03, 0x20,
-	0x01, 0x28, 0x0d, 0x52, 0x0b, 0x4c, 0x6f, 0x67, 0x69, 0x6e, 0x54, 0x61, 0x72, 0x67, 0x65, 0x74,
+	0x01, 0x28, 0x09, 0x52, 0x0b, 0x4c, 0x6f, 0x67, 0x69, 0x6e, 0x54, 0x61, 0x72, 0x67, 0x65, 0x74,
+	0x12, 0x1e, 0x0a, 0x0a, 0x56, 0x65, 0x72, 0x69, 0x66, 0x79, 0x43, 0x6f, 0x64, 0x65, 0x18, 0x04,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x56, 0x65, 0x72, 0x69, 0x66, 0x79, 0x43, 0x6f, 0x64, 0x65,
 	0x22, 0x86, 0x01, 0x0a, 0x12, 0x4c, 0x6f, 0x67, 0x69, 0x6e, 0x42, 0x79, 0x41, 0x63, 0x63, 0x6f,
 	0x75, 0x6e, 0x74, 0x5f, 0x52, 0x45, 0x51, 0x12, 0x18, 0x0a, 0x07, 0x41, 0x63, 0x63, 0x6f, 0x75,
 	0x6e, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e,
@@ -331,7 +663,7 @@ var file_zauth_proto_rawDesc = []byte{
 	0x01, 0x28, 0x09, 0x52, 0x08, 0x50, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x12, 0x18, 0x0a,
 	0x07, 0x45, 0x78, 0x70, 0x69, 0x72, 0x65, 0x73, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x07,
 	0x45, 0x78, 0x70, 0x69, 0x72, 0x65, 0x73, 0x12, 0x20, 0x0a, 0x0b, 0x4c, 0x6f, 0x67, 0x69, 0x6e,
-	0x54, 0x61, 0x72, 0x67, 0x65, 0x74, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x0b, 0x4c, 0x6f,
+	0x54, 0x61, 0x72, 0x67, 0x65, 0x74, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x4c, 0x6f,
 	0x67, 0x69, 0x6e, 0x54, 0x61, 0x72, 0x67, 0x65, 0x74, 0x22, 0x23, 0x0a, 0x0d, 0x43, 0x68, 0x65,
 	0x63, 0x6b, 0x41, 0x75, 0x74, 0x68, 0x5f, 0x52, 0x45, 0x51, 0x12, 0x12, 0x0a, 0x04, 0x41, 0x75,
 	0x74, 0x68, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x41, 0x75, 0x74, 0x68, 0x22, 0x61,
@@ -341,21 +673,63 @@ var file_zauth_proto_rawDesc = []byte{
 	0x66, 0x72, 0x65, 0x73, 0x68, 0x18, 0x02, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0e, 0x49, 0x73, 0x54,
 	0x6f, 0x6b, 0x65, 0x6e, 0x52, 0x65, 0x66, 0x72, 0x65, 0x73, 0x68, 0x12, 0x14, 0x0a, 0x05, 0x54,
 	0x6f, 0x6b, 0x65, 0x6e, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x54, 0x6f, 0x6b, 0x65,
-	0x6e, 0x32, 0xd2, 0x01, 0x0a, 0x05, 0x7a, 0x61, 0x75, 0x74, 0x68, 0x12, 0x41, 0x0a, 0x0c, 0x4c,
-	0x6f, 0x67, 0x69, 0x6e, 0x42, 0x79, 0x50, 0x68, 0x6f, 0x6e, 0x65, 0x12, 0x1a, 0x2e, 0x7a, 0x61,
-	0x75, 0x74, 0x68, 0x5f, 0x70, 0x62, 0x2e, 0x4c, 0x6f, 0x67, 0x69, 0x6e, 0x42, 0x79, 0x50, 0x68,
-	0x6f, 0x6e, 0x65, 0x5f, 0x52, 0x45, 0x51, 0x1a, 0x15, 0x2e, 0x7a, 0x61, 0x75, 0x74, 0x68, 0x5f,
-	0x70, 0x62, 0x2e, 0x44, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x5f, 0x52, 0x45, 0x53, 0x12, 0x47,
-	0x0a, 0x10, 0x4c, 0x6f, 0x67, 0x69, 0x6e, 0x42, 0x79, 0x4c, 0x6f, 0x67, 0x69, 0x6e, 0x4e, 0x61,
-	0x6d, 0x65, 0x12, 0x1c, 0x2e, 0x7a, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x70, 0x62, 0x2e, 0x4c, 0x6f,
-	0x67, 0x69, 0x6e, 0x42, 0x79, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x5f, 0x52, 0x45, 0x51,
-	0x1a, 0x15, 0x2e, 0x7a, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x70, 0x62, 0x2e, 0x44, 0x65, 0x66, 0x61,
-	0x75, 0x6c, 0x74, 0x5f, 0x52, 0x45, 0x53, 0x12, 0x3d, 0x0a, 0x09, 0x43, 0x68, 0x65, 0x63, 0x6b,
-	0x41, 0x75, 0x74, 0x68, 0x12, 0x17, 0x2e, 0x7a, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x70, 0x62, 0x2e,
-	0x43, 0x68, 0x65, 0x63, 0x6b, 0x41, 0x75, 0x74, 0x68, 0x5f, 0x52, 0x45, 0x51, 0x1a, 0x17, 0x2e,
-	0x7a, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x70, 0x62, 0x2e, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x41, 0x75,
-	0x74, 0x68, 0x5f, 0x52, 0x45, 0x53, 0x42, 0x0c, 0x5a, 0x0a, 0x2e, 0x2f, 0x7a, 0x61, 0x75, 0x74,
-	0x68, 0x5f, 0x70, 0x62, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x6e, 0x22, 0x45, 0x0a, 0x15, 0x53, 0x4d, 0x53, 0x53, 0x65, 0x6e, 0x64, 0x56, 0x65, 0x72, 0x69,
+	0x66, 0x79, 0x43, 0x6f, 0x64, 0x65, 0x5f, 0x52, 0x45, 0x51, 0x12, 0x14, 0x0a, 0x05, 0x50, 0x68,
+	0x6f, 0x6e, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x50, 0x68, 0x6f, 0x6e, 0x65,
+	0x12, 0x16, 0x0a, 0x06, 0x53, 0x65, 0x72, 0x69, 0x76, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x06, 0x53, 0x65, 0x72, 0x69, 0x76, 0x65, 0x22, 0x4b, 0x0a, 0x15, 0x53, 0x4d, 0x53, 0x53,
+	0x65, 0x6e, 0x64, 0x56, 0x65, 0x72, 0x69, 0x66, 0x79, 0x43, 0x6f, 0x64, 0x65, 0x5f, 0x52, 0x45,
+	0x53, 0x12, 0x12, 0x0a, 0x04, 0x43, 0x6f, 0x64, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0d, 0x52,
+	0x04, 0x43, 0x6f, 0x64, 0x65, 0x12, 0x1e, 0x0a, 0x0a, 0x56, 0x65, 0x72, 0x69, 0x66, 0x79, 0x43,
+	0x6f, 0x64, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x56, 0x65, 0x72, 0x69, 0x66,
+	0x79, 0x43, 0x6f, 0x64, 0x65, 0x22, 0x61, 0x0a, 0x11, 0x53, 0x4d, 0x53, 0x56, 0x65, 0x72, 0x69,
+	0x66, 0x79, 0x43, 0x6f, 0x64, 0x65, 0x5f, 0x52, 0x45, 0x51, 0x12, 0x14, 0x0a, 0x05, 0x50, 0x68,
+	0x6f, 0x6e, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x50, 0x68, 0x6f, 0x6e, 0x65,
+	0x12, 0x16, 0x0a, 0x06, 0x53, 0x65, 0x72, 0x69, 0x76, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x06, 0x53, 0x65, 0x72, 0x69, 0x76, 0x65, 0x12, 0x1e, 0x0a, 0x0a, 0x56, 0x65, 0x72, 0x69,
+	0x66, 0x79, 0x43, 0x6f, 0x64, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x56, 0x65,
+	0x72, 0x69, 0x66, 0x79, 0x43, 0x6f, 0x64, 0x65, 0x22, 0x43, 0x0a, 0x11, 0x47, 0x65, 0x74, 0x46,
+	0x69, 0x6c, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x5f, 0x52, 0x45, 0x51, 0x12, 0x1a, 0x0a,
+	0x08, 0x46, 0x69, 0x6c, 0x65, 0x4e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x08, 0x46, 0x69, 0x6c, 0x65, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x4b, 0x65, 0x79,
+	0x73, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x4b, 0x65, 0x79, 0x73, 0x22, 0x3d, 0x0a,
+	0x11, 0x47, 0x65, 0x74, 0x46, 0x69, 0x6c, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x5f, 0x52,
+	0x45, 0x53, 0x12, 0x12, 0x0a, 0x04, 0x43, 0x6f, 0x64, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0d,
+	0x52, 0x04, 0x43, 0x6f, 0x64, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x32, 0xf1, 0x03, 0x0a,
+	0x05, 0x7a, 0x61, 0x75, 0x74, 0x68, 0x12, 0x36, 0x0a, 0x06, 0x4c, 0x6f, 0x67, 0x6f, 0x75, 0x74,
+	0x12, 0x15, 0x2e, 0x7a, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x70, 0x62, 0x2e, 0x44, 0x65, 0x66, 0x61,
+	0x75, 0x6c, 0x74, 0x5f, 0x52, 0x45, 0x51, 0x1a, 0x15, 0x2e, 0x7a, 0x61, 0x75, 0x74, 0x68, 0x5f,
+	0x70, 0x62, 0x2e, 0x44, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x5f, 0x52, 0x45, 0x53, 0x12, 0x41,
+	0x0a, 0x0c, 0x4c, 0x6f, 0x67, 0x69, 0x6e, 0x42, 0x79, 0x50, 0x68, 0x6f, 0x6e, 0x65, 0x12, 0x1a,
+	0x2e, 0x7a, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x70, 0x62, 0x2e, 0x4c, 0x6f, 0x67, 0x69, 0x6e, 0x42,
+	0x79, 0x50, 0x68, 0x6f, 0x6e, 0x65, 0x5f, 0x52, 0x45, 0x51, 0x1a, 0x15, 0x2e, 0x7a, 0x61, 0x75,
+	0x74, 0x68, 0x5f, 0x70, 0x62, 0x2e, 0x44, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x5f, 0x52, 0x45,
+	0x53, 0x12, 0x47, 0x0a, 0x10, 0x4c, 0x6f, 0x67, 0x69, 0x6e, 0x42, 0x79, 0x4c, 0x6f, 0x67, 0x69,
+	0x6e, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x1c, 0x2e, 0x7a, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x70, 0x62,
+	0x2e, 0x4c, 0x6f, 0x67, 0x69, 0x6e, 0x42, 0x79, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x5f,
+	0x52, 0x45, 0x51, 0x1a, 0x15, 0x2e, 0x7a, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x70, 0x62, 0x2e, 0x44,
+	0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x5f, 0x52, 0x45, 0x53, 0x12, 0x55, 0x0a, 0x11, 0x53, 0x4d,
+	0x53, 0x53, 0x65, 0x6e, 0x64, 0x56, 0x65, 0x72, 0x69, 0x66, 0x79, 0x43, 0x6f, 0x64, 0x65, 0x12,
+	0x1f, 0x2e, 0x7a, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x70, 0x62, 0x2e, 0x53, 0x4d, 0x53, 0x53, 0x65,
+	0x6e, 0x64, 0x56, 0x65, 0x72, 0x69, 0x66, 0x79, 0x43, 0x6f, 0x64, 0x65, 0x5f, 0x52, 0x45, 0x51,
+	0x1a, 0x1f, 0x2e, 0x7a, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x70, 0x62, 0x2e, 0x53, 0x4d, 0x53, 0x53,
+	0x65, 0x6e, 0x64, 0x56, 0x65, 0x72, 0x69, 0x66, 0x79, 0x43, 0x6f, 0x64, 0x65, 0x5f, 0x52, 0x45,
+	0x53, 0x12, 0x43, 0x0a, 0x0d, 0x53, 0x4d, 0x53, 0x56, 0x65, 0x72, 0x69, 0x66, 0x79, 0x43, 0x6f,
+	0x64, 0x65, 0x12, 0x1b, 0x2e, 0x7a, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x70, 0x62, 0x2e, 0x53, 0x4d,
+	0x53, 0x56, 0x65, 0x72, 0x69, 0x66, 0x79, 0x43, 0x6f, 0x64, 0x65, 0x5f, 0x52, 0x45, 0x51, 0x1a,
+	0x15, 0x2e, 0x7a, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x70, 0x62, 0x2e, 0x44, 0x65, 0x66, 0x61, 0x75,
+	0x6c, 0x74, 0x5f, 0x52, 0x45, 0x53, 0x12, 0x3d, 0x0a, 0x09, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x41,
+	0x75, 0x74, 0x68, 0x12, 0x17, 0x2e, 0x7a, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x70, 0x62, 0x2e, 0x43,
+	0x68, 0x65, 0x63, 0x6b, 0x41, 0x75, 0x74, 0x68, 0x5f, 0x52, 0x45, 0x51, 0x1a, 0x17, 0x2e, 0x7a,
+	0x61, 0x75, 0x74, 0x68, 0x5f, 0x70, 0x62, 0x2e, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x41, 0x75, 0x74,
+	0x68, 0x5f, 0x52, 0x45, 0x53, 0x12, 0x49, 0x0a, 0x0d, 0x47, 0x65, 0x74, 0x46, 0x69, 0x6c, 0x65,
+	0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x1b, 0x2e, 0x7a, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x70,
+	0x62, 0x2e, 0x47, 0x65, 0x74, 0x46, 0x69, 0x6c, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x5f,
+	0x52, 0x45, 0x51, 0x1a, 0x1b, 0x2e, 0x7a, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x70, 0x62, 0x2e, 0x47,
+	0x65, 0x74, 0x46, 0x69, 0x6c, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x5f, 0x52, 0x45, 0x53,
+	0x42, 0x0c, 0x5a, 0x0a, 0x2e, 0x2f, 0x7a, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x70, 0x62, 0x62, 0x06,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -370,26 +744,40 @@ func file_zauth_proto_rawDescGZIP() []byte {
 	return file_zauth_proto_rawDescData
 }
 
-var file_zauth_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_zauth_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_zauth_proto_goTypes = []interface{}{
-	(*Default_RES)(nil),        // 0: zauth_pb.Default_RES
-	(*LoginByPhone_REQ)(nil),   // 1: zauth_pb.LoginByPhone_REQ
-	(*LoginByAccount_REQ)(nil), // 2: zauth_pb.LoginByAccount_REQ
-	(*CheckAuth_REQ)(nil),      // 3: zauth_pb.CheckAuth_REQ
-	(*CheckAuth_RES)(nil),      // 4: zauth_pb.CheckAuth_RES
+	(*Default_REQ)(nil),           // 0: zauth_pb.Default_REQ
+	(*Default_RES)(nil),           // 1: zauth_pb.Default_RES
+	(*LoginByPhone_REQ)(nil),      // 2: zauth_pb.LoginByPhone_REQ
+	(*LoginByAccount_REQ)(nil),    // 3: zauth_pb.LoginByAccount_REQ
+	(*CheckAuth_REQ)(nil),         // 4: zauth_pb.CheckAuth_REQ
+	(*CheckAuth_RES)(nil),         // 5: zauth_pb.CheckAuth_RES
+	(*SMSSendVerifyCode_REQ)(nil), // 6: zauth_pb.SMSSendVerifyCode_REQ
+	(*SMSSendVerifyCode_RES)(nil), // 7: zauth_pb.SMSSendVerifyCode_RES
+	(*SMSVerifyCode_REQ)(nil),     // 8: zauth_pb.SMSVerifyCode_REQ
+	(*GetFileConfig_REQ)(nil),     // 9: zauth_pb.GetFileConfig_REQ
+	(*GetFileConfig_RES)(nil),     // 10: zauth_pb.GetFileConfig_RES
 }
 var file_zauth_proto_depIdxs = []int32{
-	1, // 0: zauth_pb.zauth.LoginByPhone:input_type -> zauth_pb.LoginByPhone_REQ
-	2, // 1: zauth_pb.zauth.LoginByLoginName:input_type -> zauth_pb.LoginByAccount_REQ
-	3, // 2: zauth_pb.zauth.CheckAuth:input_type -> zauth_pb.CheckAuth_REQ
-	0, // 3: zauth_pb.zauth.LoginByPhone:output_type -> zauth_pb.Default_RES
-	0, // 4: zauth_pb.zauth.LoginByLoginName:output_type -> zauth_pb.Default_RES
-	4, // 5: zauth_pb.zauth.CheckAuth:output_type -> zauth_pb.CheckAuth_RES
-	3, // [3:6] is the sub-list for method output_type
-	0, // [0:3] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	0,  // 0: zauth_pb.zauth.Logout:input_type -> zauth_pb.Default_REQ
+	2,  // 1: zauth_pb.zauth.LoginByPhone:input_type -> zauth_pb.LoginByPhone_REQ
+	3,  // 2: zauth_pb.zauth.LoginByLoginName:input_type -> zauth_pb.LoginByAccount_REQ
+	6,  // 3: zauth_pb.zauth.SMSSendVerifyCode:input_type -> zauth_pb.SMSSendVerifyCode_REQ
+	8,  // 4: zauth_pb.zauth.SMSVerifyCode:input_type -> zauth_pb.SMSVerifyCode_REQ
+	4,  // 5: zauth_pb.zauth.CheckAuth:input_type -> zauth_pb.CheckAuth_REQ
+	9,  // 6: zauth_pb.zauth.GetFileConfig:input_type -> zauth_pb.GetFileConfig_REQ
+	1,  // 7: zauth_pb.zauth.Logout:output_type -> zauth_pb.Default_RES
+	1,  // 8: zauth_pb.zauth.LoginByPhone:output_type -> zauth_pb.Default_RES
+	1,  // 9: zauth_pb.zauth.LoginByLoginName:output_type -> zauth_pb.Default_RES
+	7,  // 10: zauth_pb.zauth.SMSSendVerifyCode:output_type -> zauth_pb.SMSSendVerifyCode_RES
+	1,  // 11: zauth_pb.zauth.SMSVerifyCode:output_type -> zauth_pb.Default_RES
+	5,  // 12: zauth_pb.zauth.CheckAuth:output_type -> zauth_pb.CheckAuth_RES
+	10, // 13: zauth_pb.zauth.GetFileConfig:output_type -> zauth_pb.GetFileConfig_RES
+	7,  // [7:14] is the sub-list for method output_type
+	0,  // [0:7] is the sub-list for method input_type
+	0,  // [0:0] is the sub-list for extension type_name
+	0,  // [0:0] is the sub-list for extension extendee
+	0,  // [0:0] is the sub-list for field type_name
 }
 
 func init() { file_zauth_proto_init() }
@@ -399,7 +787,7 @@ func file_zauth_proto_init() {
 	}
 	if !protoimpl.UnsafeEnabled {
 		file_zauth_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Default_RES); i {
+			switch v := v.(*Default_REQ); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -411,7 +799,7 @@ func file_zauth_proto_init() {
 			}
 		}
 		file_zauth_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*LoginByPhone_REQ); i {
+			switch v := v.(*Default_RES); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -423,7 +811,7 @@ func file_zauth_proto_init() {
 			}
 		}
 		file_zauth_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*LoginByAccount_REQ); i {
+			switch v := v.(*LoginByPhone_REQ); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -435,7 +823,7 @@ func file_zauth_proto_init() {
 			}
 		}
 		file_zauth_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CheckAuth_REQ); i {
+			switch v := v.(*LoginByAccount_REQ); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -447,7 +835,79 @@ func file_zauth_proto_init() {
 			}
 		}
 		file_zauth_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CheckAuth_REQ); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_zauth_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CheckAuth_RES); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_zauth_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*SMSSendVerifyCode_REQ); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_zauth_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*SMSSendVerifyCode_RES); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_zauth_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*SMSVerifyCode_REQ); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_zauth_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetFileConfig_REQ); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_zauth_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetFileConfig_RES); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -465,7 +925,7 @@ func file_zauth_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_zauth_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   5,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -19,18 +19,26 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Zauth_LoginByPhone_FullMethodName     = "/zauth_pb.zauth/LoginByPhone"
-	Zauth_LoginByLoginName_FullMethodName = "/zauth_pb.zauth/LoginByLoginName"
-	Zauth_CheckAuth_FullMethodName        = "/zauth_pb.zauth/CheckAuth"
+	Zauth_Logout_FullMethodName            = "/zauth_pb.zauth/Logout"
+	Zauth_LoginByPhone_FullMethodName      = "/zauth_pb.zauth/LoginByPhone"
+	Zauth_LoginByLoginName_FullMethodName  = "/zauth_pb.zauth/LoginByLoginName"
+	Zauth_SMSSendVerifyCode_FullMethodName = "/zauth_pb.zauth/SMSSendVerifyCode"
+	Zauth_SMSVerifyCode_FullMethodName     = "/zauth_pb.zauth/SMSVerifyCode"
+	Zauth_CheckAuth_FullMethodName         = "/zauth_pb.zauth/CheckAuth"
+	Zauth_GetFileConfig_FullMethodName     = "/zauth_pb.zauth/GetFileConfig"
 )
 
 // ZauthClient is the client API for Zauth service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ZauthClient interface {
+	Logout(ctx context.Context, in *Default_REQ, opts ...grpc.CallOption) (*Default_RES, error)
 	LoginByPhone(ctx context.Context, in *LoginByPhone_REQ, opts ...grpc.CallOption) (*Default_RES, error)
 	LoginByLoginName(ctx context.Context, in *LoginByAccount_REQ, opts ...grpc.CallOption) (*Default_RES, error)
+	SMSSendVerifyCode(ctx context.Context, in *SMSSendVerifyCode_REQ, opts ...grpc.CallOption) (*SMSSendVerifyCode_RES, error)
+	SMSVerifyCode(ctx context.Context, in *SMSVerifyCode_REQ, opts ...grpc.CallOption) (*Default_RES, error)
 	CheckAuth(ctx context.Context, in *CheckAuth_REQ, opts ...grpc.CallOption) (*CheckAuth_RES, error)
+	GetFileConfig(ctx context.Context, in *GetFileConfig_REQ, opts ...grpc.CallOption) (*GetFileConfig_RES, error)
 }
 
 type zauthClient struct {
@@ -39,6 +47,15 @@ type zauthClient struct {
 
 func NewZauthClient(cc grpc.ClientConnInterface) ZauthClient {
 	return &zauthClient{cc}
+}
+
+func (c *zauthClient) Logout(ctx context.Context, in *Default_REQ, opts ...grpc.CallOption) (*Default_RES, error) {
+	out := new(Default_RES)
+	err := c.cc.Invoke(ctx, Zauth_Logout_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *zauthClient) LoginByPhone(ctx context.Context, in *LoginByPhone_REQ, opts ...grpc.CallOption) (*Default_RES, error) {
@@ -59,9 +76,36 @@ func (c *zauthClient) LoginByLoginName(ctx context.Context, in *LoginByAccount_R
 	return out, nil
 }
 
+func (c *zauthClient) SMSSendVerifyCode(ctx context.Context, in *SMSSendVerifyCode_REQ, opts ...grpc.CallOption) (*SMSSendVerifyCode_RES, error) {
+	out := new(SMSSendVerifyCode_RES)
+	err := c.cc.Invoke(ctx, Zauth_SMSSendVerifyCode_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *zauthClient) SMSVerifyCode(ctx context.Context, in *SMSVerifyCode_REQ, opts ...grpc.CallOption) (*Default_RES, error) {
+	out := new(Default_RES)
+	err := c.cc.Invoke(ctx, Zauth_SMSVerifyCode_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *zauthClient) CheckAuth(ctx context.Context, in *CheckAuth_REQ, opts ...grpc.CallOption) (*CheckAuth_RES, error) {
 	out := new(CheckAuth_RES)
 	err := c.cc.Invoke(ctx, Zauth_CheckAuth_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *zauthClient) GetFileConfig(ctx context.Context, in *GetFileConfig_REQ, opts ...grpc.CallOption) (*GetFileConfig_RES, error) {
+	out := new(GetFileConfig_RES)
+	err := c.cc.Invoke(ctx, Zauth_GetFileConfig_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -72,9 +116,13 @@ func (c *zauthClient) CheckAuth(ctx context.Context, in *CheckAuth_REQ, opts ...
 // All implementations must embed UnimplementedZauthServer
 // for forward compatibility
 type ZauthServer interface {
+	Logout(context.Context, *Default_REQ) (*Default_RES, error)
 	LoginByPhone(context.Context, *LoginByPhone_REQ) (*Default_RES, error)
 	LoginByLoginName(context.Context, *LoginByAccount_REQ) (*Default_RES, error)
+	SMSSendVerifyCode(context.Context, *SMSSendVerifyCode_REQ) (*SMSSendVerifyCode_RES, error)
+	SMSVerifyCode(context.Context, *SMSVerifyCode_REQ) (*Default_RES, error)
 	CheckAuth(context.Context, *CheckAuth_REQ) (*CheckAuth_RES, error)
+	GetFileConfig(context.Context, *GetFileConfig_REQ) (*GetFileConfig_RES, error)
 	mustEmbedUnimplementedZauthServer()
 }
 
@@ -82,14 +130,26 @@ type ZauthServer interface {
 type UnimplementedZauthServer struct {
 }
 
+func (UnimplementedZauthServer) Logout(context.Context, *Default_REQ) (*Default_RES, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Logout not implemented")
+}
 func (UnimplementedZauthServer) LoginByPhone(context.Context, *LoginByPhone_REQ) (*Default_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LoginByPhone not implemented")
 }
 func (UnimplementedZauthServer) LoginByLoginName(context.Context, *LoginByAccount_REQ) (*Default_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LoginByLoginName not implemented")
 }
+func (UnimplementedZauthServer) SMSSendVerifyCode(context.Context, *SMSSendVerifyCode_REQ) (*SMSSendVerifyCode_RES, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SMSSendVerifyCode not implemented")
+}
+func (UnimplementedZauthServer) SMSVerifyCode(context.Context, *SMSVerifyCode_REQ) (*Default_RES, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SMSVerifyCode not implemented")
+}
 func (UnimplementedZauthServer) CheckAuth(context.Context, *CheckAuth_REQ) (*CheckAuth_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckAuth not implemented")
+}
+func (UnimplementedZauthServer) GetFileConfig(context.Context, *GetFileConfig_REQ) (*GetFileConfig_RES, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetFileConfig not implemented")
 }
 func (UnimplementedZauthServer) mustEmbedUnimplementedZauthServer() {}
 
@@ -102,6 +162,24 @@ type UnsafeZauthServer interface {
 
 func RegisterZauthServer(s grpc.ServiceRegistrar, srv ZauthServer) {
 	s.RegisterService(&Zauth_ServiceDesc, srv)
+}
+
+func _Zauth_Logout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Default_REQ)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ZauthServer).Logout(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Zauth_Logout_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ZauthServer).Logout(ctx, req.(*Default_REQ))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _Zauth_LoginByPhone_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -140,6 +218,42 @@ func _Zauth_LoginByLoginName_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Zauth_SMSSendVerifyCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SMSSendVerifyCode_REQ)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ZauthServer).SMSSendVerifyCode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Zauth_SMSSendVerifyCode_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ZauthServer).SMSSendVerifyCode(ctx, req.(*SMSSendVerifyCode_REQ))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Zauth_SMSVerifyCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SMSVerifyCode_REQ)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ZauthServer).SMSVerifyCode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Zauth_SMSVerifyCode_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ZauthServer).SMSVerifyCode(ctx, req.(*SMSVerifyCode_REQ))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Zauth_CheckAuth_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CheckAuth_REQ)
 	if err := dec(in); err != nil {
@@ -158,6 +272,24 @@ func _Zauth_CheckAuth_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Zauth_GetFileConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFileConfig_REQ)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ZauthServer).GetFileConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Zauth_GetFileConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ZauthServer).GetFileConfig(ctx, req.(*GetFileConfig_REQ))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Zauth_ServiceDesc is the grpc.ServiceDesc for Zauth service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -165,6 +297,10 @@ var Zauth_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "zauth_pb.zauth",
 	HandlerType: (*ZauthServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Logout",
+			Handler:    _Zauth_Logout_Handler,
+		},
 		{
 			MethodName: "LoginByPhone",
 			Handler:    _Zauth_LoginByPhone_Handler,
@@ -174,8 +310,20 @@ var Zauth_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Zauth_LoginByLoginName_Handler,
 		},
 		{
+			MethodName: "SMSSendVerifyCode",
+			Handler:    _Zauth_SMSSendVerifyCode_Handler,
+		},
+		{
+			MethodName: "SMSVerifyCode",
+			Handler:    _Zauth_SMSVerifyCode_Handler,
+		},
+		{
 			MethodName: "CheckAuth",
 			Handler:    _Zauth_CheckAuth_Handler,
+		},
+		{
+			MethodName: "GetFileConfig",
+			Handler:    _Zauth_GetFileConfig_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

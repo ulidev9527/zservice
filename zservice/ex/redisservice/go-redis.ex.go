@@ -77,6 +77,7 @@ func (r *GoRedisEX) GetCtx(ctx context.Context, key string) *redis.StringCmd {
 	return r.client.Get(ctx, r.AddKeyPrefix(key))
 }
 
+// 查询到的内容直接转结构体
 func (r *GoRedisEX) GetScan(key string, v any) *zservice.Error {
 	if s, e := r.Get(key).Result(); e != nil {
 		return zservice.NewError(e)
