@@ -2,10 +2,11 @@ package redisservice
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
-	"zservice/zglobal"
 	"zservice/zservice"
+	"zservice/zservice/zglobal"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -52,7 +53,7 @@ func (r *GoRedisEX) LockCtx(ctx context.Context, key string, timeout ...time.Dur
 		timeout = append(timeout, zglobal.Time_1m)
 	}
 
-	has, e := r.SetNX(lockKey, 1, timeout[0]).Result()
+	has, e := r.SetNX(lockKey, "1", timeout[0]).Result()
 	if e != nil {
 		return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 	}
@@ -76,17 +77,34 @@ func (r *GoRedisEX) GetCtx(ctx context.Context, key string) *redis.StringCmd {
 	return r.client.Get(ctx, r.AddKeyPrefix(key))
 }
 
-func (r *GoRedisEX) Set(key string, value any, expiration time.Duration) *redis.StatusCmd {
-	return r.SetCtx(context.TODO(), key, value, expiration)
-}
-func (r *GoRedisEX) SetCtx(ctx context.Context, key string, value any, expiration time.Duration) *redis.StatusCmd {
-	return r.client.Set(ctx, r.AddKeyPrefix(key), value, expiration)
+func (r *GoRedisEX) GetScan(key string, v any) *zservice.Error {
+	if s, e := r.Get(key).Result(); e != nil {
+		return zservice.NewError(e)
+	} else if e := json.Unmarshal([]byte(s), v); e != nil {
+		return zservice.NewError(e)
+	} else {
+		return nil
+	}
 }
 
-func (r *GoRedisEX) SetNX(key string, value any, expiration time.Duration) *redis.BoolCmd {
+func (r *GoRedisEX) Set(key string, value string) *redis.StatusCmd {
+	return r.SetCtx(context.TODO(), key, value)
+}
+func (r *GoRedisEX) SetCtx(ctx context.Context, key string, value string) *redis.StatusCmd {
+	return r.client.Set(ctx, r.AddKeyPrefix(key), value, 0)
+}
+
+func (r *GoRedisEX) SetEx(key string, value string, expiration time.Duration) *redis.StatusCmd {
+	return r.SetExCtx(context.TODO(), key, value, expiration)
+}
+func (r *GoRedisEX) SetExCtx(ctx context.Context, key string, value string, expiration time.Duration) *redis.StatusCmd {
+	return r.client.SetEx(ctx, r.AddKeyPrefix(key), value, expiration)
+}
+
+func (r *GoRedisEX) SetNX(key string, value string, expiration time.Duration) *redis.BoolCmd {
 	return r.SetNXCtx(context.TODO(), key, value, expiration)
 }
-func (r *GoRedisEX) SetNXCtx(ctx context.Context, key string, value any, expiration time.Duration) *redis.BoolCmd {
+func (r *GoRedisEX) SetNXCtx(ctx context.Context, key string, value string, expiration time.Duration) *redis.BoolCmd {
 	return r.client.SetNX(ctx, r.AddKeyPrefix(key), value, expiration)
 }
 

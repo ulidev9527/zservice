@@ -3,8 +3,8 @@ package internal
 import (
 	"fmt"
 	"net/http"
-	"zservice/zglobal"
 	"zservice/zservice/ex/ginservice"
+	"zservice/zservice/zglobal"
 
 	"github.com/gin-gonic/gin"
 )

@@ -10,6 +10,9 @@ func JsonMustMarshal(v any) []byte {
 	}
 	return b
 }
+func JsonMustMarshalString(v any) string {
+	return string(JsonMustMarshal(v))
+}
 
 func JsonMustUnmarshal_StringArray(v []byte) []string {
 	var r []string

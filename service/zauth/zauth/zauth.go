@@ -3,10 +3,10 @@ package zauth
 import (
 	"context"
 	"zservice/service/zauth/zauth_pb"
-	"zservice/zglobal"
 	"zservice/zservice"
 	"zservice/zservice/ex/grpcservice"
 	"zservice/zservice/ex/redisservice"
+	"zservice/zservice/zglobal"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
 )

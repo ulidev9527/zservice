@@ -3,8 +3,8 @@ package internal
 import (
 	"fmt"
 	"time"
-	"zservice/zglobal"
 	"zservice/zservice"
+	"zservice/zservice/zglobal"
 
 	"gorm.io/gorm"
 )
@@ -38,7 +38,7 @@ func CreatePermission(ctx *zservice.Context, param ZauthPermissionTable) (*Zauth
 		return nil, e
 	}
 
-	return (&ZauthPermissionTable{
+	z := &ZauthPermissionTable{
 		Name:         param.Name,
 		PermissionID: pid,
 		ParentID:     param.ParentID,
@@ -47,19 +47,25 @@ func CreatePermission(ctx *zservice.Context, param ZauthPermissionTable) (*Zauth
 		Path:         param.Path,
 		State:        param.State,
 		Expires:      param.Expires,
-	}).Save(ctx)
+	}
+
+	if e := z.Save(ctx); e != nil {
+		return nil, e
+	}
+
+	return z, nil
 }
 
 // 同步权限表缓存
 func SyncPermissionTableCache(ctx *zservice.Context) *zservice.Error {
-	return SyncTableCache(ctx, &[]ZauthPermissionTable{}, func(v any) string {
+	return dbhelper.SyncTableCache(ctx, &[]ZauthPermissionTable{}, func(v any) string {
 		return fmt.Sprintf(RK_PermissionInfo, v.(*ZauthPermissionTable).PermissionID)
 	})
 }
 
 // 获取一个未使用的权限 ID
 func GetNewPermissionID(ctx *zservice.Context) (uint, *zservice.Error) {
-	return GetNewTableID(ctx, func() uint {
+	return dbhelper.GetNewTableID(ctx, func() uint {
 		return uint(zservice.RandomIntRange(1, 9999999))
 	}, HasPermissionByID, func(e *zservice.Error) *zservice.Error {
 		if e.GetCode() == zglobal.Code_Zauth_GenIDCountMaxErr {
@@ -71,33 +77,33 @@ func GetNewPermissionID(ctx *zservice.Context) (uint, *zservice.Error) {
 
 // 权限是否存在
 func HasPermissionByID(ctx *zservice.Context, id uint) (bool, *zservice.Error) {
-	return HasTableValue(ctx, &ZauthPermissionTable{}, fmt.Sprintf(RK_PermissionInfo, id), fmt.Sprintf("permission_id = %v", id))
+	return dbhelper.HasTableValue(ctx, &ZauthPermissionTable{}, fmt.Sprintf(RK_PermissionInfo, id), fmt.Sprintf("permission_id = %v", id))
 }
 
-func (z *ZauthPermissionTable) Save(ctx *zservice.Context) (*ZauthPermissionTable, *zservice.Error) {
+func (z *ZauthPermissionTable) Save(ctx *zservice.Context) *zservice.Error {
 	rk_info := fmt.Sprintf(RK_PermissionInfo, z.PermissionID)
 
 	// 上锁
 	un, e := Redis.Lock(rk_info)
 	if e != nil {
-		return nil, e
+		return e
 	}
 	defer un()
 
 	if z.ID == 0 { // 创建
 		if e := Mysql.Create(z).Error; e != nil {
-			return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+			return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 		}
 	} else { // 更新
 		if e := Mysql.Save(z).Error; e != nil {
-			return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+			return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 		}
 	}
 
 	// 删除缓存
 	if e := Redis.Del(rk_info).Err(); e != nil {
-		ctx.LogError(e)
+		zservice.LogError(zglobal.Code_Redis_DelFail, e)
 	}
 
-	return z, nil
+	return nil
 }

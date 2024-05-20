@@ -1,8 +1,8 @@
 package internal
 
 import (
-	"zservice/zglobal"
 	"zservice/zservice"
+	"zservice/zservice/zglobal"
 
 	"github.com/nsqio/go-nsq"
 )

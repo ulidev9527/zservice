@@ -3,8 +3,8 @@ package internal
 import (
 	"fmt"
 	"os"
-	"zservice/zglobal"
 	"zservice/zservice"
+	"zservice/zservice/zglobal"
 )
 
 // 文件解析器方法接口
@@ -138,7 +138,7 @@ func ParserFile(fileName string, parserType uint32) *zservice.Error {
 			return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 		}
 
-		if e := Redis.HSet(rKeyFile, maps).Err(); e != nil {
+		if e := Redis.Set(rKeyFile, zservice.JsonMustMarshalString(maps)).Err(); e != nil {
 			return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 		}
 		return nil
@@ -152,7 +152,7 @@ func ParserFile(fileName string, parserType uint32) *zservice.Error {
 	}
 
 	// 保存 md5
-	if e := Redis.Set(rKeyMd5, fileMD5, 0).Err(); e != nil {
+	if e := Redis.Set(rKeyMd5, fileMD5).Err(); e != nil {
 		zservice.LogError(e)
 	}
 

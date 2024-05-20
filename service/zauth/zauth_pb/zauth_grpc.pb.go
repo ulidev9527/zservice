@@ -19,8 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Zauth_LoginByPhone_FullMethodName = "/zauth_pb.zauth/LoginByPhone"
-	Zauth_CheckAuth_FullMethodName    = "/zauth_pb.zauth/CheckAuth"
+	Zauth_LoginByPhone_FullMethodName     = "/zauth_pb.zauth/LoginByPhone"
+	Zauth_LoginByLoginName_FullMethodName = "/zauth_pb.zauth/LoginByLoginName"
+	Zauth_CheckAuth_FullMethodName        = "/zauth_pb.zauth/CheckAuth"
 )
 
 // ZauthClient is the client API for Zauth service.
@@ -28,6 +29,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ZauthClient interface {
 	LoginByPhone(ctx context.Context, in *LoginByPhone_REQ, opts ...grpc.CallOption) (*Default_RES, error)
+	LoginByLoginName(ctx context.Context, in *LoginByAccount_REQ, opts ...grpc.CallOption) (*Default_RES, error)
 	CheckAuth(ctx context.Context, in *CheckAuth_REQ, opts ...grpc.CallOption) (*CheckAuth_RES, error)
 }
 
@@ -48,6 +50,15 @@ func (c *zauthClient) LoginByPhone(ctx context.Context, in *LoginByPhone_REQ, op
 	return out, nil
 }
 
+func (c *zauthClient) LoginByLoginName(ctx context.Context, in *LoginByAccount_REQ, opts ...grpc.CallOption) (*Default_RES, error) {
+	out := new(Default_RES)
+	err := c.cc.Invoke(ctx, Zauth_LoginByLoginName_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *zauthClient) CheckAuth(ctx context.Context, in *CheckAuth_REQ, opts ...grpc.CallOption) (*CheckAuth_RES, error) {
 	out := new(CheckAuth_RES)
 	err := c.cc.Invoke(ctx, Zauth_CheckAuth_FullMethodName, in, out, opts...)
@@ -62,6 +73,7 @@ func (c *zauthClient) CheckAuth(ctx context.Context, in *CheckAuth_REQ, opts ...
 // for forward compatibility
 type ZauthServer interface {
 	LoginByPhone(context.Context, *LoginByPhone_REQ) (*Default_RES, error)
+	LoginByLoginName(context.Context, *LoginByAccount_REQ) (*Default_RES, error)
 	CheckAuth(context.Context, *CheckAuth_REQ) (*CheckAuth_RES, error)
 	mustEmbedUnimplementedZauthServer()
 }
@@ -72,6 +84,9 @@ type UnimplementedZauthServer struct {
 
 func (UnimplementedZauthServer) LoginByPhone(context.Context, *LoginByPhone_REQ) (*Default_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LoginByPhone not implemented")
+}
+func (UnimplementedZauthServer) LoginByLoginName(context.Context, *LoginByAccount_REQ) (*Default_RES, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LoginByLoginName not implemented")
 }
 func (UnimplementedZauthServer) CheckAuth(context.Context, *CheckAuth_REQ) (*CheckAuth_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckAuth not implemented")
@@ -107,6 +122,24 @@ func _Zauth_LoginByPhone_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Zauth_LoginByLoginName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LoginByAccount_REQ)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ZauthServer).LoginByLoginName(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Zauth_LoginByLoginName_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ZauthServer).LoginByLoginName(ctx, req.(*LoginByAccount_REQ))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Zauth_CheckAuth_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CheckAuth_REQ)
 	if err := dec(in); err != nil {
@@ -135,6 +168,10 @@ var Zauth_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "LoginByPhone",
 			Handler:    _Zauth_LoginByPhone_Handler,
+		},
+		{
+			MethodName: "LoginByLoginName",
+			Handler:    _Zauth_LoginByLoginName_Handler,
 		},
 		{
 			MethodName: "CheckAuth",

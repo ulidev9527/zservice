@@ -65,6 +65,8 @@ const (
 	Code_Zauth_PermissionBind_PermissionIDErr = 3404 // 权限绑定权限ID错误
 	Code_Zauth_PermissionBind_Already_Bind    = 3405 // 权限已经绑定
 
+	Code_Zauth_Login_Account_NotFund = 3501 // 登录失败
+
 	E_ZConfig_Parser_Excel = 1 // excel 解析器
 
 	Time_1m    = time.Second * 60    // 1 分钟

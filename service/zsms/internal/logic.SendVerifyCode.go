@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 	"zservice/service/zsms/zsms_pb"
-	"zservice/zglobal"
 	"zservice/zservice"
+	"zservice/zservice/zglobal"
 )
 
 // 发送验证码
@@ -45,10 +45,10 @@ func SendVerifyCode(ctx *zservice.Context, in *zsms_pb.SendVerifyCode_REQ) (code
 		return zglobal.Code_Zsms_Phone_CD
 	}
 
-	vCode := zservice.Convert_IntToString(zservice.RandomIntRange(100000, 999999))
+	verifyCode := zservice.Convert_IntToString(zservice.RandomIntRange(100000, 999999))
 	code = aliyunSMSSend(ctx, &aliyunSMSSendConfig{
 		Phone:        in.Phone,
-		VerifyCode:   vCode,
+		VerifyCode:   verifyCode,
 		Key:          zservice.Getenv("SMS_KEY"),
 		Secret:       zservice.Getenv("SMS_SECRET"),
 		TemplateCode: zservice.Getenv("SMS_TEMPLATE_CODE"),
@@ -59,18 +59,18 @@ func SendVerifyCode(ctx *zservice.Context, in *zsms_pb.SendVerifyCode_REQ) (code
 	if code == zglobal.Code_SUCC {
 
 		// CD
-		e := Redis.Set(rKeyCD, time.Now().Format(time.RFC3339), time.Duration(zservice.GetenvInt("SMS_CD_DEF"))*time.Second).Err()
+		e := Redis.SetEx(rKeyCD, time.Now().Format(time.RFC3339), time.Duration(zservice.GetenvInt("SMS_CD_DEF"))*time.Second).Err()
 		if e != nil {
 			ctx.LogError(e)
 		}
 
 		// 验证码
-		e = Redis.Set(fmt.Sprintf(RK_PhoneCode, in.Phone), code, time.Duration(zservice.GetenvInt("SMS_CODE_CACHE"))*time.Second).Err()
+		e = Redis.SetEx(fmt.Sprintf(RK_PhoneCode, in.Phone), verifyCode, time.Duration(zservice.GetenvInt("SMS_CODE_CACHE"))*time.Second).Err()
 		if e != nil {
 			ctx.LogError(e)
 			return zglobal.Code_ErrorBreakoff
 		}
-		ctx.LogInfo("verify code:", vCode)
+		ctx.LogInfo("verify code:", verifyCode)
 	}
 	return code
 }

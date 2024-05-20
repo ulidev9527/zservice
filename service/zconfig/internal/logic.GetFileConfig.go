@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 	"zservice/service/zconfig/zconfig_pb"
-	"zservice/zglobal"
 	"zservice/zservice"
+	"zservice/zservice/zglobal"
 )
 
 // 获取文件配置

@@ -9,8 +9,8 @@ import (
 	"strings"
 	"zservice/service/zauth/zauth"
 	"zservice/service/zauth/zauth_pb"
-	"zservice/zglobal"
 	"zservice/zservice"
+	"zservice/zservice/zglobal"
 
 	"github.com/gin-gonic/gin"
 )

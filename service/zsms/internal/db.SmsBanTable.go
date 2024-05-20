@@ -3,8 +3,8 @@ package internal
 import (
 	"fmt"
 	"time"
-	"zservice/zglobal"
 	"zservice/zservice"
+	"zservice/zservice/zglobal"
 
 	"gorm.io/gorm"
 )
@@ -73,7 +73,7 @@ func IsSmsBan(ctx *zservice.Context, phone string) (bool, error) {
 	}
 
 	// 缓存
-	_, e = Redis.Set(rKey, banTime.Format(time.RFC3339), time.Duration(banCache)*time.Second).Result()
+	_, e = Redis.SetEx(rKey, banTime.Format(time.RFC3339), time.Duration(banCache)*time.Second).Result()
 	if e != nil {
 		zservice.LogError(e)
 	}

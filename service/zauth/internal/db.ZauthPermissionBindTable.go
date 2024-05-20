@@ -3,8 +3,8 @@ package internal
 import (
 	"fmt"
 	"time"
-	"zservice/zglobal"
 	"zservice/zservice"
+	"zservice/zservice/zglobal"
 
 	"gorm.io/gorm"
 )
@@ -64,13 +64,18 @@ func PermissionBind(ctx *zservice.Context, targetType uint, targetID uint, permi
 		Expires:      Expires,
 		State:        State,
 	}
-	return bind.Save(ctx)
+
+	if e := bind.Save(ctx); e != nil {
+		return nil, e
+	}
+
+	return bind, nil
 
 }
 
 // 是否有权限绑定
 func HasPermissionBind(ctx *zservice.Context, targetType uint, targetID uint, permissionID uint) (bool, *zservice.Error) {
-	return HasTableValue(ctx,
+	return dbhelper.HasTableValue(ctx,
 		&ZauthPermissionBindTable{},
 		fmt.Sprintf(RK_PermissionBindInfo, targetType, targetID, permissionID),
 		fmt.Sprintf("target_type = %d AND target_id = %d AND permission_id = %d", targetType, targetID, permissionID),
@@ -78,10 +83,10 @@ func HasPermissionBind(ctx *zservice.Context, targetType uint, targetID uint, pe
 }
 
 // 存储
-func (z *ZauthPermissionBindTable) Save(ctx *zservice.Context) (*ZauthPermissionBindTable, *zservice.Error) {
+func (z *ZauthPermissionBindTable) Save(ctx *zservice.Context) *zservice.Error {
 
 	if z.TargetType == 0 || z.TargetID == 0 || z.PermissionID == 0 {
-		return nil, zservice.NewError("param error").SetCode(zglobal.Code_ParamsErr)
+		return zservice.NewError("param error").SetCode(zglobal.Code_ParamsErr)
 	}
 
 	rk_info := fmt.Sprintf(RK_PermissionBindInfo, z.TargetType, z.TargetID, z.PermissionID)
@@ -89,23 +94,23 @@ func (z *ZauthPermissionBindTable) Save(ctx *zservice.Context) (*ZauthPermission
 	// 上锁
 	un, e := Redis.Lock(rk_info)
 	if e != nil {
-		return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+		return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 	}
 	defer un()
 
 	if z.ID == 0 { // 创建
 		if e := Mysql.Create(&z).Error; e != nil {
-			return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+			return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 		}
 	} else { // 更新
 		if e := Mysql.Save(&z).Error; e != nil {
-			return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+			return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 		}
 	}
 
 	// 删缓存
 	if e := Redis.Del(rk_info).Err(); e != nil {
-		return z, zservice.NewError(e).SetCode(zglobal.Code_Redis_DelFail)
+		zservice.LogError(zglobal.Code_Redis_DelFail, e)
 	}
-	return z, nil
+	return nil
 }

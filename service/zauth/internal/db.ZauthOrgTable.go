@@ -2,8 +2,8 @@ package internal
 
 import (
 	"fmt"
-	"zservice/zglobal"
 	"zservice/zservice"
+	"zservice/zservice/zglobal"
 
 	"gorm.io/gorm"
 )
@@ -34,11 +34,15 @@ func CreateRootOrg(ctx *zservice.Context, name string) (*ZauthOrgTable, *zservic
 		return nil, e
 	}
 
-	return (&ZauthOrgTable{
+	z := &ZauthOrgTable{
 		Name:      name,
 		OrgID:     orgID,
 		RootOrgID: orgID,
-	}).Save(ctx)
+	}
+	if e := z.Save(ctx); e != nil {
+		return nil, e
+	}
+	return z, nil
 }
 
 // 新建一个组织
@@ -73,24 +77,29 @@ func CreateOrg(ctx *zservice.Context, name string, rootOrgID uint, parentOrgID u
 		return nil, e
 	}
 
-	return (&ZauthOrgTable{
+	z := &ZauthOrgTable{
 		Name:        name,
 		OrgID:       orgID,
 		RootOrgID:   rootOrgID,
 		ParentOrgID: parentOrgID,
-	}).Save(ctx)
+	}
+
+	if e := z.Save(ctx); e != nil {
+		return nil, e
+	}
+	return z, nil
 }
 
 // 同步组织表缓存
 func SyncOrgTableCache(ctx *zservice.Context) *zservice.Error {
-	return SyncTableCache(ctx, []ZauthOrgTable{}, func(v any) string {
+	return dbhelper.SyncTableCache(ctx, []ZauthOrgTable{}, func(v any) string {
 		return fmt.Sprintf(RK_OrgInfo, v.(ZauthOrgTable).OrgID)
 	})
 }
 
 // 获取一个全新的组织ID
 func GetNewOrgID(ctx *zservice.Context) (uint, *zservice.Error) {
-	return GetNewTableID(ctx, func() uint {
+	return dbhelper.GetNewTableID(ctx, func() uint {
 		return uint(zservice.RandomIntRange(100000, 99999999)) // 1 是根权限，并且预留 10w 以下的id
 	}, HasOrgByID, func(e *zservice.Error) *zservice.Error {
 		if e.GetCode() == zglobal.Code_Zauth_GenIDCountMaxErr {
@@ -102,14 +111,14 @@ func GetNewOrgID(ctx *zservice.Context) (uint, *zservice.Error) {
 
 // 是否存在这个组织
 func HasOrgByID(ctx *zservice.Context, orgID uint) (bool, *zservice.Error) {
-	return HasTableValue(ctx, &ZauthOrgTable{}, fmt.Sprintf(RK_OrgInfo, orgID), fmt.Sprintf("org_id = %v", orgID))
+	return dbhelper.HasTableValue(ctx, &ZauthOrgTable{}, fmt.Sprintf(RK_OrgInfo, orgID), fmt.Sprintf("org_id = %v", orgID))
 }
 
 // 组织存储
-func (z *ZauthOrgTable) Save(ctx *zservice.Context) (*ZauthOrgTable, *zservice.Error) {
+func (z *ZauthOrgTable) Save(ctx *zservice.Context) *zservice.Error {
 
 	if z.OrgID == 0 || z.RootOrgID == 0 {
-		return nil, zservice.NewError("param error").SetCode(zglobal.Code_ParamsErr)
+		return zservice.NewError("param error").SetCode(zglobal.Code_ParamsErr)
 	}
 
 	rk_info := fmt.Sprintf(RK_OrgInfo, z.OrgID)
@@ -118,24 +127,24 @@ func (z *ZauthOrgTable) Save(ctx *zservice.Context) (*ZauthOrgTable, *zservice.E
 	un, e := Redis.Lock(rk_info)
 
 	if e != nil {
-		return nil, e
+		return e
 	}
 	defer un()
 
 	if z.ID == 0 { // 创建
 
 		if e := Mysql.Create(&z).Error; e != nil {
-			return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+			return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 		}
 	} else { // 更新
 		if e := Mysql.Save(&z).Error; e != nil {
-			return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+			return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 		}
 	}
 
 	// 删缓存
 	if e := Redis.Del(rk_info).Err(); e != nil {
-		return z, zservice.NewError(e).SetCode(zglobal.Code_Redis_DelFail)
+		zservice.LogError(zglobal.Code_Redis_DelFail, e)
 	}
-	return z, nil
+	return nil
 }

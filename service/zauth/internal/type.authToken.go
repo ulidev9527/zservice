@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
-	"zservice/zglobal"
 	"zservice/zservice"
+	"zservice/zservice/zglobal"
 )
 
 type AuthToken struct {
@@ -77,7 +77,7 @@ func (l *AuthToken) GenToken() *zservice.Error {
 // 保存
 func (l *AuthToken) Save() *zservice.Error {
 	rk := fmt.Sprintf(RK_Token, l.Token)
-	_, e := Redis.Set(rk, l.Token, time.Second*time.Duration(l.ExpiresSecond)).Result()
+	_, e := Redis.SetEx(rk, l.Token, time.Second*time.Duration(l.ExpiresSecond)).Result()
 	if e != nil {
 		return zservice.NewError(e).SetCode(zglobal.Code_Zauth_TokenSaveFail)
 	}

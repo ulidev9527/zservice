@@ -6,10 +6,10 @@ import (
 	"sync"
 	"zservice/service/zconfig/internal"
 	"zservice/service/zconfig/zconfig_pb"
-	"zservice/zglobal"
 	"zservice/zservice"
 	"zservice/zservice/ex/grpcservice"
 	"zservice/zservice/ex/nsqservice"
+	"zservice/zservice/zglobal"
 
 	"github.com/nsqio/go-nsq"
 	clientv3 "go.etcd.io/etcd/client/v3"

@@ -15,9 +15,9 @@ func SystemInit() {
 // 系统数据库数据初始化
 func SystemDBInit() {
 	ctx := zservice.NewEmptyContext()
-	// 检查是否有管理员账号，有管理员账号表示已经初始化过了
+	// 检查账号表是否为空，为空表示未初始化
 	count := int64(0)
-	if e := Mysql.Model(&ZauthAccountTable{}).Where("login_name = ?", "admin").Count(&count).Error; e != nil {
+	if e := Mysql.Model(&ZauthAccountTable{}).Count(&count).Error; e != nil {
 		ctx.LogPanic(e)
 	}
 
@@ -26,6 +26,20 @@ func SystemDBInit() {
 		return
 	}
 	ctx.LogInfo("DB init start")
+
+	// 添加管理员账号
+	admAcc, e := CreateAccount(ctx)
+	if e != nil {
+		ctx.LogPanic(e)
+	} else {
+		adminName := zservice.RandomString(9)
+		adminPass := zservice.RandomString(16)
+
+		ctx.LogInfof("Create admin account succ, AdminName: %s, AdminPass: %s", adminName, adminPass)
+		if e := admAcc.AddLoginNameAndPassword(ctx, adminName, adminPass); e != nil {
+			ctx.LogPanic(e)
+		}
+	}
 
 	// 创建系统组
 	sysOrg, e := CreateRootOrg(ctx, "系统管理")
@@ -36,16 +50,6 @@ func SystemDBInit() {
 	adminOrg, e := CreateOrg(ctx, "超级管理员", sysOrg.OrgID, sysOrg.OrgID)
 	if e != nil {
 		ctx.LogPanic(e)
-	}
-
-	// 添加管理员账号
-	admAcc, e := CreateAccount(ctx)
-	if e != nil {
-		ctx.LogPanic(e)
-	} else {
-		if e := admAcc.AddLoginNameAndPassword(ctx, "admin", "admin"); e != nil {
-			ctx.LogPanic(e)
-		}
 	}
 
 	// 账号和组绑定

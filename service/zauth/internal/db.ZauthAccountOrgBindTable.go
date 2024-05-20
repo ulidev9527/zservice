@@ -3,8 +3,8 @@ package internal
 import (
 	"fmt"
 	"time"
-	"zservice/zglobal"
 	"zservice/zservice"
+	"zservice/zservice/zglobal"
 
 	"gorm.io/gorm"
 )
@@ -56,12 +56,15 @@ func AccountJoinOrg(ctx *zservice.Context, accountID uint, orgID uint, Expires *
 		Expires:   Expires,
 	}
 
-	return z.Save(ctx)
+	if e := z.Save(ctx); e != nil {
+		return nil, e
+	}
+	return z, nil
 }
 
 // 是否有账号和组织绑定
 func HasAccountOrgBindByAOID(ctx *zservice.Context, accountID uint, orgID uint) (bool, *zservice.Error) {
-	return HasTableValue(ctx, &ZauthAccountOrgBindTable{}, fmt.Sprintf(RK_AOBind_Info, orgID, accountID), fmt.Sprintf("account_id = %v and org_id = %v", accountID, orgID))
+	return dbhelper.HasTableValue(ctx, &ZauthAccountOrgBindTable{}, fmt.Sprintf(RK_AOBind_Info, orgID, accountID), fmt.Sprintf("account_id = %v and org_id = %v", accountID, orgID))
 }
 
 // 是否过期
@@ -73,32 +76,32 @@ func (z *ZauthAccountOrgBindTable) IsExpired() bool {
 }
 
 // 存储
-func (z *ZauthAccountOrgBindTable) Save(ctx *zservice.Context) (*ZauthAccountOrgBindTable, *zservice.Error) {
+func (z *ZauthAccountOrgBindTable) Save(ctx *zservice.Context) *zservice.Error {
 
 	if z.OrgID == 0 || z.AccountID == 0 {
-		return nil, zservice.NewError("param error").SetCode(zglobal.Code_ParamsErr)
+		return zservice.NewError("param error").SetCode(zglobal.Code_ParamsErr)
 	}
 
 	rk_info := fmt.Sprintf(RK_AOBind_Info, z.OrgID, z.AccountID)
 	un, e := Redis.Lock(rk_info)
 	if e != nil {
-		return nil, e
+		return e
 	}
 	defer un()
 
 	if z.ID == 0 { // 创建
 		if e := Mysql.Create(&z).Error; e != nil {
-			return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+			return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 		}
 	} else { // 更新
 		if e := Mysql.Save(&z).Error; e != nil {
-			return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+			return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 		}
 	}
 
 	// 删缓存
 	if e := Redis.Del(rk_info).Err(); e != nil {
-		return z, zservice.NewError(e).SetCode(zglobal.Code_Redis_DelFail)
+		zservice.LogError(zglobal.Code_Redis_DelFail, e)
 	}
-	return z, nil
+	return nil
 }

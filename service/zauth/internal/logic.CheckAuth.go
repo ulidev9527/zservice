@@ -2,8 +2,8 @@ package internal
 
 import (
 	"zservice/service/zauth/zauth_pb"
-	"zservice/zglobal"
 	"zservice/zservice"
+	"zservice/zservice/zglobal"
 )
 
 func CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_pb.CheckAuth_RES {

@@ -3,8 +3,8 @@ package internal
 import (
 	"fmt"
 	"zservice/service/zsms/zsms_pb"
-	"zservice/zglobal"
 	"zservice/zservice"
+	"zservice/zservice/zglobal"
 )
 
 func VerifyCode(ctx *zservice.Context, in *zsms_pb.VerifyCode_REQ) (code uint32) {
