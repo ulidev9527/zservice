@@ -6,7 +6,7 @@ import (
 	"zservice/zservice/zglobal"
 )
 
-func LoginByAccount(ctx *zservice.Context, in *zauth_pb.LoginByAccount_REQ) *zauth_pb.Default_RES {
+func Logic_LoginByAccount(ctx *zservice.Context, in *zauth_pb.LoginByAccount_REQ) *zauth_pb.Default_RES {
 
 	// 验证参数
 	if in.Account == "" || in.Password == "" {

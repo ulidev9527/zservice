@@ -9,7 +9,7 @@ import (
 )
 
 // 获取文件配置
-func GetFileConfig(ctx *zservice.Context, in *zauth_pb.GetFileConfig_REQ) *zauth_pb.GetFileConfig_RES {
+func Logic_GetFileConfig(ctx *zservice.Context, in *zauth_pb.GetFileConfig_REQ) *zauth_pb.GetFileConfig_RES {
 	fKey := fmt.Sprintf(RK_FileConfig, in.FileName) // 缓存 key
 	has, e := Redis.Exists(fKey).Result()
 	if e != nil {

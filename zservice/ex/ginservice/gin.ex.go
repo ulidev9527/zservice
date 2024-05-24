@@ -7,10 +7,7 @@ import (
 	"net/http"
 	"runtime"
 	"strings"
-	"zservice/service/zauth/zauth"
-	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
-	"zservice/zservice/zglobal"
 
 	"github.com/gin-gonic/gin"
 )
@@ -80,6 +77,11 @@ func GinContextEXMiddleware(zs *zservice.ZService) gin.HandlerFunc {
 
 		ctx.Next()
 
+		// 设置头部
+		ctx.Header(zservice.S_S2S, zservice.JsonMustMarshalString(&zservice.ContextS2S{
+			AuthToken: zctx.AuthToken,
+		}))
+
 		if grw != nil && grw.body != nil {
 			bodyStr = grw.body.String()
 		}
@@ -90,27 +92,5 @@ func GinContextEXMiddleware(zs *zservice.ZService) gin.HandlerFunc {
 			ctx.Writer.Status(), zctx.Since(),
 			reqParams, bodyStr,
 		)
-	}
-}
-
-func GinAuthEXMiddleware(zs *zservice.ZService) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		zctx := GetCtxEX(ctx)
-		zctx.AuthSign = zservice.MD5String(ctx.Request.UserAgent())
-
-		// 授权查询
-		if e := zauth.CheckAuth(zctx, &zauth_pb.CheckAuth_REQ{
-			Auth: string(zservice.JsonMustMarshal([]string{zservice.GetServiceName(), strings.ToLower(ctx.Request.Method), ctx.Request.URL.Path})),
-		}); e != nil {
-
-			ctx.JSON(http.StatusOK, &zglobal.Default_RES{
-				Code: e.GetCode(),
-				Msg:  zctx.TraceID,
-			})
-			ctx.Abort()
-			return
-		}
-
-		ctx.Next()
 	}
 }

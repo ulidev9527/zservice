@@ -15,9 +15,9 @@ import (
 )
 
 type GrpcClientConfig struct { // etcd 和 addr 二选一
-	EtcdServiceName string           // 服务名
-	EtcdServer      *clientv3.Client // etcd 客户端
-	Addr            string           // grcp 服务器地址
+	ZauthServiceName string           // 服务名
+	EtcdServer       *clientv3.Client // etcd 客户端
+	Addr             string           // grcp 服务器地址
 }
 
 func NewGrpcClient(c *GrpcClientConfig) (*grpc.ClientConn, error) {
@@ -29,7 +29,7 @@ func NewGrpcClient(c *GrpcClientConfig) (*grpc.ClientConn, error) {
 	}
 
 	// etcd
-	serviceName := fmt.Sprintf(S_ServiceName, c.EtcdServiceName)
+	serviceName := fmt.Sprintf(S_ServiceName, c.ZauthServiceName)
 	// 创建 etcd 实现的 grpc 服务注册发现模块 resolver
 	builder, e := resolver.NewBuilder(c.EtcdServer)
 	if e != nil {
@@ -76,7 +76,7 @@ func ClientUnaryInterceptor(ctx context.Context, method string, req, reply any, 
 		if e != nil {
 			buf := make([]byte, 1<<10)
 			stackSize := runtime.Stack(buf, true)
-			zctx.LogErrorf("RPC %s :Q %v :E %v %v", method, req, e, string(buf[:stackSize]))
+			zctx.LogErrorf("GRPC %s :Q %v :E %v %v", method, req, e, string(buf[:stackSize]))
 		}
 	}()
 
@@ -85,9 +85,9 @@ func ClientUnaryInterceptor(ctx context.Context, method string, req, reply any, 
 	// post-processing
 
 	if e != nil {
-		zctx.LogErrorf("RPC %s :Q %v :E %v", method, req, e)
+		zctx.LogErrorf("GRPC %s :Q %v :E %v", method, req, e)
 	} else {
-		zctx.LogInfof("RPC %s :Q %v :S %v", method, req, reply)
+		zctx.LogInfof("GRPC %s :Q %v :S %v", method, req, reply)
 	}
 
 	return e

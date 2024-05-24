@@ -95,7 +95,7 @@ func (r *GoRedisEX) SetCtx(ctx context.Context, key string, value string) *redis
 	return r.client.Set(ctx, r.AddKeyPrefix(key), value, 0)
 }
 
-func (r *GoRedisEX) SetEx(key string, value string, expiration time.Duration) *redis.StatusCmd {
+func (r *GoRedisEX) SetEX(key string, value string, expiration time.Duration) *redis.StatusCmd {
 	return r.SetExCtx(context.TODO(), key, value, expiration)
 }
 func (r *GoRedisEX) SetExCtx(ctx context.Context, key string, value string, expiration time.Duration) *redis.StatusCmd {

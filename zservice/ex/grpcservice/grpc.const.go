@@ -3,7 +3,7 @@ package grpcservice
 import "zservice/zservice"
 
 const (
-	S_ServiceName = "zservice/services/%s"
+	S_ServiceName = "/zservice/services/%s"
 )
 
 var (

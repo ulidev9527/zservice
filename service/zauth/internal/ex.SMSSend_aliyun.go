@@ -10,7 +10,7 @@ import (
 	"github.com/alibabacloud-go/tea/tea"
 )
 
-type aliyunSMSSendConfig struct {
+type SMSSend_aliyunConfig struct {
 	Phone        string
 	VerifyCode   string
 	Key          string
@@ -19,7 +19,7 @@ type aliyunSMSSendConfig struct {
 	SignName     string
 }
 
-func aliyunSMSSend(ctx *zservice.Context, c *aliyunSMSSendConfig) *zservice.Error {
+func SMSSend_aliyun(ctx *zservice.Context, c *SMSSend_aliyunConfig) *zservice.Error {
 	// 验证
 	if c.Phone == "" ||
 		c.VerifyCode == "" ||

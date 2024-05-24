@@ -73,7 +73,7 @@ func IsSmsBan(ctx *zservice.Context, phone string) (bool, *zservice.Error) {
 	}
 
 	// 缓存
-	_, e = Redis.SetEx(rKey, banTime.Format(time.RFC3339), time.Duration(banCache)*time.Second).Result()
+	_, e = Redis.SetEX(rKey, banTime.Format(time.RFC3339), time.Duration(banCache)*time.Second).Result()
 	if e != nil {
 		zservice.LogError(e)
 	}

@@ -56,59 +56,62 @@ func NewGrpcService(c *GrpcServiceConfig) *GrpcService {
 			grpc.ChainStreamInterceptor(ServerStreamInterceptor),
 		)
 
-		if c.EtcdServer != nil {
+		// 创建 etcd 客户端
+		mgrTarget := fmt.Sprintf(S_ServiceName, zservice.GetServiceName())
+		mgr, e := endpoints.NewManager(c.EtcdServer, mgrTarget)
+		if e != nil {
+			s.LogPanic(e)
+		}
 
-			// 创建 etcd 客户端
-			mgrTarget := fmt.Sprintf(S_ServiceName, zservice.GetServiceName())
-			mgr, e := endpoints.NewManager(c.EtcdServer, mgrTarget)
-			if e != nil {
-				s.LogPanic(e)
-			}
+		go func() {
+			reConnCount := 0 // 重连次数
+			for {
+				// 创建一个租约，每隔 10s 需要向 etcd 汇报一次心跳，证明当前节点仍然存活
+				lease, e := c.EtcdServer.Grant(c.EtcdServer.Ctx(), 10)
+				if e != nil {
+					s.LogPanic(e)
+				}
 
-			// 创建一个租约，每隔 10s 需要向 etcd 汇报一次心跳，证明当前节点仍然存活
-			lease, e := c.EtcdServer.Grant(c.EtcdServer.Ctx(), 10)
-			if e != nil {
-				s.LogPanic(e)
-			}
+				endpointKey := fmt.Sprintf("%s/%s", mgrTarget, c.ListenAddr)
+				s.LogInfo("grcp endpointKey:", endpointKey)
+				// 添加注册节点到 etcd 中，并且携带上租约 id
+				// 以 serverName/serverAddr 为 key，serverAddr 为 value
+				// serverName/serverAddr 中的 serverAddr 可以自定义，只要能够区分同一个 grpc 服务器功能的不同机器即可
+				e = mgr.AddEndpoint(c.EtcdServer.Ctx(), endpointKey, endpoints.Endpoint{Addr: c.ListenAddr}, clientv3.WithLease(lease.ID))
+				if e != nil {
+					s.LogPanic(e)
+				}
 
-			endpointKey := fmt.Sprintf("%s/%s", mgrTarget, c.ListenAddr)
-			s.LogInfo("grcp endpointKey:", endpointKey)
-			// 添加注册节点到 etcd 中，并且携带上租约 id
-			// 以 serverName/serverAddr 为 key，serverAddr 为 value
-			// serverName/serverAddr 中的 serverAddr 可以自定义，只要能够区分同一个 grpc 服务器功能的不同机器即可
-			e = mgr.AddEndpoint(c.EtcdServer.Ctx(), endpointKey, endpoints.Endpoint{Addr: c.ListenAddr}, clientv3.WithLease(lease.ID))
-			if e != nil {
-				s.LogPanic(e)
-			}
-
-			// 每隔 5 s进行一次延续租约的动作
-			retryCount := 0
-			go func() {
+				// 处理租约续期，如果续租失败或者租约过期则退出
 				for {
+					isTimeout := false
 					select {
 					case <-time.After(5 * time.Second):
-						// 续约操作
-						_, e := c.EtcdServer.KeepAliveOnce(c.EtcdServer.Ctx(), lease.ID)
-						if e != nil {
-							retryCount++
-							if retryCount > 3 {
-								s.LogPanic(e)
-							} else {
-								s.LogError(e)
-							}
-						} else {
-							retryCount = 0
+						// 租约
+						_, err := c.EtcdServer.KeepAliveOnce(context.Background(), lease.ID)
+						if err != nil {
+							fmt.Printf("Failed to keep lease alive: %s\n", err.Error())
+							isTimeout = true
 						}
 					case <-c.EtcdServer.Ctx().Done():
 						s.LogPanic(c.EtcdServer.Ctx().Err())
-						return
+					}
+					if isTimeout { // 超时重连
+						break
 					}
 				}
-			}()
+				time.Sleep(1 * time.Second) // 等待1秒重连
 
-		}
+				reConnCount++
+				if reConnCount > 10 {
+					s.LogPanic("GRPC connect failed!", endpointKey)
+				} else {
+					s.LogWarn("GRPC Reconnecting...", endpointKey)
+				}
+			}
+		}()
 
-		// 启动服务
+		// 启动 grpc 服务
 		go func() {
 			s.LogInfof("grpcService listen on %v", c.ListenAddr)
 			e := gs.Server.Serve(lis)

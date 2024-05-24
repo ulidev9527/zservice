@@ -25,7 +25,7 @@ func AccountJoinOrg(ctx *zservice.Context, accountID uint, orgID uint, Expires *
 	if has, e := HasOrgByID(ctx, orgID); e != nil {
 		return nil, e
 	} else if !has {
-		return nil, zservice.NewError("org not found:", orgID).SetCode(zglobal.Code_Zauth_OrgNotFund)
+		return nil, zservice.NewError("org not found:", orgID).SetCode(zglobal.Code_Zauth_Org_NotFund)
 	}
 
 	if has, e := HasAccountByID(ctx, accountID); e != nil {
@@ -73,6 +73,14 @@ func (z *ZauthAccountOrgBindTable) IsExpired() bool {
 		return false
 	}
 	return z.Expires.Before(time.Now())
+}
+
+// 是否启动
+func (z *ZauthAccountOrgBindTable) IsAllow() bool {
+	if z.IsExpired() {
+		return false
+	}
+	return z.State == 1
 }
 
 // 存储

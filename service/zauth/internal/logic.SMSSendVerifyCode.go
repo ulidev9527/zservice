@@ -9,7 +9,7 @@ import (
 )
 
 // 发送验证码
-func SMSSendVerifyCode(ctx *zservice.Context, in *zauth_pb.SMSSendVerifyCode_REQ) *zauth_pb.SMSSendVerifyCode_RES {
+func Logic_SMSSendVerifyCode(ctx *zservice.Context, in *zauth_pb.SMSSendVerifyCode_REQ) *zauth_pb.SMSSendVerifyCode_RES {
 
 	// 参数检查
 	if in.Phone == "" || in.Phone[0] != '+' {
@@ -38,7 +38,7 @@ func SMSSendVerifyCode(ctx *zservice.Context, in *zauth_pb.SMSSendVerifyCode_REQ
 	}
 
 	verifyCode := zservice.IntToString(zservice.RandomIntRange(100000, 999999))
-	if e := aliyunSMSSend(ctx, &aliyunSMSSendConfig{
+	if e := SMSSend_aliyun(ctx, &SMSSend_aliyunConfig{
 		Phone:        in.Phone,
 		VerifyCode:   verifyCode,
 		Key:          zservice.Getenv("SMS_KEY"),
@@ -51,13 +51,13 @@ func SMSSendVerifyCode(ctx *zservice.Context, in *zauth_pb.SMSSendVerifyCode_REQ
 	}
 
 	// CD
-	e := Redis.SetEx(rKeyCD, time.Now().Format(time.RFC3339), time.Duration(zservice.GetenvInt("SMS_CD_DEF"))*time.Second).Err()
+	e := Redis.SetEX(rKeyCD, time.Now().Format(time.RFC3339), time.Duration(zservice.GetenvInt("SMS_CD_DEF"))*time.Second).Err()
 	if e != nil {
 		ctx.LogError(e) // 已发送，缓存验证码
 	}
 
 	// 验证码
-	e = Redis.SetEx(fmt.Sprintf(RK_PhoneCode, in.Phone), verifyCode, time.Duration(zservice.GetenvInt("SMS_CODE_CACHE"))*time.Second).Err()
+	e = Redis.SetEX(fmt.Sprintf(RK_PhoneCode, in.Phone), verifyCode, time.Duration(zservice.GetenvInt("SMS_CODE_CACHE"))*time.Second).Err()
 	if e != nil {
 		ctx.LogError(e)
 		return &zauth_pb.SMSSendVerifyCode_RES{Code: zglobal.Code_ErrorBreakoff}

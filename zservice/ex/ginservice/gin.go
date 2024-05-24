@@ -34,10 +34,9 @@ type GinService struct {
 }
 
 type GinServiceConfig struct {
-	Name       string // 服务名
-	ListenAddr string // 监听地址
-
-	OnStart func(*gin.Engine) // 启动的回调
+	Name       string            // 服务名
+	ListenAddr string            // 监听地址
+	OnStart    func(*gin.Engine) // 启动的回调
 }
 
 func init() {

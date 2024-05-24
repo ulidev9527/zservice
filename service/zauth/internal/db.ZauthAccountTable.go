@@ -55,7 +55,7 @@ func HasAccountByLoginName(ctx *zservice.Context, loginName string) (bool, *zser
 }
 
 // 账号密码签名
-func AccountPassSign(z *ZauthAccountTable, password string) string {
+func AccountGenPassSign(z *ZauthAccountTable, password string) string {
 	return zservice.MD5String(fmt.Sprint(z.UID, z.PasswordToken, password))
 }
 
@@ -75,7 +75,7 @@ func GetAccountByLoginName(ctx *zservice.Context, loginName string) (*ZauthAccou
 	rk := fmt.Sprintf(RK_AccountLoginName, loginName)
 	if has, e := Redis.Exists(rk).Result(); e != nil { // 是否有缓存
 		return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
-	} else if has >= 0 {
+	} else if has > 0 {
 		if s, e := Redis.Get(rk).Result(); e != nil { // 是否有数据
 			return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 		} else {
@@ -162,14 +162,14 @@ func (z *ZauthAccountTable) AddLoginNameAndPassword(ctx *zservice.Context, name,
 
 	z.LoginName = name
 	z.PasswordToken = zservice.RandomMD5()
-	z.LoginPass = AccountPassSign(z, password)
+	z.LoginPass = AccountGenPassSign(z, password)
 
 	return z.Save(ctx)
 }
 
 // 验证密码
 func (z *ZauthAccountTable) VerifyPass(ctx *zservice.Context, password string) bool {
-	return z.LoginPass == AccountPassSign(z, password)
+	return z.LoginPass == AccountGenPassSign(z, password)
 }
 
 // 存储

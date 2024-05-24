@@ -2,13 +2,17 @@ package gormservice
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"time"
 	"zservice/zservice"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
-type GOrmEXConfig struct {
+type GormEXConfig struct {
 	DBName string
 	Addr   string // IP:PORT
 	User   string
@@ -16,7 +20,7 @@ type GOrmEXConfig struct {
 	Debug  bool
 }
 
-func (conf *GOrmEXConfig) GetUri(isUsePasswd ...bool) string {
+func (conf *GormEXConfig) GetUri(isUsePasswd ...bool) string {
 
 	if isUsePasswd != nil && isUsePasswd[0] {
 		return fmt.Sprintf("%s:%s@tcp(%v)/%s?parseTime=true", conf.User, conf.Passwd, conf.Addr, conf.DBName)
@@ -50,7 +54,14 @@ func NewGormMysqlService(c *GormMysqlServiceConfig) *GormMysqlService {
 
 	gs := &GormMysqlService{}
 	zs := zservice.NewService(name, func(s *zservice.ZService) {
-		db, e := gorm.Open(mysql.Open(fmt.Sprintf("%s:%s@tcp(%v)/%s?parseTime=true", c.User, c.Pass, c.Addr, c.DBName)), &gorm.Config{})
+		db, e := gorm.Open(mysql.Open(fmt.Sprintf("%s:%s@tcp(%v)/%s?parseTime=true", c.User, c.Pass, c.Addr, c.DBName)), &gorm.Config{
+			Logger: logger.New(log.New(os.Stdout, "\r\n", log.LstdFlags), logger.Config{
+				SlowThreshold:             200 * time.Millisecond,
+				LogLevel:                  logger.Warn,
+				IgnoreRecordNotFoundError: true,
+				Colorful:                  true,
+			}),
+		})
 		if e != nil {
 			zservice.LogPanic(e)
 		}

@@ -1,10 +1,13 @@
 package internal
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"zservice/zservice"
 	"zservice/zservice/zglobal"
 
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
@@ -19,14 +22,15 @@ type ZauthOrgTable struct {
 }
 
 // 新建一个根组织
+// 根组织在全局唯一
 func CreateRootOrg(ctx *zservice.Context, name string) (*ZauthOrgTable, *zservice.Error) {
 
-	// 创建锁
-	un, e := Redis.Lock(RK_OrgCreateLock)
-	if e != nil {
+	// 验证组织是否存在
+	if tab, e := GetRootOrgByName(ctx, name); e != nil {
 		return nil, e
+	} else if tab != nil {
+		return nil, zservice.NewError("org already exists:", name).SetCode(zglobal.Code_Zauth_Org_AlreadyExist)
 	}
-	defer un()
 
 	// 获取一个未使用的组织 ID
 	orgID, e := GetNewOrgID(ctx)
@@ -35,9 +39,8 @@ func CreateRootOrg(ctx *zservice.Context, name string) (*ZauthOrgTable, *zservic
 	}
 
 	z := &ZauthOrgTable{
-		Name:      name,
-		OrgID:     orgID,
-		RootOrgID: orgID,
+		Name:  name,
+		OrgID: orgID,
 	}
 	if e := z.Save(ctx); e != nil {
 		return nil, e
@@ -46,30 +49,16 @@ func CreateRootOrg(ctx *zservice.Context, name string) (*ZauthOrgTable, *zservic
 }
 
 // 新建一个组织
-func CreateOrg(ctx *zservice.Context, name string, rootOrgID uint, parentOrgID uint) (*ZauthOrgTable, *zservice.Error) {
+func CreateOrg(ctx *zservice.Context, name string, parentOrgID uint) (*ZauthOrgTable, *zservice.Error) {
 
 	// 验证组织是否存在
-	// 根组织验证
-	if has, e := HasOrgByID(ctx, rootOrgID); e != nil {
-		return nil, e
-	} else if !has {
-		return nil, zservice.NewError("org not found:", rootOrgID).SetCode(zglobal.Code_Zauth_OrgCreateRootIDErr)
-	}
-	// 父级组织验证
-	if rootOrgID != parentOrgID {
-		if has, e := HasOrgByID(ctx, parentOrgID); e != nil {
-			return nil, e
-		} else if !has {
-			return nil, zservice.NewError("org not found:", parentOrgID).SetCode(zglobal.Code_Zauth_OrgCreateParentIDErr)
-		}
-	}
-
-	// 创建锁
-	un, e := Redis.Lock(RK_OrgCreateLock)
+	parentTab, e := GetOrgByID(ctx, parentOrgID)
 	if e != nil {
 		return nil, e
 	}
-	defer un()
+	if parentTab == nil {
+		return nil, zservice.NewError("parent org not exist:", parentOrgID).SetCode(zglobal.Code_Zauth_Org_NotFund)
+	}
 
 	// 获取一个未使用的组织 ID
 	orgID, e := GetNewOrgID(ctx)
@@ -77,11 +66,17 @@ func CreateOrg(ctx *zservice.Context, name string, rootOrgID uint, parentOrgID u
 		return nil, e
 	}
 
+	// 顶层组织
+	rootOrgID := parentTab.RootOrgID
+	if parentTab.RootOrgID == 0 {
+		rootOrgID = parentTab.OrgID
+	}
+
 	z := &ZauthOrgTable{
 		Name:        name,
 		OrgID:       orgID,
 		RootOrgID:   rootOrgID,
-		ParentOrgID: parentOrgID,
+		ParentOrgID: parentTab.OrgID,
 	}
 
 	if e := z.Save(ctx); e != nil {
@@ -114,10 +109,73 @@ func HasOrgByID(ctx *zservice.Context, orgID uint) (bool, *zservice.Error) {
 	return dbhelper.HasTableValue(ctx, &ZauthOrgTable{}, fmt.Sprintf(RK_OrgInfo, orgID), fmt.Sprintf("org_id = %v", orgID))
 }
 
+// 根据ID获取一个组织
+func GetOrgByID(ctx *zservice.Context, orgID uint) (*ZauthOrgTable, *zservice.Error) {
+	rk_info := fmt.Sprintf(RK_OrgInfo, orgID)
+	tab := &ZauthOrgTable{}
+
+	if s, e := Redis.Get(rk_info).Result(); e != nil {
+		if e != redis.Nil {
+			return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+		}
+	} else if e := json.Unmarshal([]byte(s), tab); e != nil {
+		return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+	} else if tab.ID > 0 {
+		return tab, nil
+	}
+
+	// 未找到 查表
+	if e := Mysql.Model(&ZauthOrgTable{}).Where("org_id = ?", orgID).First(tab).Error; e != nil {
+		return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+	}
+	if tab.ID > 0 {
+		if e := Redis.Set(rk_info, zservice.JsonMustMarshalString(tab)).Err(); e != nil {
+			ctx.LogError(e)
+		}
+		return tab, nil
+	}
+	return nil, nil
+}
+
+// 是否存在指定名称的根组织
+func GetRootOrgByName(ctx *zservice.Context, name string) (*ZauthOrgTable, *zservice.Error) {
+	rk_rootName := fmt.Sprintf(RK_OrgRootName, zservice.MD5String(name))
+	tab := &ZauthOrgTable{}
+
+	if s, e := Redis.Get(rk_rootName).Result(); e != nil {
+		if e != redis.Nil {
+			return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+		}
+	} else {
+		if tab, e := GetOrgByID(ctx, zservice.StringToUint(s)); e != nil {
+			return nil, e
+		} else if tab != nil {
+			return tab, nil
+		}
+	}
+
+	// 未找到 查表
+	if e := Mysql.Model(&ZauthOrgTable{}).Where("name = ? AND root_org_id = 0", name).First(tab).Error; e != nil {
+		if !errors.Is(e, gorm.ErrRecordNotFound) {
+			return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+		}
+	}
+
+	if tab.ID == 0 {
+		return nil, nil
+	}
+	// 更新缓存
+	if e := Redis.Set(rk_rootName, zservice.UIntToString(tab.OrgID)).Err(); e != nil {
+		ctx.LogError(e)
+	}
+
+	return tab, nil
+}
+
 // 组织存储
 func (z *ZauthOrgTable) Save(ctx *zservice.Context) *zservice.Error {
 
-	if z.OrgID == 0 || z.RootOrgID == 0 {
+	if z.OrgID == 0 {
 		return zservice.NewError("param error").SetCode(zglobal.Code_ParamsErr)
 	}
 

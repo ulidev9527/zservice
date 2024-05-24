@@ -19,6 +19,7 @@ const (
 
 	Code_DB_SaveFail   = 201 // 数据存储失败
 	Code_Redis_DelFail = 202 // redis 删除失败
+	Code_DB_NotFound   = 203 // 数据不存在
 
 	Code_Zauth_Phone_NULL                = 1001 // 手机号为空
 	Code_Zauth_Phone_VerifyFail          = 1002 // 手机号验证失败
@@ -45,7 +46,8 @@ const (
 	Code_Zauth_OrgCreateRootIDErr   = 1303 // 创建组织根ID错误
 	Code_Zauth_OrgCreateParentIDErr = 1304 // 创建组织父ID错误
 	Code_Zauth_OrgGenIDCountMaxErr  = 1305 // 生成组织ID错误次数超上限
-	Code_Zauth_OrgNotFund           = 1306 // 组织不存在
+	Code_Zauth_Org_NotFund          = 1306 // 组织不存在
+	Code_Zauth_Org_AlreadyExist     = 1307 // 组织已经存在
 
 	Code_Zauth_AccountGenIDCountMaxErr       = 1401 // 生成账号ID错误次数超上限
 	Code_Zauth_AccountAlreadyJoin_Org        = 1402 // 账号已经加入组织
@@ -57,6 +59,7 @@ const (
 	Code_Zauth_PermissionBind_TargetIDErr     = 1503 // 权限绑定目标ID错误
 	Code_Zauth_PermissionBind_PermissionIDErr = 1504 // 权限绑定权限ID错误
 	Code_Zauth_PermissionBind_Already_Bind    = 1505 // 权限已经绑定
+	Code_Zauth_Permission_NotFound            = 1506 // 权限不存在
 
 	Code_Zauth_Login_Account_NotFund = 1601 // 账号不存在
 	Code_Zauth_Login_Pass_Err        = 1602 // 密码错误

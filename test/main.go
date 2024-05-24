@@ -1,8 +1,7 @@
 package main
 
 import (
-	"fmt"
-	"reflect"
+	"time"
 	"zservice/zservice"
 )
 
@@ -12,23 +11,6 @@ func init() {
 
 func main() {
 
-	defer func() {
-		zservice.LogInfo("1+1 === 0")
-	}()
-	zservice.LogInfo("111")
-	if 1+1 > 0 {
-		zservice.LogInfo("222")
-		defer func() {
-			zservice.LogInfo("1+1 > 0")
-		}()
-		zservice.LogInfo("333")
-	}
-	zservice.LogInfo("444")
+	zservice.LogInfo(time.Until(time.Now().Add(time.Second * 60)).Seconds())
 
-}
-
-func GetEle(v any) {
-
-	vt := reflect.TypeOf(v).Elem()
-	fmt.Println("Array element type:", vt)
 }

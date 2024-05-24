@@ -7,11 +7,11 @@ import (
 )
 
 type NsqConsumerConfig struct {
-	Addr      string // 地址 多个地址用 , 隔开
-	IsNsqd    bool   // 是否是 nsqd 地址
-	Topic     string // 主题
-	Channel   string // 频道
-	OnMessage func(*nsq.Message) error
+	Addrs      string // 地址 多个地址用 , 隔开
+	IsNsqdAddr bool   // 是否是 nsqd 地址
+	Topic      string // 主题
+	Channel    string // 频道
+	OnMessage  func(*nsq.Message) error
 }
 
 // nsq consumer
@@ -26,10 +26,10 @@ func NewNsqConsumer(c *NsqConsumerConfig) {
 
 	startChan := make(chan any, 1)
 
-	addrs := zservice.StringSplit(c.Addr, ",", true)
+	addrs := zservice.StringSplit(c.Addrs, ",", true)
 	go func() {
 		e := func() error {
-			if c.IsNsqd {
+			if c.IsNsqdAddr {
 				return consumer.ConnectToNSQDs(addrs)
 			} else {
 				return consumer.ConnectToNSQLookupds(addrs)

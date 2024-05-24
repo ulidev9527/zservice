@@ -7,7 +7,7 @@ import (
 )
 
 // 手机登陆
-func LoginByPhone(ctx *zservice.Context, in *zauth_pb.LoginByPhone_REQ) *zauth_pb.Default_RES {
+func Logic_LoginByPhone(ctx *zservice.Context, in *zauth_pb.LoginByPhone_REQ) *zauth_pb.Default_RES {
 	// 检查 token 是否登陆
 	at, e := GetToken(ctx.AuthToken)
 	if e != nil {
@@ -24,7 +24,7 @@ func LoginByPhone(ctx *zservice.Context, in *zauth_pb.LoginByPhone_REQ) *zauth_p
 	}
 
 	// 验证手机号
-	verifyRes := SMSVerifyCode(ctx, &zauth_pb.SMSVerifyCode_REQ{
+	verifyRes := Logic_SMSVerifyCode(ctx, &zauth_pb.SMSVerifyCode_REQ{
 		Phone:      in.Phone,
 		VerifyCode: in.VerifyCode,
 	})

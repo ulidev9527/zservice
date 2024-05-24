@@ -36,15 +36,15 @@ func NewEtcdService(c *EtcdServiceConfig) *EtcdService {
 	es := &EtcdService{}
 	es.ZService = zservice.NewService(name, func(s *zservice.ZService) {
 
-		es.LogInfof("etcdService listen on %v", c.Addr)
+		s.LogInfof("etcdService listen on %v", c.Addr)
 
 		timeoutCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		_, e := es.Etcd.Status(timeoutCtx, c.Addr)
-		if e != nil {
+		if status, e := es.Etcd.Status(timeoutCtx, c.Addr); e != nil {
 			s.LogPanic(e)
+		} else {
+			s.LogInfo("ETCD Status:", string(zservice.JsonMustMarshal(status)))
 		}
-
 		if c.OnStart != nil {
 			c.OnStart(es.Etcd)
 		}

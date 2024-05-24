@@ -7,7 +7,7 @@ import (
 )
 
 // 登出
-func Logout(ctx *zservice.Context, in *zauth_pb.Default_REQ) *zauth_pb.Default_RES {
+func Logic_Logout(ctx *zservice.Context, in *zauth_pb.Default_REQ) *zauth_pb.Default_RES {
 	if ctx.AuthToken == "" {
 		return &zauth_pb.Default_RES{Code: zglobal.Code_ParamsErr}
 	}

@@ -18,7 +18,7 @@ func NewErrorCaller(skip int, str string, e error) *Error {
 	_, file, line, _ := runtime.Caller(skip)
 	s := fmt.Sprint(file, ":", line, " > ", str)
 	if e != nil {
-		s = fmt.Sprint(s, "\n", e.Error())
+		s = fmt.Sprint(s, " | ", e.Error())
 	}
 	return &Error{
 		msg: s,

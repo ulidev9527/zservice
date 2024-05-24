@@ -2,6 +2,7 @@ package main
 
 import (
 	"zservice/service/zauth/internal"
+	"zservice/service/zauth/zauth"
 	"zservice/zservice"
 	"zservice/zservice/ex/etcdservice"
 	"zservice/zservice/ex/ginservice"
@@ -60,12 +61,20 @@ func main() {
 		OnStart: func(etcd *clientv3.Client) {
 			internal.Etcd = etcd
 			internal.InitEtcd()
+
+			zauth.Init(&zauth.ZAuthInitConfig{
+				ZauthServiceName: zservice.GetServiceName(),
+				Etcd:             internal.Etcd,
+				Redis:            internal.Redis,
+				NsqConsumerAddrs: zservice.Getenv("NSQD_ADDR"),
+				IsNsqdAddr:       true,
+			})
 		},
 	})
 
 	internal.GrpcService = grpcservice.NewGrpcService(&grpcservice.GrpcServiceConfig{
 		ListenAddr: zservice.Getenv("GRPC_LISTEN_ADDR"),
-		EtcdServer: internal.Etcd,
+		EtcdServer: internal.EtcdService.Etcd,
 		OnStart: func(grpc *grpc.Server) {
 			internal.Grpc = grpc
 			internal.InitGrpc()
@@ -75,6 +84,7 @@ func main() {
 	internal.GinService = ginservice.NewGinService(&ginservice.GinServiceConfig{
 		ListenAddr: zservice.Getenv("GIN_LISTEN_ADDR"),
 		OnStart: func(engine *gin.Engine) {
+			engine.Use(zauth.GinCheckAuthMiddleware(internal.GinService.ZService))
 			internal.Gin = engine
 			internal.InitGin()
 		},

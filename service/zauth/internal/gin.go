@@ -12,4 +12,5 @@ var Gin *gin.Engine
 func InitGin() {
 	initConfig()
 	initGinLogin()
+	initSms()
 }

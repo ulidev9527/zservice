@@ -34,9 +34,10 @@ func ZauthDBInit() {
 	} else {
 		adminName := zservice.RandomString(9)
 		adminPass := zservice.RandomString(16)
+		adminPassMd5 := zservice.MD5String(adminPass)
 
-		ctx.LogInfof("Create admin account succ, AdminName: %s, AdminPass: %s", adminName, adminPass)
-		if e := admAcc.AddLoginNameAndPassword(ctx, adminName, adminPass); e != nil {
+		ctx.LogInfof("Create admin account succ, AdminName: %s, AdminPass: %s PassMD5: %s", adminName, adminPass, adminPassMd5)
+		if e := admAcc.AddLoginNameAndPassword(ctx, adminName, zservice.MD5String(adminPass)); e != nil {
 			ctx.LogPanic(e)
 		}
 	}
@@ -47,7 +48,7 @@ func ZauthDBInit() {
 		ctx.LogPanic(e)
 	}
 	// 超级管理员
-	adminOrg, e := CreateOrg(ctx, "超级管理员", sysOrg.OrgID, sysOrg.OrgID)
+	adminOrg, e := CreateOrg(ctx, "超级管理员", sysOrg.OrgID)
 	if e != nil {
 		ctx.LogPanic(e)
 	}
@@ -65,9 +66,9 @@ func ZauthDBInit() {
 	// 添加权限/权限绑定
 	func() {
 		// 创建权限
-		pt, e := CreatePermission(ctx, ZauthPermissionTable{
-			Name:    "权限服务",
-			Service: "zauth",
+		pt, e := CreatePermission(ctx, CreatePermissionConfig{
+			Name:    "授权系统",
+			Service: zservice.GetServiceName(),
 			State:   2,
 		})
 		if e != nil {
@@ -75,11 +76,21 @@ func ZauthDBInit() {
 		}
 
 		// 权限绑定
-		_, e = PermissionBind(ctx, 1, adminOrg.OrgID, pt.PermissionID, nil, 1)
+		_, e = PermissionBind(ctx, 1, adminOrg.OrgID, pt.PermissionID, nil, true)
 		if e != nil {
 			ctx.LogPanic(e)
 		}
 
+		// 开放登陆接口
+		_, e = CreatePermission(ctx, CreatePermissionConfig{
+			Name:    "授权系统登陆",
+			Service: zservice.GetServiceName(),
+			Path:    "/login",
+			State:   1,
+		})
+		if e != nil {
+			ctx.LogPanic(e)
+		}
 	}()
 
 	ctx.LogInfo("DB init end")

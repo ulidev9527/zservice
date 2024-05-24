@@ -16,11 +16,11 @@ type ZauthPermissionBindTable struct {
 	TargetID     uint       // 外部ID
 	PermissionID uint       // 权限ID
 	Expires      *time.Time // 过期时间
-	State        uint       `gorm:"default:2"` // 状态 0禁止访问 1允许访问 2继承父级
+	Allow        bool       // 状态 0禁止访问 1允许访问
 }
 
 // 权限绑定
-func PermissionBind(ctx *zservice.Context, targetType uint, targetID uint, permissionID uint, Expires *time.Time, State uint) (*ZauthPermissionBindTable, *zservice.Error) {
+func PermissionBind(ctx *zservice.Context, targetType uint, targetID uint, permissionID uint, Expires *time.Time, Allow bool) (*ZauthPermissionBindTable, *zservice.Error) {
 
 	// 验证参数是否正确
 	switch targetType {
@@ -62,7 +62,7 @@ func PermissionBind(ctx *zservice.Context, targetType uint, targetID uint, permi
 		TargetID:     targetID,
 		PermissionID: permissionID,
 		Expires:      Expires,
-		State:        State,
+		Allow:        Allow,
 	}
 
 	if e := bind.Save(ctx); e != nil {
@@ -80,6 +80,28 @@ func HasPermissionBind(ctx *zservice.Context, targetType uint, targetID uint, pe
 		fmt.Sprintf(RK_PermissionBindInfo, targetType, targetID, permissionID),
 		fmt.Sprintf("target_type = %d AND target_id = %d AND permission_id = %d", targetType, targetID, permissionID),
 	)
+}
+
+// 获取权限绑定
+func GetPermissionBind(ctx *zservice.Context, targetType uint, targetID uint, permissionID uint) (*ZauthPermissionBindTable, *zservice.Error) {
+	tab := &ZauthPermissionBindTable{}
+	if e := dbhelper.GetTableValue(ctx,
+		tab,
+		fmt.Sprintf(RK_PermissionBindInfo, targetType, targetID, permissionID),
+		fmt.Sprintf("target_type = %d AND target_id = %d AND permission_id = %d", targetType, targetID, permissionID),
+	); e != nil {
+		return nil, e
+	}
+
+	return tab, nil
+}
+
+// 是否过期
+func (z *ZauthPermissionBindTable) IsExpired() bool {
+	if z.Expires == nil {
+		return false
+	}
+	return z.Expires.Before(time.Now())
 }
 
 // 存储

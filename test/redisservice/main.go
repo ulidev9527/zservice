@@ -39,7 +39,7 @@ func main() {
 					zservice.LogError(e)
 				}
 
-				if e := db.SetEx(rk2, string(zservice.JsonMustMarshal(v)), zglobal.Time_10Day).Err(); e != nil {
+				if e := db.SetEX(rk2, string(zservice.JsonMustMarshal(v)), zglobal.Time_10Day).Err(); e != nil {
 					zservice.LogError(e)
 				}
 

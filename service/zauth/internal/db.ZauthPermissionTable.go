@@ -1,29 +1,37 @@
 package internal
 
 import (
+	"errors"
 	"fmt"
-	"time"
 	"zservice/zservice"
 	"zservice/zservice/zglobal"
 
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
 // 权限表
 type ZauthPermissionTable struct {
 	gorm.Model
-	Name         string     // 权限名称
-	Expires      *time.Time // 过期时间
-	PermissionID uint       `gorm:"unique"` // 权限ID
-	ParentID     uint       // 父级权限ID
-	Service      string     // 权限服务
-	Action       string     // 权限动作
-	Path         string     // 权限路径
-	State        uint       `gorm:"default:3"` // 状态 0禁用 1公开访问 2授权访问 3继承父级
+	Name         string // 权限名称
+	PermissionID uint   `gorm:"unique"` // 权限ID
+	Service      string // 权限服务
+	Action       string // 权限动作
+	Path         string // 权限路径
+	State        uint   `gorm:"default:3"` // 状态 0禁用 1公开访问 2授权访问 3继承父级
+}
+
+// 创建权限的配置
+type CreatePermissionConfig struct {
+	Name    string // 权限名称
+	Service string // 权限服务
+	Action  string // 权限动作
+	Path    string // 权限路径
+	State   uint   `gorm:"default:"` // 状态 0禁用 1公开访问 2授权访问 3继承父级
 }
 
 // 新建权限
-func CreatePermission(ctx *zservice.Context, param ZauthPermissionTable) (*ZauthPermissionTable, *zservice.Error) {
+func CreatePermission(ctx *zservice.Context, param CreatePermissionConfig) (*ZauthPermissionTable, *zservice.Error) {
 
 	// 锁
 	un, e := Redis.Lock(RK_PermissionCreateLock)
@@ -41,12 +49,10 @@ func CreatePermission(ctx *zservice.Context, param ZauthPermissionTable) (*Zauth
 	z := &ZauthPermissionTable{
 		Name:         param.Name,
 		PermissionID: pid,
-		ParentID:     param.ParentID,
 		Service:      param.Service,
 		Action:       param.Action,
 		Path:         param.Path,
 		State:        param.State,
-		Expires:      param.Expires,
 	}
 
 	if e := z.Save(ctx); e != nil {
@@ -80,6 +86,57 @@ func HasPermissionByID(ctx *zservice.Context, id uint) (bool, *zservice.Error) {
 	return dbhelper.HasTableValue(ctx, &ZauthPermissionTable{}, fmt.Sprintf(RK_PermissionInfo, id), fmt.Sprintf("permission_id = %v", id))
 }
 
+// 根据ID获取一个权限
+func GetPermissionByID(ctx *zservice.Context, id uint) (*ZauthPermissionTable, *zservice.Error) {
+	tab := &ZauthPermissionTable{}
+	if e := dbhelper.GetTableValue(ctx, tab, fmt.Sprintf(RK_PermissionInfo, id), fmt.Sprintf("permission_id = %v", id)); e != nil {
+		return nil, e
+	}
+	return tab, nil
+}
+
+// 获取指定权限
+func GetPermissionBySAP(ctx *zservice.Context, service, action, path string) (*ZauthPermissionTable, *zservice.Error) {
+	rk_sap := fmt.Sprintf(RK_PermissionSAP, service, action, path)
+	if s, e := Redis.Get(rk_sap).Result(); e != nil {
+		if e != redis.Nil {
+			return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+		}
+
+	} else {
+		if tab, e := GetPermissionByID(ctx, zservice.StringToUint(s)); e != nil {
+			if e.GetCode() != zglobal.Code_DB_NotFound {
+				return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+			}
+		} else {
+			return tab, nil
+		}
+	}
+
+	// 未找到 查表
+	tab := &ZauthPermissionTable{}
+	if e := Mysql.Model(&ZauthPermissionTable{}).Where("service = ? AND action = ? AND path = ?", service, action, path).First(tab).Error; e != nil {
+		if !errors.Is(e, gorm.ErrRecordNotFound) {
+			return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+		}
+	}
+
+	if tab.ID == 0 {
+		return nil, zservice.NewError("not found").SetCode(zglobal.Code_DB_NotFound)
+	}
+	// 缓存
+	if e := Redis.Set(fmt.Sprintf(RK_PermissionInfo, tab.PermissionID), zservice.JsonMustMarshalString(tab)).Err(); e != nil {
+		ctx.LogError(e)
+	}
+	if e := Redis.Set(rk_sap, zservice.UIntToString(tab.PermissionID)).Err(); e != nil {
+		ctx.LogError(e)
+	}
+
+	return tab, nil
+
+}
+
+// 存储
 func (z *ZauthPermissionTable) Save(ctx *zservice.Context) *zservice.Error {
 	rk_info := fmt.Sprintf(RK_PermissionInfo, z.PermissionID)
 

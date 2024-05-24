@@ -137,7 +137,7 @@ func (db *DBHelper) GetTableValue(ctx *zservice.Context, tab any, rk string, sql
 		return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 	}
 	if count == 0 {
-		return zservice.NewError("not found").SetCode(zglobal.Code_Zauth_Account_NotFund)
+		return zservice.NewError("not found").SetCode(zglobal.Code_DB_NotFound)
 	}
 	if e := db.Mysql.Model(&tab).Where(sqlWhere).First(&tab).Error; e != nil {
 		return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)

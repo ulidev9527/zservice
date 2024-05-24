@@ -16,7 +16,6 @@ type ContextS2S struct {
 	TraceSpanID int       `json:"tsi"` // 链路 , 自增处理
 	AuthToken   string    `json:"at"`  // token
 	AuthSign    string    `json:"as"`  // 授权的签名
-	AuthOrg     string    `json:"ao"`  // 授权的组织
 }
 
 // 集成链路、日志、错误功能

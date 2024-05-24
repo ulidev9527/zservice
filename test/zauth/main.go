@@ -29,9 +29,9 @@ func main() {
 
 	grpcClient := zservice.NewService("zauth.grpc", func(z *zservice.ZService) {
 
-		zauth.Init(&zauth.ZAuthConfig{
-			EtcdServiceName: "zauth",
-			Etcd:            etcdS.Etcd,
+		zauth.Init(&zauth.ZAuthInitConfig{
+			ZauthServiceName: "zauth",
+			Etcd:             etcdS.Etcd,
 		})
 		z.StartDone()
 	})

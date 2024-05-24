@@ -252,7 +252,7 @@ type CheckAuth_REQ struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Auth string `protobuf:"bytes,2,opt,name=Auth,proto3" json:"Auth,omitempty"` // 权限, 字符串数组，[服务名, 动作, 路径, 目标组织]
+	Auth string `protobuf:"bytes,2,opt,name=Auth,proto3" json:"Auth,omitempty"` // 权限, 字符串数组，[服务名, 动作, 路径]
 }
 
 func (x *CheckAuth_REQ) Reset() {

@@ -4,32 +4,39 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"strings"
 	"sync"
+	"zservice/service/zauth/internal"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
+	"zservice/zservice/ex/ginservice"
 	"zservice/zservice/ex/grpcservice"
+	"zservice/zservice/ex/nsqservice"
 	"zservice/zservice/ex/redisservice"
 	"zservice/zservice/zglobal"
 
+	"github.com/gin-gonic/gin"
+	"github.com/nsqio/go-nsq"
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 var grpcClient zauth_pb.ZauthClient
 var fileConfigMap = &sync.Map{}
 
-type ZAuthConfig struct {
-	EtcdServiceName string
-	Etcd            *clientv3.Client
-	Redis           *redisservice.GoRedisEX
-	NsqConsumerAddr string // nsq consumer addr
-	IsNsqd          bool
+type ZAuthInitConfig struct {
+	ZauthServiceName string // 权限服务名称
+	Etcd             *clientv3.Client
+	Redis            *redisservice.GoRedisEX
+	NsqConsumerAddrs string // nsq consumer addr
+	IsNsqdAddr       bool
 }
 
-func Init(c *ZAuthConfig) {
+func Init(c *ZAuthInitConfig) {
 	func() {
 		conn, e := grpcservice.NewGrpcClient(&grpcservice.GrpcClientConfig{
-			EtcdServiceName: c.EtcdServiceName,
-			EtcdServer:      c.Etcd,
+			ZauthServiceName: c.ZauthServiceName,
+			EtcdServer:       c.Etcd,
 		})
 		if e != nil {
 			zservice.LogPanic(e)
@@ -39,6 +46,46 @@ func Init(c *ZAuthConfig) {
 		grpcClient = zauth_pb.NewZauthClient(conn)
 	}()
 
+	if c.ZauthServiceName == "" {
+		zservice.LogPanic("ZauthServiceName is nil")
+	}
+
+	nsqservice.NewNsqConsumer(&nsqservice.NsqConsumerConfig{
+		Addrs:      c.NsqConsumerAddrs,
+		IsNsqdAddr: c.IsNsqdAddr,
+		Topic:      internal.NSQ_FileConfig_Change,
+		Channel:    fmt.Sprintf("%s-%s", zservice.GetServiceName(), zservice.RandomXID()),
+		OnMessage: func(m *nsq.Message) error {
+			fileName := string(m.Body)
+			zservice.LogInfo("Update config ", fileName)
+			fileConfigMap.Delete(fileName)
+			return nil
+		},
+	})
+
+}
+
+// 授权检查
+func GinCheckAuthMiddleware(zs *zservice.ZService) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		zctx := ginservice.GetCtxEX(ctx)
+		zctx.AuthSign = zservice.MD5String(ctx.Request.UserAgent()) // 生成签名
+
+		// 授权查询
+		if e := CheckAuth(zctx, &zauth_pb.CheckAuth_REQ{
+			Auth: string(zservice.JsonMustMarshal([]string{zservice.GetServiceName(), strings.ToLower(ctx.Request.Method), ctx.Request.URL.Path})),
+		}); e != nil {
+
+			ctx.JSON(http.StatusOK, &zglobal.Default_RES{
+				Code: e.GetCode(),
+				Msg:  zctx.TraceID,
+			})
+			ctx.Abort()
+			return
+		}
+
+		ctx.Next()
+	}
 }
 
 // 检查权限, 没返回错误表示检查成功
