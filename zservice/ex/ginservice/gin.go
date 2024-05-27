@@ -79,8 +79,17 @@ func NewGinService(c *GinServiceConfig) *GinService {
 	})
 
 	// 中间件
-	gs.Ginengine.Use(GinCORSMiddleware(gs.ZService))
-	gs.Ginengine.Use(GinContextEXMiddleware(gs.ZService))
+	gs.Ginengine.Use(GinMiddlewareCORS(gs.ZService))
+	gs.Ginengine.Use(GinMiddlewareContext(gs.ZService))
 
 	return gs
+}
+
+// 同步 header 信息
+func SyncHeader(ctx *gin.Context) {
+	zctx := GetCtxEX(ctx)
+	if zctx.ClientSign == "" {
+		zctx.ClientSign = zservice.RandomMD5()
+	}
+	ctx.Header(zservice.S_C2S, fmt.Sprintf("%v.%v", zctx.ContextS2S.AuthToken, zctx.ContextS2S.ClientSign))
 }

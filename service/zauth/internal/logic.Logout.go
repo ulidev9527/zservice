@@ -18,9 +18,6 @@ func Logic_Logout(ctx *zservice.Context, in *zauth_pb.Default_REQ) *zauth_pb.Def
 		return &zauth_pb.Default_RES{Code: e.GetCode()}
 	}
 
-	if e := at.Del(); e != nil {
-		ctx.LogError(e)
-		return &zauth_pb.Default_RES{Code: e.GetCode()}
-	}
+	at.Del(ctx)
 	return &zauth_pb.Default_RES{Code: zglobal.Code_SUCC}
 }

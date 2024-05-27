@@ -16,6 +16,7 @@ type ContextS2S struct {
 	TraceSpanID int       `json:"tsi"` // 链路 , 自增处理
 	AuthToken   string    `json:"at"`  // token
 	AuthSign    string    `json:"as"`  // 授权的签名
+	ClientSign  string    `json:"cs"`  // 客户端签名
 }
 
 // 集成链路、日志、错误功能
@@ -37,9 +38,11 @@ func NewContext(traceJsonStr string) *Context {
 		CTX_mu:     sync.Mutex{},
 		CTX_values: sync.Map{},
 	}
-
 	// 链路记录
 	if traceJsonStr != "" {
+		if len(traceJsonStr) > 200 {
+			traceJsonStr = traceJsonStr[:200]
+		}
 		e := json.Unmarshal([]byte(traceJsonStr), &ctx.ContextS2S)
 		if e != nil {
 			mainService.LogError(e, "[zservice.NewContext] => fail, traceJsonStr: %v", traceJsonStr)

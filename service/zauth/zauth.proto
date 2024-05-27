@@ -10,7 +10,7 @@ message Default_RES {
 message LoginByPhone_REQ {
     string Phone       = 1;   // 手机号 +86****
     uint32 Expires     = 2;   // 过期时间 没有传入 (单位: 秒)，最小 30s，过期时间到了后需要重新授权
-    string LoginTarget = 3 ;  // 登陆目标
+    string LoginService = 3 ;  // 登陆目标
     string VerifyCode  = 4 ;  // 验证码
 }
 
@@ -18,7 +18,7 @@ message LoginByAccount_REQ {
     string Account     = 1;   // 账号
     string Password    = 2;   // 密码
     uint32 Expires     = 3;   // 过期时间 没有传入 (单位: 秒)，最小 30s，过期时间到了后需要重新授权
-    string LoginTarget = 4 ;  // 登陆目标
+    string LoginService = 4 ;  // 登陆目标
 }
 
 message CheckAuth_REQ{
@@ -62,7 +62,7 @@ service zauth{
 
     rpc Logout(Default_REQ) returns(Default_RES);                                 // 登出
     rpc LoginByPhone(LoginByPhone_REQ) returns(Default_RES);                      // 手机号登陆
-    rpc LoginByLoginName(LoginByAccount_REQ) returns(Default_RES);                // 账户登陆
+    rpc LoginByAccount(LoginByAccount_REQ) returns(Default_RES);                // 账户登陆
     
     rpc SMSSendVerifyCode(SMSSendVerifyCode_REQ) returns(SMSSendVerifyCode_RES);  // 发送验证码
     rpc SMSVerifyCode(SMSVerifyCode_REQ) returns(Default_RES);                    // 验证验证码

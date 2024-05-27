@@ -21,7 +21,7 @@ const _ = grpc.SupportPackageIsVersion7
 const (
 	Zauth_Logout_FullMethodName            = "/zauth_pb.zauth/Logout"
 	Zauth_LoginByPhone_FullMethodName      = "/zauth_pb.zauth/LoginByPhone"
-	Zauth_LoginByLoginName_FullMethodName  = "/zauth_pb.zauth/LoginByLoginName"
+	Zauth_LoginByAccount_FullMethodName  = "/zauth_pb.zauth/LoginByAccount"
 	Zauth_SMSSendVerifyCode_FullMethodName = "/zauth_pb.zauth/SMSSendVerifyCode"
 	Zauth_SMSVerifyCode_FullMethodName     = "/zauth_pb.zauth/SMSVerifyCode"
 	Zauth_CheckAuth_FullMethodName         = "/zauth_pb.zauth/CheckAuth"
@@ -34,7 +34,7 @@ const (
 type ZauthClient interface {
 	Logout(ctx context.Context, in *Default_REQ, opts ...grpc.CallOption) (*Default_RES, error)
 	LoginByPhone(ctx context.Context, in *LoginByPhone_REQ, opts ...grpc.CallOption) (*Default_RES, error)
-	LoginByLoginName(ctx context.Context, in *LoginByAccount_REQ, opts ...grpc.CallOption) (*Default_RES, error)
+	LoginByAccount(ctx context.Context, in *LoginByAccount_REQ, opts ...grpc.CallOption) (*Default_RES, error)
 	SMSSendVerifyCode(ctx context.Context, in *SMSSendVerifyCode_REQ, opts ...grpc.CallOption) (*SMSSendVerifyCode_RES, error)
 	SMSVerifyCode(ctx context.Context, in *SMSVerifyCode_REQ, opts ...grpc.CallOption) (*Default_RES, error)
 	CheckAuth(ctx context.Context, in *CheckAuth_REQ, opts ...grpc.CallOption) (*CheckAuth_RES, error)
@@ -67,9 +67,9 @@ func (c *zauthClient) LoginByPhone(ctx context.Context, in *LoginByPhone_REQ, op
 	return out, nil
 }
 
-func (c *zauthClient) LoginByLoginName(ctx context.Context, in *LoginByAccount_REQ, opts ...grpc.CallOption) (*Default_RES, error) {
+func (c *zauthClient) LoginByAccount(ctx context.Context, in *LoginByAccount_REQ, opts ...grpc.CallOption) (*Default_RES, error) {
 	out := new(Default_RES)
-	err := c.cc.Invoke(ctx, Zauth_LoginByLoginName_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, Zauth_LoginByAccount_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +118,7 @@ func (c *zauthClient) GetFileConfig(ctx context.Context, in *GetFileConfig_REQ, 
 type ZauthServer interface {
 	Logout(context.Context, *Default_REQ) (*Default_RES, error)
 	LoginByPhone(context.Context, *LoginByPhone_REQ) (*Default_RES, error)
-	LoginByLoginName(context.Context, *LoginByAccount_REQ) (*Default_RES, error)
+	LoginByAccount(context.Context, *LoginByAccount_REQ) (*Default_RES, error)
 	SMSSendVerifyCode(context.Context, *SMSSendVerifyCode_REQ) (*SMSSendVerifyCode_RES, error)
 	SMSVerifyCode(context.Context, *SMSVerifyCode_REQ) (*Default_RES, error)
 	CheckAuth(context.Context, *CheckAuth_REQ) (*CheckAuth_RES, error)
@@ -136,8 +136,8 @@ func (UnimplementedZauthServer) Logout(context.Context, *Default_REQ) (*Default_
 func (UnimplementedZauthServer) LoginByPhone(context.Context, *LoginByPhone_REQ) (*Default_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LoginByPhone not implemented")
 }
-func (UnimplementedZauthServer) LoginByLoginName(context.Context, *LoginByAccount_REQ) (*Default_RES, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LoginByLoginName not implemented")
+func (UnimplementedZauthServer) LoginByAccount(context.Context, *LoginByAccount_REQ) (*Default_RES, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LoginByAccount not implemented")
 }
 func (UnimplementedZauthServer) SMSSendVerifyCode(context.Context, *SMSSendVerifyCode_REQ) (*SMSSendVerifyCode_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SMSSendVerifyCode not implemented")
@@ -200,20 +200,20 @@ func _Zauth_LoginByPhone_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Zauth_LoginByLoginName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Zauth_LoginByAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(LoginByAccount_REQ)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ZauthServer).LoginByLoginName(ctx, in)
+		return srv.(ZauthServer).LoginByAccount(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Zauth_LoginByLoginName_FullMethodName,
+		FullMethod: Zauth_LoginByAccount_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ZauthServer).LoginByLoginName(ctx, req.(*LoginByAccount_REQ))
+		return srv.(ZauthServer).LoginByAccount(ctx, req.(*LoginByAccount_REQ))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -306,8 +306,8 @@ var Zauth_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Zauth_LoginByPhone_Handler,
 		},
 		{
-			MethodName: "LoginByLoginName",
-			Handler:    _Zauth_LoginByLoginName_Handler,
+			MethodName: "LoginByAccount",
+			Handler:    _Zauth_LoginByAccount_Handler,
 		},
 		{
 			MethodName: "SMSSendVerifyCode",

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
-	"net/http"
 	"runtime"
 	"strings"
 	"zservice/zservice"
@@ -12,29 +11,28 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// 中间件
-// CORS跨域中间件
-func GinCORSMiddleware(zs *zservice.ZService) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		method := ctx.Request.Method
-		origin := ctx.Request.Header.Get("Origin")
-		if origin != "" {
-			ctx.Header("Access-Control-Allow-Origin", "*") // 可将将 * 替换为指定的域名
-			ctx.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
-			ctx.Header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization")
-			ctx.Header("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Cache-Control, Content-Language, Content-Type")
-			ctx.Header("Access-Control-Allow-Credentials", "true")
-		}
-		if method == "OPTIONS" {
-			ctx.AbortWithStatus(http.StatusNoContent)
-		}
-	}
-}
-
 // 扩展 Context 中间件
-func GinContextEXMiddleware(zs *zservice.ZService) gin.HandlerFunc {
+func GinMiddlewareContext(zs *zservice.ZService) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		zctx := zservice.NewContext(ctx.Request.Header.Get(zservice.S_S2S))
+
+		zctx := func() *zservice.Context { // 提取处 C2S 信息
+			zzctx := zservice.NewEmptyContext()
+			c2sStr := ctx.Request.Header.Get(zservice.S_C2S)
+			if c2sStr == "" {
+				return zservice.NewEmptyContext()
+			}
+
+			if len(c2sStr) == 65 {
+				c2sArr := strings.Split(c2sStr, ".")
+				if len(c2sArr) == 2 {
+					zzctx.ContextS2S.AuthToken = c2sArr[0]
+					zzctx.ContextS2S.ClientSign = c2sArr[1]
+				}
+			}
+
+			return zzctx
+		}()
+
 		ctx.Set(GIN_contextEX_Middleware_Key, zctx)
 
 		var grw *ginResWriter
@@ -76,11 +74,6 @@ func GinContextEXMiddleware(zs *zservice.ZService) gin.HandlerFunc {
 		}()
 
 		ctx.Next()
-
-		// 设置头部
-		ctx.Header(zservice.S_S2S, zservice.JsonMustMarshalString(&zservice.ContextS2S{
-			AuthToken: zctx.AuthToken,
-		}))
 
 		if grw != nil && grw.body != nil {
 			bodyStr = grw.body.String()

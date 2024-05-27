@@ -60,6 +60,7 @@ const (
 	Code_Zauth_PermissionBind_PermissionIDErr = 1504 // 权限绑定权限ID错误
 	Code_Zauth_PermissionBind_Already_Bind    = 1505 // 权限已经绑定
 	Code_Zauth_Permission_NotFound            = 1506 // 权限不存在
+	Code_Zauth_Permission_ConfigErr           = 1507 // 权限配置错误
 
 	Code_Zauth_Login_Account_NotFund = 1601 // 账号不存在
 	Code_Zauth_Login_Pass_Err        = 1602 // 密码错误

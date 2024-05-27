@@ -33,31 +33,33 @@ func gin_Login(ctx *gin.Context) {
 		return
 	}
 
-	at, e := CreateToken(zctx)
-	if e != nil {
-		zctx.LogError(e)
-		ctx.JSON(200, gin.H{"code": e.GetCode()})
-		return
-	}
-	zctx.AuthToken = at.Token
-
 	switch req.LoginType {
 	case 1: // 手机号登陆
 		res := Logic_LoginByPhone(zctx, &zauth_pb.LoginByPhone_REQ{
-			Phone:       req.Phone,
-			Expires:     uint32(zglobal.Time_10Day.Seconds()),
-			LoginTarget: "zauth",
-			VerifyCode:  req.SMSVerifyCode,
+			Phone:        req.Phone,
+			Expires:      uint32(zglobal.Time_10Day.Seconds()),
+			LoginService: "zauth",
+			VerifyCode:   req.SMSVerifyCode,
 		})
+
+		if res.Code == zglobal.Code_SUCC {
+			ginservice.SyncHeader(ctx)
+		}
+
 		ctx.JSON(200, gin.H{"code": res.Code})
 		return
 	case 2: // 账号登陆
 		res := Logic_LoginByAccount(zctx, &zauth_pb.LoginByAccount_REQ{
-			Account:     req.LoginName,
-			Password:    req.LoginPass,
-			Expires:     uint32(zglobal.Time_10Day.Seconds()),
-			LoginTarget: "zauth",
+			Account:      req.LoginName,
+			Password:     req.LoginPass,
+			Expires:      uint32(zglobal.Time_10Day.Seconds()),
+			LoginService: "zauth",
 		})
+
+		if res.Code == zglobal.Code_SUCC {
+			ginservice.SyncHeader(ctx)
+		}
+
 		ctx.JSON(200, gin.H{"code": res.Code})
 		return
 	default:

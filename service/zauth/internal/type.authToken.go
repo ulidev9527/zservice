@@ -15,7 +15,7 @@ type AuthToken struct {
 	Expires       time.Time // 过期时间 单位: 秒
 	Sign          string    // 签名，用于生成 token 和验证
 	TokenKey      string    // token key
-	LoginTarget   string    // 登陆的目标平台
+	LoginService  string    // 登陆的服务
 }
 
 // 创建一个 token
@@ -85,32 +85,44 @@ func (l *AuthToken) CheckToken(tk string, sign string) bool {
 
 // 保存
 func (l *AuthToken) Save() *zservice.Error {
-	rk := fmt.Sprintf(RK_TokenInfo, l.Token)
-
 	l.Expires = time.Now().Add(time.Second * time.Duration(l.ExpiresSecond))
 
 	if l.UID != 0 { // 登录 token 存储
+		// 更新 token
 		if e := Redis.SetEX(fmt.Sprintf(RK_AccountLoginToken, l.UID, l.Token), l.Token, time.Until(l.Expires)).Err(); e != nil {
 			return zservice.NewError(e).SetCode(zglobal.Code_Zauth_TokenSaveFail)
 		}
+
+		// 更新 service
+		if e := Redis.SetEX(fmt.Sprintf(RK_AccountLoginService, l.UID, l.LoginService), l.Token, time.Until(l.Expires)).Err(); e != nil {
+			return zservice.NewError(e).SetCode(zglobal.Code_Zauth_TokenSaveFail)
+		}
+
 	}
 
-	if e := Redis.SetEX(rk, zservice.JsonMustMarshalString(l), time.Until(l.Expires)).Err(); e != nil {
+	if e := Redis.SetEX(fmt.Sprintf(RK_TokenInfo, l.Token), zservice.JsonMustMarshalString(l), time.Until(l.Expires)).Err(); e != nil {
 		return zservice.NewError(e).SetCode(zglobal.Code_Zauth_TokenSaveFail)
 	}
 	return nil
 }
 
 // 删除 token
-func (l *AuthToken) Del() *zservice.Error {
+func (l *AuthToken) Del(ctx *zservice.Context) {
 
 	rk := fmt.Sprintf(RK_TokenInfo, l.Token)
 
+	// 删除登录 token
 	if e := Redis.Del(fmt.Sprintf(RK_AccountLoginToken, l.UID, l.Token)).Err(); e != nil {
-		return zservice.NewError(e).SetCode(zglobal.Code_Zauth_TokenDelFail)
+		ctx.LogError(e)
 	}
+
+	// 删除登陆 service
+	if e := Redis.Del(fmt.Sprintf(RK_AccountLoginService, l.UID, l.LoginService)).Err(); e != nil {
+		ctx.LogError(e)
+	}
+
+	// 删除 token 信息
 	if e := Redis.Del(rk).Err(); e != nil {
-		return zservice.NewError(e).SetCode(zglobal.Code_Zauth_TokenDelFail)
+		ctx.LogError(e)
 	}
-	return nil
 }

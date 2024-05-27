@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"fmt"
 	"strings"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
@@ -100,15 +101,23 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 	// 当前权限是否公开
 	switch permissionInfo.State {
 	case 0: // 权限禁用
-	case 3: // 继承父级，上面未处理，权限配置有问题
-		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_AuthFail, IsTokenRefresh: isRefreshToken, Token: at.Token}
-	case 1:
+	case 3: // 继承父级，父级未处理，权限配置有问题
+		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_Zauth_Permission_ConfigErr, IsTokenRefresh: isRefreshToken, Token: at.Token}
+	case 1: // 公开访问
 		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_SUCC, IsTokenRefresh: isRefreshToken, Token: at.Token}
 	}
 
 	// 检查是否拥有该权限
 	if at.UID == 0 { // 未登录, 不继续接下里用户判断流程
 		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_AuthFail, IsTokenRefresh: isRefreshToken, Token: at.Token}
+	}
+
+	// 服务登陆和token验证
+	if s, e := Redis.Get(fmt.Sprintf(RK_AccountLoginService, at.UID, authService)).Result(); e != nil {
+		ctx.LogError(e)
+		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_AuthFail, IsTokenRefresh: isRefreshToken, Token: at.Token}
+	} else if s != at.Token { // token 不正确, 需要重新登陆
+		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_LoginAgain, IsTokenRefresh: isRefreshToken, Token: at.Token}
 	}
 
 	// 检查是否有权限
