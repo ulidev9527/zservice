@@ -31,7 +31,7 @@ func Logic_GetPermissionList(ctx *zservice.Context, in *zauth_pb.GetPermissionLi
 	// 查询数据结构
 	tabs := []ZauthPermissionTable{}
 	searchStr := fmt.Sprint("%", in.Search, "%")
-	if e := Mysql.Debug().Model(&ZauthPermissionTable{}).Where("name like ? OR permission_id like ? OR service like ? OR action like ? OR path like ?", searchStr, searchStr, searchStr, searchStr, searchStr).Order("path desc").Offset(int((in.Page - 1) * in.Size)).Limit(int(in.Size)).Find(&tabs).Error; e != nil {
+	if e := Mysql.Model(&ZauthPermissionTable{}).Where("name like ? OR permission_id like ? OR service like ? OR action like ? OR path like ?", searchStr, searchStr, searchStr, searchStr, searchStr).Order("path desc").Offset(int((in.Page - 1) * in.Size)).Limit(int(in.Size)).Find(&tabs).Error; e != nil {
 		ctx.LogError(e)
 		return &zauth_pb.GetPermissionList_RES{
 			Code: zglobal.Code_ErrorBreakoff,
