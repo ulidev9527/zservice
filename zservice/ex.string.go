@@ -44,13 +44,22 @@ func StringToBoolean(s string) bool {
 	}
 }
 
-// string to int
+// string to int, err return 0
 func StringToInt(str string) int {
-	i, err := strconv.Atoi(str)
-	if err != nil {
-		i = 0
+	i, e := strconv.Atoi(str)
+	if e != nil {
+		return 0
 	}
 	return i
+}
+
+// string to int32
+func StringToInt32(str string) int32 {
+	i, err := strconv.ParseInt(str, 10, 32)
+	if err != nil {
+		return 0
+	}
+	return int32(i)
 }
 
 // string to float32

@@ -8,9 +8,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// 登陆香港初始化
 func initGinLogin() {
 
-	Gin.POST("/login", gin_Login)
+	Gin.POST("/login", gin_handle_Login)
 
 }
 
@@ -22,7 +23,8 @@ type gin_T_Login struct {
 	LoginPass     string `json:"lp"`  // T2 密码
 }
 
-func gin_Login(ctx *gin.Context) {
+// 登陆
+func gin_handle_Login(ctx *gin.Context) {
 	zctx := ginservice.GetCtxEX(ctx)
 
 	req := gin_T_Login{}

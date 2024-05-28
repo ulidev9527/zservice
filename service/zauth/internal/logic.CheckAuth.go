@@ -136,7 +136,7 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 			"account_id = ? AND org_id IN (?)",
 			at.UID,
 			Mysql.Model(&ZauthPermissionBindTable{}).Where(
-				"permission_id = ? AND target_type = 1 AND state = 1 AND (is_expired IS NULL OR is_expired > NOW())",
+				"permission_id = ? AND target_type = 1 AND state = 1 AND (expires IS NULL OR expires > NOW())",
 				permissionInfo.PermissionID,
 			).Select("target_id"),
 		).First(bindInfo).Error; e != nil {

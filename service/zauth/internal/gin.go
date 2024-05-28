@@ -10,7 +10,8 @@ var GinService *ginservice.GinService
 var Gin *gin.Engine
 
 func InitGin() {
-	initConfig()
+	initGinConfig()
 	initGinLogin()
-	initSms()
+	initGinSms()
+	initGinPermission()
 }

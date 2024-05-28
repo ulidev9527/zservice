@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func initConfig() {
+func initGinConfig() {
 
 	Gin.GET("/config", func(ctx *gin.Context) {
 		zctx := ginservice.GetCtxEX(ctx)

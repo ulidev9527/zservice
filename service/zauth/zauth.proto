@@ -7,20 +7,19 @@ message Default_RES {
     uint32 Code = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
 }
 
+// 登陆相关
 message LoginByPhone_REQ {
     string Phone       = 1;   // 手机号 +86****
     uint32 Expires     = 2;   // 过期时间 没有传入 (单位: 秒)，最小 30s，过期时间到了后需要重新授权
     string LoginService = 3 ;  // 登陆目标
     string VerifyCode  = 4 ;  // 验证码
 }
-
 message LoginByAccount_REQ {
     string Account     = 1;   // 账号
     string Password    = 2;   // 密码
     uint32 Expires     = 3;   // 过期时间 没有传入 (单位: 秒)，最小 30s，过期时间到了后需要重新授权
     string LoginService = 4 ;  // 登陆目标
 }
-
 message CheckAuth_REQ{
     string Auth = 2;  // 权限, 字符串数组，[服务名, 动作, 路径]
 }
@@ -30,18 +29,35 @@ message CheckAuth_RES{
     string Token          = 3;  // 新的令牌， IsTokenRefresh 和 Token 为固定格式，不受错误码影响
 }
 
+// 权限相关
+message PermissionInfo{
+    string Name         = 1;  // 权限名称
+    int32  PermissionID = 2;  // 权限ID
+    string Service      = 3;  // 权限所属服务
+    string Action       = 4;  // 动作名称
+    string Path         = 5;  // 权限路径
+    uint32 State        = 6;  // 权限状态 0禁用 1公开访问 2授权访问 3继承父级
+}
+message GetPermissionList_REQ{
+    int32  page   = 1;  // 第几页
+    int32  size   = 2;  // 每页多少条
+    string search = 3;  // 搜索关键字
+}
+message GetPermissionList_RES{
+    uint32   Code                = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
+    repeated PermissionInfo List = 2;  // 权限列表
+}
 
+// 短信相关
 message SMSSendVerifyCode_REQ { // 发送验证码 请求
     string Phone  = 1;  // 手机号 必须带有 +86
     string Serive = 2;  // 服务标识，哪个服务发起的验证码请求，可以为空字符串
 }
-
 message SMSSendVerifyCode_RES {
     uint32 Code       = 1;  // 状态
     string VerifyCode = 2;  // 验证码
 
 }
-
 message SMSVerifyCode_REQ { // 发送验证码 请求
     string Phone      = 1;  // 手机号 必须带有 +86
     string Serive     = 2;  // 服务标识，哪个服务发起的验证码请求，可以为空字符串
@@ -63,6 +79,9 @@ service zauth{
     rpc Logout(Default_REQ) returns(Default_RES);                                 // 登出
     rpc LoginByPhone(LoginByPhone_REQ) returns(Default_RES);                      // 手机号登陆
     rpc LoginByAccount(LoginByAccount_REQ) returns(Default_RES);                // 账户登陆
+    
+    rpc GetPermissionList(GetPermissionList_REQ) returns(GetPermissionList_RES);  // 获取权限列表权限列表
+
     
     rpc SMSSendVerifyCode(SMSSendVerifyCode_REQ) returns(SMSSendVerifyCode_RES);  // 发送验证码
     rpc SMSVerifyCode(SMSVerifyCode_REQ) returns(Default_RES);                    // 验证验证码

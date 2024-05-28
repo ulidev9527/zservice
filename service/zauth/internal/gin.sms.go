@@ -2,7 +2,7 @@ package internal
 
 import "github.com/gin-gonic/gin"
 
-func initSms() {
+func initGinSms() {
 	Gin.POST("/sms/sendverifycode", gin_SMS_SendVerifyCode)
 }
 
