@@ -11,12 +11,14 @@ import (
 
 // 上下文内部交互信息
 type ContextS2S struct {
-	TraceTime   time.Time `json:"tt"`  // 链路初始化时间
-	TraceID     string    `json:"ti"`  // 链路ID
-	TraceSpanID int       `json:"tsi"` // 链路 , 自增处理
-	AuthToken   string    `json:"at"`  // token
-	AuthSign    string    `json:"as"`  // 授权的签名
-	ClientSign  string    `json:"cs"`  // 客户端签名
+	TraceTime    time.Time `json:"tt"`  // 链路初始化时间
+	TraceID      string    `json:"ti"`  // 链路ID
+	TraceSpanID  int       `json:"tsi"` // 链路 , 自增处理
+	TraceService string    `json:"ts"`  // 链路服务
+	Service      string    `json:"s"`   // 服务
+	AuthToken    string    `json:"at"`  // token
+	AuthSign     string    `json:"as"`  // 授权的签名
+	ClientSign   string    `json:"cs"`  // 客户端签名
 }
 
 // 集成链路、日志、错误功能
@@ -48,6 +50,8 @@ func NewContext(traceJsonStr string) *Context {
 			mainService.LogError(e, "[zservice.NewContext] => fail, traceJsonStr: %v", traceJsonStr)
 		}
 	}
+
+	// 链路数据更新
 	if ctx.ContextS2S.TraceID == "" {
 		ctx.ContextS2S.TraceTime = ctx.StartTime
 		ctx.ContextS2S.TraceID = RandomXID()
@@ -55,6 +59,10 @@ func NewContext(traceJsonStr string) *Context {
 	} else {
 		ctx.ContextS2S.TraceSpanID++
 	}
+
+	// 链路服务更新
+	ctx.ContextS2S.TraceService = ctx.ContextS2S.Service
+	ctx.ContextS2S.Service = mainService.tranceName
 
 	return ctx
 }

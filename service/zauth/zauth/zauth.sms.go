@@ -10,13 +10,13 @@ import (
 )
 
 // 发送验证码
-func SendVerifyCode(ctx *zservice.Context, phone string) *zservice.Error {
+func SMSVerifyCodeSend(ctx *zservice.Context, phone string, verifyCode string) *zservice.Error {
 	if phone == "" || phone[0] != '+' { // 手机号初步验证
 		return zservice.NewError("verify phone fail").SetCode(zglobal.Code_ParamsErr)
 	}
 	req := &zauth_pb.SMSVerifyCodeSend_REQ{
-		Phone:  phone,
-		Serive: zservice.GetServiceName(),
+		Phone:      phone,
+		VerifyCode: verifyCode,
 	}
 
 	if res, e := func() (*zauth_pb.SMSSendVerifyCode_RES, error) {
@@ -35,7 +35,7 @@ func SendVerifyCode(ctx *zservice.Context, phone string) *zservice.Error {
 }
 
 // 验证验证码
-func VerifyCode(ctx *zservice.Context, phone string, verifyCode string) *zservice.Error {
+func SMSVerifyCodeVerifyt(ctx *zservice.Context, phone string, verifyCode string) *zservice.Error {
 	if phone == "" || phone[0] != '+' { // 手机号初步验证
 		return zservice.NewError("verify phone fail").SetCode(zglobal.Code_ParamsErr)
 	}
@@ -43,7 +43,7 @@ func VerifyCode(ctx *zservice.Context, phone string, verifyCode string) *zservic
 		return zservice.NewError("verify code fail").SetCode(zglobal.Code_ParamsErr)
 	}
 
-	req := &zauth_pb.SMSVerifyCode_REQ{
+	req := &zauth_pb.SMSVerifyCodeVerify_REQ{
 		Phone:      phone,
 		VerifyCode: verifyCode,
 		Serive:     zservice.GetServiceName(),

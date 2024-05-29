@@ -42,7 +42,7 @@ type ZauthClient interface {
 	PermissionListGet(ctx context.Context, in *PermissionListGet_REQ, opts ...grpc.CallOption) (*PermissionInfoList_RES, error)
 	PermissionUpdate(ctx context.Context, in *PermissionInfo, opts ...grpc.CallOption) (*PermissionInfo_RES, error)
 	SMSVerifyCodeSend(ctx context.Context, in *SMSVerifyCodeSend_REQ, opts ...grpc.CallOption) (*SMSSendVerifyCode_RES, error)
-	SMSVerifyCodeVerify(ctx context.Context, in *SMSVerifyCode_REQ, opts ...grpc.CallOption) (*Default_RES, error)
+	SMSVerifyCodeVerify(ctx context.Context, in *SMSVerifyCodeVerify_REQ, opts ...grpc.CallOption) (*Default_RES, error)
 	CheckAuth(ctx context.Context, in *CheckAuth_REQ, opts ...grpc.CallOption) (*CheckAuth_RES, error)
 	GetFileConfig(ctx context.Context, in *GetFileConfig_REQ, opts ...grpc.CallOption) (*GetFileConfig_RES, error)
 }
@@ -118,7 +118,7 @@ func (c *zauthClient) SMSVerifyCodeSend(ctx context.Context, in *SMSVerifyCodeSe
 	return out, nil
 }
 
-func (c *zauthClient) SMSVerifyCodeVerify(ctx context.Context, in *SMSVerifyCode_REQ, opts ...grpc.CallOption) (*Default_RES, error) {
+func (c *zauthClient) SMSVerifyCodeVerify(ctx context.Context, in *SMSVerifyCodeVerify_REQ, opts ...grpc.CallOption) (*Default_RES, error) {
 	out := new(Default_RES)
 	err := c.cc.Invoke(ctx, Zauth_SMSVerifyCodeVerify_FullMethodName, in, out, opts...)
 	if err != nil {
@@ -156,7 +156,7 @@ type ZauthServer interface {
 	PermissionListGet(context.Context, *PermissionListGet_REQ) (*PermissionInfoList_RES, error)
 	PermissionUpdate(context.Context, *PermissionInfo) (*PermissionInfo_RES, error)
 	SMSVerifyCodeSend(context.Context, *SMSVerifyCodeSend_REQ) (*SMSSendVerifyCode_RES, error)
-	SMSVerifyCodeVerify(context.Context, *SMSVerifyCode_REQ) (*Default_RES, error)
+	SMSVerifyCodeVerify(context.Context, *SMSVerifyCodeVerify_REQ) (*Default_RES, error)
 	CheckAuth(context.Context, *CheckAuth_REQ) (*CheckAuth_RES, error)
 	GetFileConfig(context.Context, *GetFileConfig_REQ) (*GetFileConfig_RES, error)
 	mustEmbedUnimplementedZauthServer()
@@ -187,7 +187,7 @@ func (UnimplementedZauthServer) PermissionUpdate(context.Context, *PermissionInf
 func (UnimplementedZauthServer) SMSVerifyCodeSend(context.Context, *SMSVerifyCodeSend_REQ) (*SMSSendVerifyCode_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SMSVerifyCodeSend not implemented")
 }
-func (UnimplementedZauthServer) SMSVerifyCodeVerify(context.Context, *SMSVerifyCode_REQ) (*Default_RES, error) {
+func (UnimplementedZauthServer) SMSVerifyCodeVerify(context.Context, *SMSVerifyCodeVerify_REQ) (*Default_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SMSVerifyCodeVerify not implemented")
 }
 func (UnimplementedZauthServer) CheckAuth(context.Context, *CheckAuth_REQ) (*CheckAuth_RES, error) {
@@ -336,7 +336,7 @@ func _Zauth_SMSVerifyCodeSend_Handler(srv interface{}, ctx context.Context, dec 
 }
 
 func _Zauth_SMSVerifyCodeVerify_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SMSVerifyCode_REQ)
+	in := new(SMSVerifyCodeVerify_REQ)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -348,7 +348,7 @@ func _Zauth_SMSVerifyCodeVerify_Handler(srv interface{}, ctx context.Context, de
 		FullMethod: Zauth_SMSVerifyCodeVerify_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ZauthServer).SMSVerifyCodeVerify(ctx, req.(*SMSVerifyCode_REQ))
+		return srv.(ZauthServer).SMSVerifyCodeVerify(ctx, req.(*SMSVerifyCodeVerify_REQ))
 	}
 	return interceptor(ctx, in, info, handler)
 }

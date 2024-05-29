@@ -7,7 +7,7 @@ import (
 	"zservice/zservice/zglobal"
 )
 
-func Logic_SMSVerifyCodeVerify(ctx *zservice.Context, in *zauth_pb.SMSVerifyCode_REQ) *zauth_pb.Default_RES {
+func Logic_SMSVerifyCodeVerify(ctx *zservice.Context, in *zauth_pb.SMSVerifyCodeVerify_REQ) *zauth_pb.Default_RES {
 
 	// 参数检查
 	if in.Phone == "" || in.Phone[0] != '+' || in.VerifyCode == "" || len(in.VerifyCode) != 6 {
