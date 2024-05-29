@@ -11,6 +11,29 @@ import (
 
 func initGinPermission() {
 	Gin.GET("/permission", gin_handle_get_permission)
+	Gin.PUT("/permission", gin_handle_put_permission)
+	Gin.POST("/permission", gin_handle_post_permission)
+
+}
+
+// 创建权限
+func gin_handle_post_permission(ctx *gin.Context) {
+
+	zctx := ginservice.GetCtxEX(ctx)
+	req := &zauth_pb.PermissionInfo{}
+	if e := ctx.ShouldBindJSON(req); e != nil {
+		zctx.LogError(e)
+		ctx.JSON(200, gin.H{"code": zglobal.Code_ErrorBreakoff})
+		return
+	}
+
+	ctx.JSON(200, Logic_PermissionCreate(zctx, &zauth_pb.PermissionInfo{
+		Name:    req.Name,
+		Service: req.Service,
+		Action:  req.Action,
+		Path:    req.Path,
+		State:   req.State,
+	}))
 
 }
 
@@ -21,16 +44,24 @@ func gin_handle_get_permission(ctx *gin.Context) {
 	si := zservice.StringToInt32(ctx.Query("si"))
 	se := ctx.Query("se")
 
-	res := Logic_GetPermissionList(zctx, &zauth_pb.GetPermissionList_REQ{
+	ctx.JSON(200, Logic_PermissionListGet(zctx, &zauth_pb.PermissionListGet_REQ{
 		Page:   p,
 		Size:   si,
 		Search: se,
-	})
+	}))
 
-	if res.Code == zglobal.Code_SUCC {
-		ctx.JSON(200, gin.H{"code": res.Code, "list": res.List})
-	} else {
-		ctx.JSON(200, gin.H{"code": res.Code})
+}
+
+// 修改权限
+func gin_handle_put_permission(ctx *gin.Context) {
+
+	zctx := ginservice.GetCtxEX(ctx)
+	req := &zauth_pb.PermissionInfo{}
+	if e := ctx.ShouldBindJSON(req); e != nil {
+		zctx.LogError(e)
+		ctx.JSON(200, gin.H{"code": zglobal.Code_ErrorBreakoff})
+		return
 	}
 
+	ctx.JSON(200, Logic_PermissionUpdate(zctx, req))
 }

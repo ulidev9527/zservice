@@ -9,7 +9,7 @@ import (
 )
 
 // 发送验证码
-func Logic_SMSSendVerifyCode(ctx *zservice.Context, in *zauth_pb.SMSSendVerifyCode_REQ) *zauth_pb.SMSSendVerifyCode_RES {
+func Logic_SMSVerifyCodeSend(ctx *zservice.Context, in *zauth_pb.SMSVerifyCodeSend_REQ) *zauth_pb.SMSSendVerifyCode_RES {
 
 	// 参数检查
 	if in.Phone == "" || in.Phone[0] != '+' {

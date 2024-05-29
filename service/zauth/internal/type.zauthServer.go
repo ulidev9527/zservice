@@ -26,13 +26,13 @@ func (s *ZauthServer) CheckAuth(ctx context.Context, in *zauth_pb.CheckAuth_REQ)
 }
 
 // 短信验证码发送
-func (s *ZauthServer) SMSSendVerifyCode(ctx context.Context, in *zauth_pb.SMSSendVerifyCode_REQ) (*zauth_pb.SMSSendVerifyCode_RES, error) {
-	return Logic_SMSSendVerifyCode(grpcservice.GetCtxEX(ctx), in), nil
+func (s *ZauthServer) SMSSendVerifyCode(ctx context.Context, in *zauth_pb.SMSVerifyCodeSend_REQ) (*zauth_pb.SMSSendVerifyCode_RES, error) {
+	return Logic_SMSVerifyCodeSend(grpcservice.GetCtxEX(ctx), in), nil
 }
 
 // 短信验证码校验
 func (s *ZauthServer) SMSVerifyCode(ctx context.Context, in *zauth_pb.SMSVerifyCode_REQ) (*zauth_pb.Default_RES, error) {
-	return Logic_SMSVerifyCode(grpcservice.GetCtxEX(ctx), in), nil
+	return Logic_SMSVerifyCodeVerify(grpcservice.GetCtxEX(ctx), in), nil
 }
 
 // 获取文件配置

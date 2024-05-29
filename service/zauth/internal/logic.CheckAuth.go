@@ -58,7 +58,7 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 
 		// 尝试直接查询指定路径、动作和服务的权限
 		tab, e = GetPermissionBySAP(ctx, service, action, path)
-		if e != nil && e.GetCode() != zglobal.Code_DB_NotFound {
+		if e != nil && e.GetCode() != zglobal.Code_NotFound {
 			return nil, e
 		}
 		if tab != nil && tab.State != 3 { // 3 需要查询父级
@@ -67,7 +67,7 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 
 		// 如果没有匹配到指定路径、动作和服务的权限，则尝试查询动作为空字符串的权限
 		tab, e = GetPermissionBySAP(ctx, service, "", path)
-		if e != nil && e.GetCode() != zglobal.Code_DB_NotFound {
+		if e != nil && e.GetCode() != zglobal.Code_NotFound {
 			return nil, e
 		}
 		if tab != nil && tab.State != 3 { // 3 需要查询父级
@@ -83,7 +83,7 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 			path = path[:lastIndex] // 获取父级路径
 
 			tab, e = GetPermissionBySAP(ctx, service, "", path)
-			if e != nil && e.GetCode() != zglobal.Code_DB_NotFound {
+			if e != nil && e.GetCode() != zglobal.Code_NotFound {
 				return nil, e
 			}
 			if tab != nil && tab.State != 3 { // 3 需要查询父级
@@ -123,7 +123,7 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 	// 检查是否有权限
 	isAllow, e := func() (bool, *zservice.Error) {
 		// 当前账号是否有权限配置
-		if tab, e := GetPermissionBind(ctx, 2, at.UID, permissionInfo.PermissionID); e != nil && e.GetCode() != zglobal.Code_DB_NotFound {
+		if tab, e := GetPermissionBind(ctx, 2, at.UID, permissionInfo.PermissionID); e != nil && e.GetCode() != zglobal.Code_NotFound {
 			return false, e
 		} else if tab != nil && tab.IsExpired() { // 过期的检查权限表示无效，检查所在组织是否有权限
 			return tab.Allow, nil

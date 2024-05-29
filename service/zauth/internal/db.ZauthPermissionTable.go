@@ -18,48 +18,7 @@ type ZauthPermissionTable struct {
 	Service      string // 权限服务
 	Action       string // 权限动作
 	Path         string // 权限路径
-	State        uint   `gorm:"default:3"` // 状态 0禁用 1公开访问 2授权访问 3继承父级
-}
-
-// 创建权限的配置
-type CreatePermissionConfig struct {
-	Name    string // 权限名称
-	Service string // 权限服务
-	Action  string // 权限动作
-	Path    string // 权限路径
-	State   uint   `gorm:"default:"` // 状态 0禁用 1公开访问 2授权访问 3继承父级
-}
-
-// 新建权限
-func CreatePermission(ctx *zservice.Context, param CreatePermissionConfig) (*ZauthPermissionTable, *zservice.Error) {
-
-	// 锁
-	un, e := Redis.Lock(RK_PermissionCreateLock)
-	if e != nil {
-		return nil, e
-	}
-	defer un()
-
-	// 获取一个未使用的权限 ID
-	pid, e := GetNewPermissionID(ctx)
-	if e != nil {
-		return nil, e
-	}
-
-	z := &ZauthPermissionTable{
-		Name:         param.Name,
-		PermissionID: pid,
-		Service:      param.Service,
-		Action:       param.Action,
-		Path:         param.Path,
-		State:        param.State,
-	}
-
-	if e := z.Save(ctx); e != nil {
-		return nil, e
-	}
-
-	return z, nil
+	State        uint   `gorm:"default:3"` // 状态 0禁用 1公开访问 2授权访问 3继承父级(默认)
 }
 
 // 同步权限表缓存
@@ -105,7 +64,7 @@ func GetPermissionBySAP(ctx *zservice.Context, service, action, path string) (*Z
 
 	} else {
 		if tab, e := GetPermissionByID(ctx, zservice.StringToUint(s)); e != nil {
-			if e.GetCode() != zglobal.Code_DB_NotFound {
+			if e.GetCode() != zglobal.Code_NotFound {
 				return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 			}
 		} else {
@@ -122,7 +81,7 @@ func GetPermissionBySAP(ctx *zservice.Context, service, action, path string) (*Z
 	}
 
 	if tab.ID == 0 {
-		return nil, zservice.NewError("not found").SetCode(zglobal.Code_DB_NotFound)
+		return nil, zservice.NewError("not found").SetCode(zglobal.Code_NotFound)
 	}
 	// 缓存
 	if e := Redis.Set(fmt.Sprintf(RK_PermissionInfo, tab.PermissionID), zservice.JsonMustMarshalString(tab)).Err(); e != nil {

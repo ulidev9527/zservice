@@ -10,6 +10,7 @@ const (
 	Code_NotImplement  = 5 // 未实现
 	Code_ParamsErr     = 6 // 参数错误
 	Code_LoginAgain    = 7 // 请重新登录, 重新拉取 token 进行登陆
+	Code_NotFound      = 8 // 资源不存在/没找到/数据未查询到
 
 	Code_OpenFileErr      = 101 // 打开文件错误
 	Code_WiteFileErr      = 102 // 写入文件错误
@@ -19,7 +20,6 @@ const (
 
 	Code_DB_SaveFail   = 201 // 数据存储失败
 	Code_Redis_DelFail = 202 // redis 删除失败
-	Code_DB_NotFound   = 203 // 数据不存在
 
 	Code_Zauth_Phone_NULL                = 1001 // 手机号为空
 	Code_Zauth_Phone_VerifyFail          = 1002 // 手机号验证失败
@@ -54,13 +54,14 @@ const (
 	Code_Zauth_AccountAlreadyExist_LoginName = 1403 // 账号已经存在
 	Code_Zauth_Account_NotFund               = 1404 // 账号不存在
 
-	Code_Zauth_PermissionGenIDCountMaxErr     = 1501 // 生成权限ID错误次数超上限
-	Code_Zauth_PermissionBind_TargetTypeErr   = 1502 // 权限绑定目标类型错误
-	Code_Zauth_PermissionBind_TargetIDErr     = 1503 // 权限绑定目标ID错误
-	Code_Zauth_PermissionBind_PermissionIDErr = 1504 // 权限绑定权限ID错误
-	Code_Zauth_PermissionBind_Already_Bind    = 1505 // 权限已经绑定
-	Code_Zauth_Permission_NotFound            = 1506 // 权限不存在
-	Code_Zauth_Permission_ConfigErr           = 1507 // 权限配置错误
+	Code_Zauth_PermissionGenIDCountMaxErr      = 1501 // 生成权限ID错误次数超上限
+	Code_Zauth_PermissionBind_TargetTypeErr    = 1502 // 权限绑定目标类型错误
+	Code_Zauth_PermissionBind_TargetIDErr      = 1503 // 权限绑定目标ID错误
+	Code_Zauth_PermissionBind_PermissionIDErr  = 1504 // 权限绑定权限ID错误
+	Code_Zauth_PermissionBind_Already_Bind     = 1505 // 权限已经绑定
+	Code_Zauth_Permission_NotFound             = 1506 // 权限不存在
+	Code_Zauth_Permission_ConfigErr            = 1507 // 权限配置错误
+	Code_Zauth_Permission_Create_Alerady_Exist = 1508 // 权限已经存在
 
 	Code_Zauth_Login_Account_NotFund = 1601 // 账号不存在
 	Code_Zauth_Login_Pass_Err        = 1602 // 密码错误

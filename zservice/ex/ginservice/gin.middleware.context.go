@@ -46,12 +46,14 @@ func GinMiddlewareContext(zs *zservice.ZService) gin.HandlerFunc {
 
 			// gogin数据读取一次后无法再次读取，所以需要重新写入一份
 			dst := &bytes.Buffer{}
-			if e := json.Compact(dst, reqBody); e != nil {
-				zctx.LogError(e)
-			} else {
-				reqParams = dst.String()
-			}
+			if len(reqBody) > 0 {
+				if e := json.Compact(dst, reqBody); e != nil {
+					zctx.LogError(e)
+				} else {
+					reqParams = dst.String()
+				}
 
+			}
 			grw = &ginResWriter{
 				body:           bytes.NewBufferString(""),
 				ResponseWriter: ctx.Writer,

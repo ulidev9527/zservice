@@ -28,7 +28,7 @@ func Logic_LoginByPhone(ctx *zservice.Context, in *zauth_pb.LoginByPhone_REQ) *z
 	}
 
 	// 验证手机号
-	verifyRes := Logic_SMSVerifyCode(ctx, &zauth_pb.SMSVerifyCode_REQ{
+	verifyRes := Logic_SMSVerifyCodeVerify(ctx, &zauth_pb.SMSVerifyCode_REQ{
 		Phone:      in.Phone,
 		VerifyCode: in.VerifyCode,
 	})

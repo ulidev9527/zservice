@@ -4,89 +4,94 @@ option go_package="./zauth_pb";
 
 message Default_REQ{} // 默认请求
 message Default_RES {
-    uint32 Code = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
+    uint32 code = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
 }
 
 // 登陆相关
 message LoginByPhone_REQ {
-    string Phone       = 1;   // 手机号 +86****
-    uint32 Expires     = 2;   // 过期时间 没有传入 (单位: 秒)，最小 30s，过期时间到了后需要重新授权
-    string LoginService = 3 ;  // 登陆目标
-    string VerifyCode  = 4 ;  // 验证码
+    string phone       = 1;   // 手机号 +86****
+    uint32 expires     = 2;   // 过期时间 没有传入 (单位: 秒)，最小 30s，过期时间到了后需要重新授权
+    string loginService = 3 ;  // 登陆目标
+    string verifyCode  = 4 ;  // 验证码
 }
 message LoginByAccount_REQ {
-    string Account     = 1;   // 账号
-    string Password    = 2;   // 密码
-    uint32 Expires     = 3;   // 过期时间 没有传入 (单位: 秒)，最小 30s，过期时间到了后需要重新授权
-    string LoginService = 4 ;  // 登陆目标
+    string account     = 1;   // 账号
+    string password    = 2;   // 密码
+    uint32 expires     = 3;   // 过期时间 没有传入 (单位: 秒)，最小 30s，过期时间到了后需要重新授权
+    string loginService = 4 ;  // 登陆目标
 }
 message CheckAuth_REQ{
     string Auth = 2;  // 权限, 字符串数组，[服务名, 动作, 路径]
 }
 message CheckAuth_RES{
-    uint32 Code           = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
-    bool   IsTokenRefresh = 2;  // 是否需要刷新token, true 表示需要，不受错误码影响
-    string Token          = 3;  // 新的令牌， IsTokenRefresh 和 Token 为固定格式，不受错误码影响
+    uint32 code           = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
+    bool   isTokenRefresh = 2;  // 是否需要刷新token, true 表示需要，不受错误码影响
+    string token          = 3;  // 新的令牌， IsTokenRefresh 和 Token 为固定格式，不受错误码影响
 }
 
 // 权限相关
 message PermissionInfo{
-    string Name         = 1;  // 权限名称
-    int32  PermissionID = 2;  // 权限ID
-    string Service      = 3;  // 权限所属服务
-    string Action       = 4;  // 动作名称
-    string Path         = 5;  // 权限路径
-    uint32 State        = 6;  // 权限状态 0禁用 1公开访问 2授权访问 3继承父级
+    string name         = 1;  // 权限名称
+    int32  permissionID = 2;  // 权限ID
+    string service      = 3;  // 权限所属服务
+    string action       = 4;  // 动作名称
+    string path         = 5;  // 权限路径
+    uint32 state        = 6;  // 权限状态 0禁用 1公开访问 2授权访问 3继承父级
 }
-message GetPermissionList_REQ{
+message PermissionInfo_RES{
+    uint32         code = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
+    PermissionInfo info = 2;  // 权限
+}
+message PermissionInfoList_RES{
+    uint32   code                = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
+    repeated PermissionInfo list = 2;  // 权限列表
+}
+message PermissionListGet_REQ{
     int32  page   = 1;  // 第几页
     int32  size   = 2;  // 每页多少条
     string search = 3;  // 搜索关键字
 }
-message GetPermissionList_RES{
-    uint32   Code                = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
-    repeated PermissionInfo List = 2;  // 权限列表
-}
 
 // 短信相关
-message SMSSendVerifyCode_REQ { // 发送验证码 请求
-    string Phone  = 1;  // 手机号 必须带有 +86
-    string Serive = 2;  // 服务标识，哪个服务发起的验证码请求，可以为空字符串
+message SMSVerifyCodeSend_REQ { // 发送验证码 请求
+    string phone  = 1;  // 手机号 必须带有 +86
+    string serive = 2;  // 服务标识，哪个服务发起的验证码请求，可以为空字符串
 }
 message SMSSendVerifyCode_RES {
-    uint32 Code       = 1;  // 状态
-    string VerifyCode = 2;  // 验证码
+    uint32 code       = 1;  // 状态
+    string verifyCode = 2;  // 验证码
 
 }
 message SMSVerifyCode_REQ { // 发送验证码 请求
-    string Phone      = 1;  // 手机号 必须带有 +86
-    string Serive     = 2;  // 服务标识，哪个服务发起的验证码请求，可以为空字符串
-    string VerifyCode = 3;  // 验证码
+    string phone      = 1;  // 手机号 必须带有 +86
+    string serive     = 2;  // 服务标识，哪个服务发起的验证码请求，可以为空字符串
+    string verifyCode = 3;  // 验证码
 }
 
 
 message GetFileConfig_REQ {
-    string FileName = 1;  // 文件名
-    string Keys     = 2;  // key 需要返回哪些值, 空值返回全部
+    string fileName = 1;  // 文件名
+    string keys     = 2;  // key 需要返回哪些值, 空值返回全部
 }
 message GetFileConfig_RES{
-    uint32 Code  = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
+    uint32 code  = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
     string value = 2;  // 返回的数据，根据情况不同返回数据不同
 }
 
 service zauth{
 
-    rpc Logout(Default_REQ) returns(Default_RES);                                 // 登出
-    rpc LoginByPhone(LoginByPhone_REQ) returns(Default_RES);                      // 手机号登陆
-    rpc LoginByAccount(LoginByAccount_REQ) returns(Default_RES);                // 账户登陆
+    rpc Logout(Default_REQ) returns(Default_RES);                 // 登出
+    rpc LoginByPhone(LoginByPhone_REQ) returns(Default_RES);      // 手机号登陆
+    rpc LoginByAccount(LoginByAccount_REQ) returns(Default_RES);  // 账户登陆
     
-    rpc GetPermissionList(GetPermissionList_REQ) returns(GetPermissionList_RES);  // 获取权限列表权限列表
-
+    rpc PermissionCreate(PermissionInfo) returns(PermissionInfo_RES);              // 创建权限
+    rpc PermissionListGet(PermissionListGet_REQ) returns(PermissionInfoList_RES);  // 获取权限列表权限列表
+    rpc PermissionUpdate(PermissionInfo) returns(PermissionInfo_RES);              // 更新权限
     
-    rpc SMSSendVerifyCode(SMSSendVerifyCode_REQ) returns(SMSSendVerifyCode_RES);  // 发送验证码
-    rpc SMSVerifyCode(SMSVerifyCode_REQ) returns(Default_RES);                    // 验证验证码
+    rpc SMSVerifyCodeSend(SMSVerifyCodeSend_REQ) returns(SMSSendVerifyCode_RES);  // 发送验证码
+    rpc SMSVerifyCodeVerify(SMSVerifyCode_REQ) returns(Default_RES);              // 验证验证码
 
-    rpc CheckAuth(CheckAuth_REQ) returns(CheckAuth_RES);                          // 检查权限
+    rpc CheckAuth(CheckAuth_REQ) returns(CheckAuth_RES);  // 检查权限
 
     rpc GetFileConfig(GetFileConfig_REQ) returns(GetFileConfig_RES);  // 获取文件配置
     

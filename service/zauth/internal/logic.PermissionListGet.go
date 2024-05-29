@@ -9,7 +9,7 @@ import (
 )
 
 // 获取权限列表
-func Logic_GetPermissionList(ctx *zservice.Context, in *zauth_pb.GetPermissionList_REQ) *zauth_pb.GetPermissionList_RES {
+func Logic_PermissionListGet(ctx *zservice.Context, in *zauth_pb.PermissionListGet_REQ) *zauth_pb.PermissionInfoList_RES {
 
 	// 页码处理
 	if in.Page < 0 {
@@ -33,7 +33,7 @@ func Logic_GetPermissionList(ctx *zservice.Context, in *zauth_pb.GetPermissionLi
 	searchStr := fmt.Sprint("%", in.Search, "%")
 	if e := Mysql.Model(&ZauthPermissionTable{}).Where("name like ? OR permission_id like ? OR service like ? OR action like ? OR path like ?", searchStr, searchStr, searchStr, searchStr, searchStr).Order("path desc").Offset(int((in.Page - 1) * in.Size)).Limit(int(in.Size)).Find(&tabs).Error; e != nil {
 		ctx.LogError(e)
-		return &zauth_pb.GetPermissionList_RES{
+		return &zauth_pb.PermissionInfoList_RES{
 			Code: zglobal.Code_ErrorBreakoff,
 		}
 	}
@@ -41,12 +41,18 @@ func Logic_GetPermissionList(ctx *zservice.Context, in *zauth_pb.GetPermissionLi
 	infos := []*zauth_pb.PermissionInfo{}
 	if e := json.Unmarshal(zservice.JsonMustMarshal(tabs), &infos); e != nil {
 		ctx.LogError(e)
-		return &zauth_pb.GetPermissionList_RES{
+		return &zauth_pb.PermissionInfoList_RES{
 			Code: zglobal.Code_ErrorBreakoff,
 		}
 	}
 
-	return &zauth_pb.GetPermissionList_RES{
+	if len(infos) == 0 {
+		return &zauth_pb.PermissionInfoList_RES{
+			Code: zglobal.Code_NotFound,
+		}
+	}
+
+	return &zauth_pb.PermissionInfoList_RES{
 		Code: zglobal.Code_SUCC,
 		List: infos,
 	}

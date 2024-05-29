@@ -1,6 +1,10 @@
 package internal
 
-import "zservice/zservice"
+import (
+	"zservice/service/zauth/zauth_pb"
+	"zservice/zservice"
+	"zservice/zservice/zglobal"
+)
 
 var ZauthInitService *zservice.ZService
 
@@ -66,30 +70,30 @@ func ZauthDBInit() {
 	// 添加权限/权限绑定
 	func() {
 		// 创建权限
-		pt, e := CreatePermission(ctx, CreatePermissionConfig{
+		pt := Logic_PermissionCreate(ctx, &zauth_pb.PermissionInfo{
 			Name:    "授权系统",
 			Service: zservice.GetServiceName(),
 			State:   2,
 		})
-		if e != nil {
-			ctx.LogPanic(e)
+		if pt.Code != zglobal.Code_SUCC {
+			ctx.LogPanic(pt)
 		}
 
 		// 权限绑定
-		_, e = PermissionBind(ctx, 1, adminOrg.OrgID, pt.PermissionID, nil, true)
+		_, e = PermissionBind(ctx, 1, adminOrg.OrgID, uint(pt.Info.PermissionID), nil, true)
 		if e != nil {
 			ctx.LogPanic(e)
 		}
 
 		// 开放登陆接口
-		_, e = CreatePermission(ctx, CreatePermissionConfig{
+		pt = Logic_PermissionCreate(ctx, &zauth_pb.PermissionInfo{
 			Name:    "授权系统登陆",
 			Service: zservice.GetServiceName(),
 			Path:    "/login",
 			State:   1,
 		})
-		if e != nil {
-			ctx.LogPanic(e)
+		if pt.Code != zglobal.Code_SUCC {
+			ctx.LogPanic(pt)
 		}
 	}()
 
