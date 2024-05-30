@@ -39,6 +39,7 @@ type GormMysqlServiceConfig struct {
 	Addr    string         // 数据库地址
 	User    string         // 数据库用户名
 	Pass    string         // 数据库密码
+	Debug   bool           // 是否开启调试
 	OnStart func(*gorm.DB) // 启动的回调
 }
 
@@ -65,6 +66,11 @@ func NewGormMysqlService(c *GormMysqlServiceConfig) *GormMysqlService {
 		if e != nil {
 			zservice.LogPanic(e)
 		}
+
+		if c.Debug {
+			db = db.Debug()
+		}
+
 		gs.Mysql = db
 
 		if c.OnStart != nil {

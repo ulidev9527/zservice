@@ -47,22 +47,25 @@ func ZauthDBInit() {
 	}
 
 	// 创建系统组
-	sysOrg, e := CreateRootOrg(ctx, "系统管理")
-	if e != nil {
-		ctx.LogPanic(e)
+	sysOrg := Logic_OrgCreate(ctx, &zauth_pb.OrgInfo{Name: "系统管理"})
+	if sysOrg.Code != zglobal.Code_SUCC {
+		ctx.LogPanic(sysOrg)
 	}
 	// 超级管理员
-	adminOrg, e := CreateOrg(ctx, "超级管理员", sysOrg.OrgID)
-	if e != nil {
-		ctx.LogPanic(e)
+	adminOrg := Logic_OrgCreate(ctx, &zauth_pb.OrgInfo{
+		Name:        "超级管理员",
+		ParentOrgID: sysOrg.Info.OrgID,
+	})
+	if adminOrg.Code != zglobal.Code_SUCC {
+		ctx.LogPanic(adminOrg)
 	}
 
 	// 账号和组绑定
-	_, e = AccountJoinOrg(ctx, admAcc.UID, sysOrg.OrgID, nil) // 加入系统组
+	_, e = AccountJoinOrg(ctx, admAcc.UID, sysOrg.Info.OrgID, 0) // 加入系统组
 	if e != nil {
 		ctx.LogPanic(e)
 	}
-	_, e = AccountJoinOrg(ctx, admAcc.UID, adminOrg.OrgID, nil) // 加入超级管理员组
+	_, e = AccountJoinOrg(ctx, admAcc.UID, adminOrg.Info.OrgID, 0) // 加入超级管理员组
 	if e != nil {
 		ctx.LogPanic(e)
 	}
@@ -80,9 +83,16 @@ func ZauthDBInit() {
 		}
 
 		// 权限绑定
-		_, e = PermissionBind(ctx, 1, adminOrg.OrgID, uint(pt.Info.PermissionID), nil, true)
-		if e != nil {
-			ctx.LogPanic(e)
+		// _, e = Logic_PermissionBind(ctx, 1, adminOrg.Info.OrgID, pt.Info.PermissionID, 0, 1)
+		pBind := Logic_PermissionBind(ctx, &zauth_pb.PermissionBind_REQ{
+			TargetType:   1,
+			TargetID:     adminOrg.Info.OrgID,
+			PermissionID: pt.Info.PermissionID,
+			Expires:      0,
+			State:        1,
+		})
+		if pBind.Code != zglobal.Code_SUCC {
+			ctx.LogPanic(pBind)
 		}
 
 		// 开放登陆接口

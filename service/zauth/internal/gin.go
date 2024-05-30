@@ -14,4 +14,5 @@ func InitGin() {
 	initGinLogin()
 	initGinSms()
 	initGinPermission()
+	initGinOrg()
 }

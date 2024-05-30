@@ -21,6 +21,11 @@ func RandomInt(count int) int {
 }
 
 // 随机数字
+func RandomUint32(count uint32) uint32 {
+	return seededRand.Uint32() % count
+}
+
+// 随机数字
 func RandomInt64(count int64) int64 {
 	return seededRand.Int63n(count)
 }
@@ -28,6 +33,11 @@ func RandomInt64(count int64) int64 {
 // 随机数字范围
 func RandomIntRange(min int, max int) int {
 	return RandomInt(max-min) + min
+}
+
+// 随机数字范围
+func RandomUInt32Range(min uint32, max uint32) uint32 {
+	return RandomUint32(max-min) + min
 }
 
 // 随机数字范围

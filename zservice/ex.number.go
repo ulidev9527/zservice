@@ -23,6 +23,16 @@ func IntToString(i int) string {
 }
 
 // uint to string
-func UIntToString(u uint) string {
+func UintToString(u uint) string {
+	return fmt.Sprintf("%d", u)
+}
+
+// uint32 to string
+func Uint32ToString(u uint32) string {
+	return fmt.Sprintf("%d", u)
+}
+
+// uint64 to string
+func UInt64ToString(u uint64) string {
 	return fmt.Sprintf("%d", u)
 }

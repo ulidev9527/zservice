@@ -25,6 +25,10 @@ const (
 	Zauth_PermissionCreate_FullMethodName    = "/zauth_pb.zauth/PermissionCreate"
 	Zauth_PermissionListGet_FullMethodName   = "/zauth_pb.zauth/PermissionListGet"
 	Zauth_PermissionUpdate_FullMethodName    = "/zauth_pb.zauth/PermissionUpdate"
+	Zauth_PermissionBind_FullMethodName      = "/zauth_pb.zauth/PermissionBind"
+	Zauth_OrgCreate_FullMethodName           = "/zauth_pb.zauth/OrgCreate"
+	Zauth_OrgListGet_FullMethodName          = "/zauth_pb.zauth/OrgListGet"
+	Zauth_OrgUpdate_FullMethodName           = "/zauth_pb.zauth/OrgUpdate"
 	Zauth_SMSVerifyCodeSend_FullMethodName   = "/zauth_pb.zauth/SMSVerifyCodeSend"
 	Zauth_SMSVerifyCodeVerify_FullMethodName = "/zauth_pb.zauth/SMSVerifyCodeVerify"
 	Zauth_CheckAuth_FullMethodName           = "/zauth_pb.zauth/CheckAuth"
@@ -41,6 +45,10 @@ type ZauthClient interface {
 	PermissionCreate(ctx context.Context, in *PermissionInfo, opts ...grpc.CallOption) (*PermissionInfo_RES, error)
 	PermissionListGet(ctx context.Context, in *PermissionListGet_REQ, opts ...grpc.CallOption) (*PermissionInfoList_RES, error)
 	PermissionUpdate(ctx context.Context, in *PermissionInfo, opts ...grpc.CallOption) (*PermissionInfo_RES, error)
+	PermissionBind(ctx context.Context, in *PermissionBind_REQ, opts ...grpc.CallOption) (*Default_RES, error)
+	OrgCreate(ctx context.Context, in *OrgInfo, opts ...grpc.CallOption) (*OrgInfo_RES, error)
+	OrgListGet(ctx context.Context, in *OrgListGet_REQ, opts ...grpc.CallOption) (*OrgInfoList_RES, error)
+	OrgUpdate(ctx context.Context, in *OrgInfo, opts ...grpc.CallOption) (*OrgInfo_RES, error)
 	SMSVerifyCodeSend(ctx context.Context, in *SMSVerifyCodeSend_REQ, opts ...grpc.CallOption) (*SMSSendVerifyCode_RES, error)
 	SMSVerifyCodeVerify(ctx context.Context, in *SMSVerifyCodeVerify_REQ, opts ...grpc.CallOption) (*Default_RES, error)
 	CheckAuth(ctx context.Context, in *CheckAuth_REQ, opts ...grpc.CallOption) (*CheckAuth_RES, error)
@@ -109,6 +117,42 @@ func (c *zauthClient) PermissionUpdate(ctx context.Context, in *PermissionInfo, 
 	return out, nil
 }
 
+func (c *zauthClient) PermissionBind(ctx context.Context, in *PermissionBind_REQ, opts ...grpc.CallOption) (*Default_RES, error) {
+	out := new(Default_RES)
+	err := c.cc.Invoke(ctx, Zauth_PermissionBind_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *zauthClient) OrgCreate(ctx context.Context, in *OrgInfo, opts ...grpc.CallOption) (*OrgInfo_RES, error) {
+	out := new(OrgInfo_RES)
+	err := c.cc.Invoke(ctx, Zauth_OrgCreate_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *zauthClient) OrgListGet(ctx context.Context, in *OrgListGet_REQ, opts ...grpc.CallOption) (*OrgInfoList_RES, error) {
+	out := new(OrgInfoList_RES)
+	err := c.cc.Invoke(ctx, Zauth_OrgListGet_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *zauthClient) OrgUpdate(ctx context.Context, in *OrgInfo, opts ...grpc.CallOption) (*OrgInfo_RES, error) {
+	out := new(OrgInfo_RES)
+	err := c.cc.Invoke(ctx, Zauth_OrgUpdate_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *zauthClient) SMSVerifyCodeSend(ctx context.Context, in *SMSVerifyCodeSend_REQ, opts ...grpc.CallOption) (*SMSSendVerifyCode_RES, error) {
 	out := new(SMSSendVerifyCode_RES)
 	err := c.cc.Invoke(ctx, Zauth_SMSVerifyCodeSend_FullMethodName, in, out, opts...)
@@ -155,6 +199,10 @@ type ZauthServer interface {
 	PermissionCreate(context.Context, *PermissionInfo) (*PermissionInfo_RES, error)
 	PermissionListGet(context.Context, *PermissionListGet_REQ) (*PermissionInfoList_RES, error)
 	PermissionUpdate(context.Context, *PermissionInfo) (*PermissionInfo_RES, error)
+	PermissionBind(context.Context, *PermissionBind_REQ) (*Default_RES, error)
+	OrgCreate(context.Context, *OrgInfo) (*OrgInfo_RES, error)
+	OrgListGet(context.Context, *OrgListGet_REQ) (*OrgInfoList_RES, error)
+	OrgUpdate(context.Context, *OrgInfo) (*OrgInfo_RES, error)
 	SMSVerifyCodeSend(context.Context, *SMSVerifyCodeSend_REQ) (*SMSSendVerifyCode_RES, error)
 	SMSVerifyCodeVerify(context.Context, *SMSVerifyCodeVerify_REQ) (*Default_RES, error)
 	CheckAuth(context.Context, *CheckAuth_REQ) (*CheckAuth_RES, error)
@@ -183,6 +231,18 @@ func (UnimplementedZauthServer) PermissionListGet(context.Context, *PermissionLi
 }
 func (UnimplementedZauthServer) PermissionUpdate(context.Context, *PermissionInfo) (*PermissionInfo_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PermissionUpdate not implemented")
+}
+func (UnimplementedZauthServer) PermissionBind(context.Context, *PermissionBind_REQ) (*Default_RES, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PermissionBind not implemented")
+}
+func (UnimplementedZauthServer) OrgCreate(context.Context, *OrgInfo) (*OrgInfo_RES, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method OrgCreate not implemented")
+}
+func (UnimplementedZauthServer) OrgListGet(context.Context, *OrgListGet_REQ) (*OrgInfoList_RES, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method OrgListGet not implemented")
+}
+func (UnimplementedZauthServer) OrgUpdate(context.Context, *OrgInfo) (*OrgInfo_RES, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method OrgUpdate not implemented")
 }
 func (UnimplementedZauthServer) SMSVerifyCodeSend(context.Context, *SMSVerifyCodeSend_REQ) (*SMSSendVerifyCode_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SMSVerifyCodeSend not implemented")
@@ -317,6 +377,78 @@ func _Zauth_PermissionUpdate_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Zauth_PermissionBind_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PermissionBind_REQ)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ZauthServer).PermissionBind(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Zauth_PermissionBind_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ZauthServer).PermissionBind(ctx, req.(*PermissionBind_REQ))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Zauth_OrgCreate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OrgInfo)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ZauthServer).OrgCreate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Zauth_OrgCreate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ZauthServer).OrgCreate(ctx, req.(*OrgInfo))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Zauth_OrgListGet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OrgListGet_REQ)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ZauthServer).OrgListGet(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Zauth_OrgListGet_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ZauthServer).OrgListGet(ctx, req.(*OrgListGet_REQ))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Zauth_OrgUpdate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OrgInfo)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ZauthServer).OrgUpdate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Zauth_OrgUpdate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ZauthServer).OrgUpdate(ctx, req.(*OrgInfo))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Zauth_SMSVerifyCodeSend_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SMSVerifyCodeSend_REQ)
 	if err := dec(in); err != nil {
@@ -419,6 +551,22 @@ var Zauth_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "PermissionUpdate",
 			Handler:    _Zauth_PermissionUpdate_Handler,
+		},
+		{
+			MethodName: "PermissionBind",
+			Handler:    _Zauth_PermissionBind_Handler,
+		},
+		{
+			MethodName: "OrgCreate",
+			Handler:    _Zauth_OrgCreate_Handler,
+		},
+		{
+			MethodName: "OrgListGet",
+			Handler:    _Zauth_OrgListGet_Handler,
+		},
+		{
+			MethodName: "OrgUpdate",
+			Handler:    _Zauth_OrgUpdate_Handler,
 		},
 		{
 			MethodName: "SMSVerifyCodeSend",

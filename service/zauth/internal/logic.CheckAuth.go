@@ -1,11 +1,14 @@
 package internal
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
 	"zservice/zservice/zglobal"
+
+	"gorm.io/gorm"
 )
 
 // 检查权限
@@ -48,49 +51,46 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 	authAction := authArr[1]
 	authPath := authArr[2]
 
-	// 获取权限信息
+	// 获取与指定参数最接近的权限对象
 	permissionInfo, e := func() (*ZauthPermissionTable, *zservice.Error) {
 		var service = authService
 		var action = authAction
 		var path = authPath
-		var tab *ZauthPermissionTable
-		var e *zservice.Error
-
-		// 尝试直接查询指定路径、动作和服务的权限
-		tab, e = GetPermissionBySAP(ctx, service, action, path)
-		if e != nil && e.GetCode() != zglobal.Code_NotFound {
-			return nil, e
+		actionArr := []string{action}
+		if action != "" {
+			actionArr = append(actionArr, "")
 		}
-		if tab != nil && tab.State != 3 { // 3 需要查询父级
-			return tab, nil
-		}
-
-		// 如果没有匹配到指定路径、动作和服务的权限，则尝试查询动作为空字符串的权限
-		tab, e = GetPermissionBySAP(ctx, service, "", path)
-		if e != nil && e.GetCode() != zglobal.Code_NotFound {
-			return nil, e
-		}
-		if tab != nil && tab.State != 3 { // 3 需要查询父级
-			return tab, nil
-		}
-
-		// 如果没有匹配到指定路径和服务的权限，则尝试查询父级路径的权限
+		// 所有路径
+		inArr := [][]string{}
+		tmpPath := path
 		for {
-			lastIndex := strings.LastIndex(path, "/")
+			lastIndex := strings.LastIndex(tmpPath, "/")
 			if lastIndex == -1 {
+				for _, v := range actionArr {
+					inArr = append(inArr, []string{service, v, ""})
+				}
 				break // 已经到达路径根部，无需再查询
 			}
-			path = path[:lastIndex] // 获取父级路径
-
-			tab, e = GetPermissionBySAP(ctx, service, "", path)
-			if e != nil && e.GetCode() != zglobal.Code_NotFound {
-				return nil, e
+			for _, v := range actionArr {
+				inArr = append(inArr, []string{service, v, tmpPath})
 			}
-			if tab != nil && tab.State != 3 { // 3 需要查询父级
-				return tab, nil
+
+			tmpPath = tmpPath[:lastIndex] // 获取父级路径
+		}
+
+		// 未找到 查表
+		tabs := []ZauthPermissionTable{}
+		if e := Mysql.Model(&ZauthPermissionTable{}).Where("(service, action, path) IN ?", inArr).Order("LENGTH(action) DESC, LENGTH(path) DESC").Find(&tabs).Error; e != nil {
+			if !errors.Is(e, gorm.ErrRecordNotFound) {
+				return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 			}
 		}
-		return tab, nil
+
+		if len(tabs) == 0 {
+			return nil, zservice.NewError("not found").SetCode(zglobal.Code_NotFound)
+		}
+
+		return &tabs[0], nil
 	}()
 
 	if e != nil {
@@ -126,21 +126,22 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 		if tab, e := GetPermissionBind(ctx, 2, at.UID, permissionInfo.PermissionID); e != nil && e.GetCode() != zglobal.Code_NotFound {
 			return false, e
 		} else if tab != nil && tab.IsExpired() { // 过期的检查权限表示无效，检查所在组织是否有权限
-			return tab.Allow, nil
+			return tab.State == 1, nil
 		}
 
-		// 查找所有分配权限的组
 		bindInfo := &ZauthAccountOrgBindTable{}
 
-		if e := Mysql.Model(&ZauthAccountOrgBindTable{}).Where(
+		if e := Mysql.Model(&ZauthAccountOrgBindTable{}).Where( // 查找组中是否有当前账号的绑定信息
 			"account_id = ? AND org_id IN (?)",
 			at.UID,
-			Mysql.Model(&ZauthPermissionBindTable{}).Where(
+			Mysql.Model(&ZauthPermissionBindTable{}).Where( // 查找所有分配权限的组
 				"permission_id = ? AND target_type = 1 AND state = 1 AND (expires IS NULL OR expires > NOW())",
 				permissionInfo.PermissionID,
 			).Select("target_id"),
 		).First(bindInfo).Error; e != nil {
-			return false, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+			if !errors.Is(e, gorm.ErrRecordNotFound) {
+				return false, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+			}
 		}
 		return bindInfo.ID > 0, nil
 	}()
@@ -149,7 +150,7 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 		ctx.LogError(e)
 		return &zauth_pb.CheckAuth_RES{Code: e.GetCode(), IsTokenRefresh: isRefreshToken, Token: at.Token}
 	}
-	if isAllow {
+	if isAllow { // 是否允许访问
 		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_SUCC, IsTokenRefresh: isRefreshToken, Token: at.Token}
 	} else {
 		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_AuthFail, IsTokenRefresh: isRefreshToken, Token: at.Token}

@@ -9,7 +9,7 @@ import (
 )
 
 type AuthToken struct {
-	UID           uint      // 用户ID
+	UID           uint32    // 用户ID
 	Token         string    // 令牌
 	ExpiresSecond uint32    // 过期时间 单位: 秒
 	Expires       time.Time // 过期时间 单位: 秒

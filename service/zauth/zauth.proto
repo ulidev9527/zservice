@@ -32,7 +32,7 @@ message CheckAuth_RES{
 // 权限相关
 message PermissionInfo{
     string name         = 1;  // 权限名称
-    int32  permissionID = 2;  // 权限ID
+    uint32 permissionID = 2;  // 权限ID
     string service      = 3;  // 权限所属服务
     string action       = 4;  // 动作名称
     string path         = 5;  // 权限路径
@@ -47,8 +47,39 @@ message PermissionInfoList_RES{
     repeated PermissionInfo list = 2;  // 权限列表
 }
 message PermissionListGet_REQ{
-    int32  page   = 1;  // 第几页
-    int32  size   = 2;  // 每页多少条
+    uint32  page   = 1;  // 第几页
+    uint32  size   = 2;  // 每页多少条
+    string search = 3;  // 搜索关键字
+}
+message PermissionBind_REQ{
+    uint32 permissionID = 1;  // 权限ID
+    uint32 targetType   = 2;  // 权限类型 1组织 2账号
+    uint32 targetID     = 3;  // 权限对象ID
+    uint32 expires      = 4;  // 过期时间
+    uint32 state        = 5;  // 是否允许访问 0禁止 1允许
+}
+
+// 组织相关
+message OrgInfo{
+    string name        = 1;  // 组织名称
+    uint32 orgID       = 2;  // 组织ID
+    uint32 rootOrgID   = 3;  // 根组织ID
+    uint32 parentOrgID = 4;  // 父组织ID
+    uint32 state       = 5;  // 组织状态 0禁用 1公开访问 2授权访问 3继承父级
+}
+
+message OrgInfo_RES{
+    uint32  code = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
+    OrgInfo info = 2;  // 组织
+}
+
+message OrgInfoList_RES{
+    uint32   code         = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
+    repeated OrgInfo list = 2;  // 组织列表
+}
+message OrgListGet_REQ{
+    uint32 page   = 1;  // 第几页
+    uint32 size   = 2;  // 每页多少条
     string search = 3;  // 搜索关键字
 }
 
@@ -67,7 +98,7 @@ message SMSVerifyCodeVerify_REQ { // 发送验证码 请求
     string verifyCode = 2;  // 验证码
 }
 
-
+// 配置相关
 message GetFileConfig_REQ {
     string fileName = 1;  // 文件名
     string keys     = 2;  // key 需要返回哪些值, 空值返回全部
@@ -86,6 +117,11 @@ service zauth{
     rpc PermissionCreate(PermissionInfo) returns(PermissionInfo_RES);              // 创建权限
     rpc PermissionListGet(PermissionListGet_REQ) returns(PermissionInfoList_RES);  // 获取权限列表权限列表
     rpc PermissionUpdate(PermissionInfo) returns(PermissionInfo_RES);              // 更新权限
+    rpc PermissionBind(PermissionBind_REQ) returns(Default_RES);                   // 权限绑定
+
+    rpc OrgCreate(OrgInfo) returns(OrgInfo_RES);              // 创建组织
+    rpc OrgListGet(OrgListGet_REQ) returns(OrgInfoList_RES);  // 获取组织列表
+    rpc OrgUpdate(OrgInfo) returns(OrgInfo_RES);              // 更新组织
     
     rpc SMSVerifyCodeSend(SMSVerifyCodeSend_REQ) returns(SMSSendVerifyCode_RES);  // 发送验证码
     rpc SMSVerifyCodeVerify(SMSVerifyCodeVerify_REQ) returns(Default_RES);              // 验证验证码

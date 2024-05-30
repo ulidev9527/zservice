@@ -80,6 +80,15 @@ func StringToUint(str string) uint {
 	return uint(i)
 }
 
+// string to uint32
+func StringToUint32(str string) uint32 {
+	i, err := strconv.ParseUint(str, 10, 32)
+	if err != nil {
+		return 0
+	}
+	return uint32(i)
+}
+
 // string to int64
 func StringToInt64(str string) int64 {
 	i, err := strconv.ParseInt(str, 10, 64)

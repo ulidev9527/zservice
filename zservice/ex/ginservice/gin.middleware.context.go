@@ -35,9 +35,13 @@ func GinMiddlewareContext(zs *zservice.ZService) gin.HandlerFunc {
 
 		ctx.Set(GIN_contextEX_Middleware_Key, zctx)
 
-		var grw *ginResWriter
+		grw := &ginResWriter{
+			body:           bytes.NewBufferString(""),
+			ResponseWriter: ctx.Writer,
+		}
+		ctx.Writer = grw
+
 		reqParams := ""
-		bodyStr := ""
 
 		switch strings.Split(ctx.Request.Header.Get("Content-Type"), ";")[0] {
 		case "application/json": // 处理 json 类型数据
@@ -54,38 +58,29 @@ func GinMiddlewareContext(zs *zservice.ZService) gin.HandlerFunc {
 				}
 
 			}
-			grw = &ginResWriter{
-				body:           bytes.NewBufferString(""),
-				ResponseWriter: ctx.Writer,
-			}
-			ctx.Writer = grw
 		}
 
 		defer func() {
 			//放在匿名函数里,e捕获到错误信息，并且输出
 			e := recover()
 			if e != nil {
-				buf := make([]byte, 1<<10)
+				buf := make([]byte, 1<<12)
 				stackSize := runtime.Stack(buf, true)
 				zctx.LogErrorf("GIN %v %v %v %v %v :Q %v :E %v %v",
 					ctx.ClientIP(), ctx.Request.Method, ctx.Request.URL,
 					ctx.Writer.Status(), zctx.Since(), reqParams, e, string(buf[:stackSize]),
 				)
-				ctx.String(500, "ERROR: %v", zctx.TraceID)
+				ctx.JSON(200, gin.H{"code": 0, "error": zctx.TraceID})
 			}
 		}()
 
 		ctx.Next()
 
-		if grw != nil && grw.body != nil {
-			bodyStr = grw.body.String()
-		}
-
 		// 打印日志
 		zctx.LogInfof("GIN %v %v %v %v %v :Q %v :S %v",
 			ctx.ClientIP(), ctx.Request.Method, ctx.Request.URL,
 			ctx.Writer.Status(), zctx.Since(),
-			reqParams, bodyStr,
+			reqParams, grw.body.String(),
 		)
 	}
 }

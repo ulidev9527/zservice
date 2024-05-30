@@ -14,9 +14,14 @@ type ginResWriter struct {
 	body *bytes.Buffer
 }
 
-func (grw *ginResWriter) Write(b []byte) (int, error) {
-	grw.body.Write(b)
-	return grw.ResponseWriter.Write(b)
+func (w *ginResWriter) Write(b []byte) (int, error) {
+	w.body.Write(b)
+	return w.ResponseWriter.Write(b)
+}
+
+func (w *ginResWriter) WriteString(s string) (int, error) {
+	w.body.WriteString(s)
+	return w.ResponseWriter.WriteString(s)
 }
 
 // 获取扩展的上下文

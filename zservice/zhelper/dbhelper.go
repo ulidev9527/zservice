@@ -1,6 +1,7 @@
 package zhelper
 
 import (
+	"errors"
 	"zservice/zservice"
 	"zservice/zservice/ex/redisservice"
 	"zservice/zservice/zglobal"
@@ -91,12 +92,12 @@ func (db *DBHelper) HasTableValue(ctx *zservice.Context, tab any, rk string, sql
 // 获取一个新的ID
 func (db *DBHelper) GetNewTableID(
 	ctx *zservice.Context,
-	genID func() uint,
-	verifyFN func(ctx *zservice.Context, id uint) (bool, *zservice.Error),
+	genID func() uint32,
+	verifyFN func(ctx *zservice.Context, id uint32) (bool, *zservice.Error),
 	handleErr func(e *zservice.Error) *zservice.Error,
-) (uint, *zservice.Error) {
+) (uint32, *zservice.Error) {
 	forCount := 0
-	orgID := uint(0)
+	orgID := uint32(0)
 	for {
 		if forCount > 10 {
 			return 0, handleErr(zservice.NewError("gen id count max fail").SetCode(zglobal.Code_Zauth_GenIDCountMaxErr))
@@ -117,6 +118,7 @@ func (db *DBHelper) GetNewTableID(
 }
 
 // 获取指定值
+// 注意，如果没找到数据回返回：zglobal.Code_NotFound
 func (db *DBHelper) GetTableValue(ctx *zservice.Context, tab any, rk string, sqlWhere string) *zservice.Error {
 	// 读缓存
 	if has, e := db.Redis.Exists(rk).Result(); e != nil {
@@ -125,22 +127,15 @@ func (db *DBHelper) GetTableValue(ctx *zservice.Context, tab any, rk string, sql
 		if e := db.Redis.GetScan(rk, &tab); e != nil {
 			return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 		}
-
 		return nil
 	}
 
-	// 验证数据库中是否存在
-	count := int64(0)
-	wh := db.Mysql.Model(&tab).Where(sqlWhere)
-
-	if e := wh.Count(&count).Error; e != nil {
-		return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
-	}
-	if count == 0 {
-		return zservice.NewError("not found").SetCode(zglobal.Code_NotFound)
-	}
 	if e := db.Mysql.Model(&tab).Where(sqlWhere).First(&tab).Error; e != nil {
-		return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+		if errors.Is(e, gorm.ErrRecordNotFound) {
+			return zservice.NewError(e).SetCode(zglobal.Code_NotFound)
+		} else {
+			return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+		}
 	}
 
 	// 更新缓存

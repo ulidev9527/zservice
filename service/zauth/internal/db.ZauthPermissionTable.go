@@ -14,11 +14,11 @@ import (
 type ZauthPermissionTable struct {
 	gorm.Model
 	Name         string // 权限名称
-	PermissionID uint   `gorm:"unique"` // 权限ID
+	PermissionID uint32 `gorm:"unique"` // 权限ID
 	Service      string // 权限服务
 	Action       string // 权限动作
 	Path         string // 权限路径
-	State        uint   `gorm:"default:3"` // 状态 0禁用 1公开访问 2授权访问 3继承父级(默认)
+	State        uint32 `gorm:"default:3"` // 状态 0禁用 1公开访问 2授权访问 3继承父级(默认)
 }
 
 // 同步权限表缓存
@@ -29,9 +29,9 @@ func SyncPermissionTableCache(ctx *zservice.Context) *zservice.Error {
 }
 
 // 获取一个未使用的权限 ID
-func GetNewPermissionID(ctx *zservice.Context) (uint, *zservice.Error) {
-	return dbhelper.GetNewTableID(ctx, func() uint {
-		return uint(zservice.RandomIntRange(1, 9999999))
+func GetNewPermissionID(ctx *zservice.Context) (uint32, *zservice.Error) {
+	return dbhelper.GetNewTableID(ctx, func() uint32 {
+		return zservice.RandomUInt32Range(1, 9999999)
 	}, HasPermissionByID, func(e *zservice.Error) *zservice.Error {
 		if e.GetCode() == zglobal.Code_Zauth_GenIDCountMaxErr {
 			return e.SetCode(zglobal.Code_Zauth_PermissionGenIDCountMaxErr)
@@ -41,7 +41,7 @@ func GetNewPermissionID(ctx *zservice.Context) (uint, *zservice.Error) {
 }
 
 // 权限是否存在
-func HasPermissionByID(ctx *zservice.Context, id uint) (bool, *zservice.Error) {
+func HasPermissionByID(ctx *zservice.Context, id uint32) (bool, *zservice.Error) {
 	return dbhelper.HasTableValue(ctx, &ZauthPermissionTable{}, fmt.Sprintf(RK_PermissionInfo, id), fmt.Sprintf("permission_id = %v", id))
 }
 
@@ -66,10 +66,13 @@ func GetPermissionBySAP(ctx *zservice.Context, service, action, path string) (*Z
 		if tab, e := GetPermissionByID(ctx, zservice.StringToUint(s)); e != nil {
 			if e.GetCode() != zglobal.Code_NotFound {
 				return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+
 			}
 		} else {
 			return tab, nil
+
 		}
+
 	}
 
 	// 未找到 查表
@@ -87,7 +90,7 @@ func GetPermissionBySAP(ctx *zservice.Context, service, action, path string) (*Z
 	if e := Redis.Set(fmt.Sprintf(RK_PermissionInfo, tab.PermissionID), zservice.JsonMustMarshalString(tab)).Err(); e != nil {
 		ctx.LogError(e)
 	}
-	if e := Redis.Set(rk_sap, zservice.UIntToString(tab.PermissionID)).Err(); e != nil {
+	if e := Redis.Set(rk_sap, zservice.Uint32ToString(tab.PermissionID)).Err(); e != nil {
 		ctx.LogError(e)
 	}
 

@@ -46,7 +46,6 @@ func SMSVerifyCodeVerifyt(ctx *zservice.Context, phone string, verifyCode string
 	req := &zauth_pb.SMSVerifyCodeVerify_REQ{
 		Phone:      phone,
 		VerifyCode: verifyCode,
-		Serive:     zservice.GetServiceName(),
 	}
 
 	if res, e := func() (*zauth_pb.Default_RES, error) {

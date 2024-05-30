@@ -13,6 +13,7 @@ func initGinPermission() {
 	Gin.GET("/permission", gin_handle_get_permission)
 	Gin.PUT("/permission", gin_handle_put_permission)
 	Gin.POST("/permission", gin_handle_post_permission)
+	Gin.POST("/permission/bind", gin_handle_permissionBind)
 
 }
 
@@ -27,27 +28,17 @@ func gin_handle_post_permission(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(200, Logic_PermissionCreate(zctx, &zauth_pb.PermissionInfo{
-		Name:    req.Name,
-		Service: req.Service,
-		Action:  req.Action,
-		Path:    req.Path,
-		State:   req.State,
-	}))
+	ctx.JSON(200, Logic_PermissionCreate(zctx, req))
 
 }
 
 // 获取权限
 func gin_handle_get_permission(ctx *gin.Context) {
-	zctx := ginservice.GetCtxEX(ctx)
-	p := zservice.StringToInt32(ctx.Query("p"))
-	si := zservice.StringToInt32(ctx.Query("si"))
-	se := ctx.Query("se")
 
-	ctx.JSON(200, Logic_PermissionListGet(zctx, &zauth_pb.PermissionListGet_REQ{
-		Page:   p,
-		Size:   si,
-		Search: se,
+	ctx.JSON(200, Logic_PermissionListGet(ginservice.GetCtxEX(ctx), &zauth_pb.PermissionListGet_REQ{
+		Page:   zservice.StringToUint32(ctx.Query("p")),
+		Size:   zservice.StringToUint32(ctx.Query("si")),
+		Search: ctx.Query("se"),
 	}))
 
 }
@@ -64,4 +55,19 @@ func gin_handle_put_permission(ctx *gin.Context) {
 	}
 
 	ctx.JSON(200, Logic_PermissionUpdate(zctx, req))
+}
+
+// 权限绑定
+func gin_handle_permissionBind(ctx *gin.Context) {
+
+	zctx := ginservice.GetCtxEX(ctx)
+
+	req := &zauth_pb.PermissionBind_REQ{}
+	if e := ctx.ShouldBindJSON(req); e != nil {
+		zctx.LogError(e)
+		ctx.JSON(200, gin.H{"code": zglobal.Code_ErrorBreakoff})
+		return
+	}
+
+	ctx.JSON(200, Logic_PermissionBind(zctx, req))
 }

@@ -12,69 +12,15 @@ import (
 // 账号权限绑定表
 type ZauthPermissionBindTable struct {
 	gorm.Model
-	TargetType   uint       // 外部ID类型 0无效 1组织 2账号
-	TargetID     uint       // 外部ID
-	PermissionID uint       // 权限ID
-	Expires      *time.Time // 过期时间
-	Allow        bool       // 状态 0禁止访问 1允许访问
-}
-
-// 权限绑定
-func PermissionBind(ctx *zservice.Context, targetType uint, targetID uint, permissionID uint, Expires *time.Time, Allow bool) (*ZauthPermissionBindTable, *zservice.Error) {
-
-	// 验证参数是否正确
-	switch targetType {
-	case 1:
-		// 组织验证
-		if has, e := HasOrgByID(ctx, targetID); e != nil {
-			return nil, e
-		} else if !has {
-			return nil, zservice.NewError("otherID invalid:", targetID).SetCode(zglobal.Code_Zauth_PermissionBind_TargetIDErr)
-		}
-	case 2:
-		// 账号验证
-		if has, e := HasAccountByID(ctx, targetID); e != nil {
-			return nil, e
-		} else if !has {
-			return nil, zservice.NewError("otherID invalid:", targetID).SetCode(zglobal.Code_Zauth_PermissionBind_TargetIDErr)
-		}
-	default:
-		return nil, zservice.NewError("otherIDType invalid:", targetType).SetCode(zglobal.Code_Zauth_PermissionBind_TargetTypeErr)
-	}
-
-	// 权限验证
-	if has, e := HasPermissionByID(ctx, permissionID); e != nil {
-		return nil, e
-	} else if !has {
-		return nil, zservice.NewError("permissionID invalid:", permissionID).SetCode(zglobal.Code_Zauth_PermissionBind_PermissionIDErr)
-	}
-
-	// 是否有绑定
-	if has, e := HasPermissionBind(ctx, targetType, targetID, permissionID); e != nil {
-		return nil, e
-	} else if has {
-		return nil, zservice.NewError("already bind").SetCode(zglobal.Code_Zauth_PermissionBind_Already_Bind)
-	}
-
-	// 绑定
-	bind := &ZauthPermissionBindTable{
-		TargetType:   targetType,
-		TargetID:     targetID,
-		PermissionID: permissionID,
-		Expires:      Expires,
-		Allow:        Allow,
-	}
-
-	if e := bind.Save(ctx); e != nil {
-		return nil, e
-	}
-
-	return bind, nil
-
+	TargetType   uint32 // 外部ID类型 0无效 1组织 2账号
+	TargetID     uint32 // 外部ID
+	PermissionID uint32 // 权限ID
+	Expires      uint32 // 过期时间
+	State        uint32 // 状态 0禁止访问 1允许访问
 }
 
 // 是否有权限绑定
-func HasPermissionBind(ctx *zservice.Context, targetType uint, targetID uint, permissionID uint) (bool, *zservice.Error) {
+func HasPermissionBind(ctx *zservice.Context, targetType uint32, targetID uint32, permissionID uint32) (bool, *zservice.Error) {
 	return dbhelper.HasTableValue(ctx,
 		&ZauthPermissionBindTable{},
 		fmt.Sprintf(RK_PermissionBindInfo, targetType, targetID, permissionID),
@@ -83,7 +29,7 @@ func HasPermissionBind(ctx *zservice.Context, targetType uint, targetID uint, pe
 }
 
 // 获取权限绑定
-func GetPermissionBind(ctx *zservice.Context, targetType uint, targetID uint, permissionID uint) (*ZauthPermissionBindTable, *zservice.Error) {
+func GetPermissionBind(ctx *zservice.Context, targetType uint32, targetID uint32, permissionID uint32) (*ZauthPermissionBindTable, *zservice.Error) {
 	tab := &ZauthPermissionBindTable{}
 	if e := dbhelper.GetTableValue(ctx,
 		tab,
@@ -98,10 +44,10 @@ func GetPermissionBind(ctx *zservice.Context, targetType uint, targetID uint, pe
 
 // 是否过期
 func (z *ZauthPermissionBindTable) IsExpired() bool {
-	if z.Expires == nil {
+	if z.Expires == 0 {
 		return false
 	}
-	return z.Expires.Before(time.Now())
+	return time.Now().Unix() < int64(z.Expires)
 }
 
 // 存储

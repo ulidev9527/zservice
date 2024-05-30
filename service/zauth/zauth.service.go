@@ -29,6 +29,7 @@ func main() {
 		Addr:   zservice.Getenv("MYSQL_ADDR"),
 		User:   zservice.Getenv("MYSQL_USER"),
 		Pass:   zservice.Getenv("MYSQL_PASS"),
+		Debug:  zservice.GetenvBool("MYSQL_DEBUG"),
 		OnStart: func(db *gorm.DB) {
 			internal.Mysql = db
 			internal.InitMysql()

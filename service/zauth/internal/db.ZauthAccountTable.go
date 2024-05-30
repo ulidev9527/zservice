@@ -11,11 +11,11 @@ import (
 // 账号表
 type ZauthAccountTable struct {
 	gorm.Model
-	UID           uint   `gorm:"unique"` // 用户唯一ID
+	UID           uint32 `gorm:"unique"` // 用户唯一ID
 	LoginName     string `gorm:"unique"` // 登陆账号
 	LoginPass     string // 登陆密码
 	Phone         string `gorm:"unique"`    // 手机号 含区号 +86******
-	State         uint   `gorm:"default:1"` // 账号状态 0 禁用 1 启用
+	State         uint32 `gorm:"default:1"` // 账号状态 0 禁用 1 启用
 	PasswordToken string // 密码令牌
 }
 
@@ -33,9 +33,9 @@ func CreateAccount(ctx *zservice.Context) (*ZauthAccountTable, *zservice.Error) 
 }
 
 // 获取一个新的账号ID
-func GetNewAccountID(ctx *zservice.Context) (uint, *zservice.Error) {
-	return dbhelper.GetNewTableID(ctx, func() uint {
-		return uint(zservice.RandomIntRange(1000000, 999999999)) // 7-9位数
+func GetNewAccountID(ctx *zservice.Context) (uint32, *zservice.Error) {
+	return dbhelper.GetNewTableID(ctx, func() uint32 {
+		return zservice.RandomUInt32Range(1000000, 999999999) // 7-9位数
 	}, HasAccountByID, func(e *zservice.Error) *zservice.Error {
 		if e.GetCode() == zglobal.Code_Zauth_GenIDCountMaxErr {
 			return e.SetCode(zglobal.Code_Zauth_AccountGenIDCountMaxErr)
@@ -45,7 +45,7 @@ func GetNewAccountID(ctx *zservice.Context) (uint, *zservice.Error) {
 }
 
 // 是否存在这个账号
-func HasAccountByID(ctx *zservice.Context, accountID uint) (bool, *zservice.Error) {
+func HasAccountByID(ctx *zservice.Context, accountID uint32) (bool, *zservice.Error) {
 	return dbhelper.HasTableValue(ctx, &ZauthAccountTable{}, fmt.Sprintf(RK_AccountInfo, accountID), fmt.Sprintf("uid = %v", accountID))
 }
 
@@ -96,7 +96,7 @@ func GetAccountByLoginName(ctx *zservice.Context, loginName string) (*ZauthAccou
 	}
 
 	// 更新缓存
-	if e := Redis.Set(rk, zservice.UIntToString(tab.UID)).Err(); e != nil {
+	if e := Redis.Set(rk, zservice.Uint32ToString(tab.UID)).Err(); e != nil {
 		ctx.LogError(e)
 	}
 	if e := Redis.Set(fmt.Sprintf(RK_AccountInfo, tab.UID), zservice.JsonMustMarshalString(tab)).Err(); e != nil {
@@ -132,7 +132,7 @@ func GetAccountByPhone(ctx *zservice.Context, phone string) (*ZauthAccountTable,
 	}
 
 	// 更新缓存
-	if e := Redis.Set(rk, zservice.UIntToString(tab.UID)).Err(); e != nil {
+	if e := Redis.Set(rk, zservice.Uint32ToString(tab.UID)).Err(); e != nil {
 		ctx.LogError(e)
 	}
 	if e := Redis.Set(fmt.Sprintf(RK_AccountInfo, tab.UID), zservice.JsonMustMarshalString(tab)).Err(); e != nil {
