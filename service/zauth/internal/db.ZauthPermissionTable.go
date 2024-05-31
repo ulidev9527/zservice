@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"zservice/zservice"
+	"zservice/zservice/ex/gormservice"
 	"zservice/zservice/zglobal"
 
 	"github.com/redis/go-redis/v9"
@@ -12,19 +13,19 @@ import (
 
 // 权限表
 type ZauthPermissionTable struct {
-	gorm.Model
-	Name         string // 权限名称
-	PermissionID uint32 `gorm:"unique"` // 权限ID
-	Service      string // 权限服务
-	Action       string // 权限动作
-	Path         string // 权限路径
-	State        uint32 `gorm:"default:3"` // 状态 0禁用 1公开访问 2授权访问 3继承父级(默认)
+	gormservice.TimeModel
+	ID      uint32 `gorm:"primaryKey"` // 权限ID
+	Name    string // 权限名称
+	Service string // 服务ID
+	Action  string // 权限动作
+	Path    string // 权限路径
+	State   uint32 `gorm:"default:3"` // 状态 0禁用 1公开访问 2授权访问 3继承父级(默认)
 }
 
 // 同步权限表缓存
 func SyncPermissionTableCache(ctx *zservice.Context) *zservice.Error {
 	return dbhelper.SyncTableCache(ctx, &[]ZauthPermissionTable{}, func(v any) string {
-		return fmt.Sprintf(RK_PermissionInfo, v.(*ZauthPermissionTable).PermissionID)
+		return fmt.Sprintf(RK_PermissionInfo, v.(*ZauthPermissionTable).ID)
 	})
 }
 
@@ -32,23 +33,18 @@ func SyncPermissionTableCache(ctx *zservice.Context) *zservice.Error {
 func GetNewPermissionID(ctx *zservice.Context) (uint32, *zservice.Error) {
 	return dbhelper.GetNewTableID(ctx, func() uint32 {
 		return zservice.RandomUInt32Range(1, 9999999)
-	}, HasPermissionByID, func(e *zservice.Error) *zservice.Error {
-		if e.GetCode() == zglobal.Code_Zauth_GenIDCountMaxErr {
-			return e.SetCode(zglobal.Code_Zauth_PermissionGenIDCountMaxErr)
-		}
-		return e
-	})
+	}, HasPermissionByID)
 }
 
 // 权限是否存在
 func HasPermissionByID(ctx *zservice.Context, id uint32) (bool, *zservice.Error) {
-	return dbhelper.HasTableValue(ctx, &ZauthPermissionTable{}, fmt.Sprintf(RK_PermissionInfo, id), fmt.Sprintf("permission_id = %v", id))
+	return dbhelper.HasTableValue(ctx, &ZauthPermissionTable{}, fmt.Sprintf(RK_PermissionInfo, id), fmt.Sprintf("id = %v", id))
 }
 
 // 根据ID获取一个权限
 func GetPermissionByID(ctx *zservice.Context, id uint) (*ZauthPermissionTable, *zservice.Error) {
 	tab := &ZauthPermissionTable{}
-	if e := dbhelper.GetTableValue(ctx, tab, fmt.Sprintf(RK_PermissionInfo, id), fmt.Sprintf("permission_id = %v", id)); e != nil {
+	if e := dbhelper.GetTableValue(ctx, tab, fmt.Sprintf(RK_PermissionInfo, id), fmt.Sprintf("id = %v", id)); e != nil {
 		return nil, e
 	}
 	return tab, nil
@@ -87,10 +83,10 @@ func GetPermissionBySAP(ctx *zservice.Context, service, action, path string) (*Z
 		return nil, zservice.NewError("not found").SetCode(zglobal.Code_NotFound)
 	}
 	// 缓存
-	if e := Redis.Set(fmt.Sprintf(RK_PermissionInfo, tab.PermissionID), zservice.JsonMustMarshalString(tab)).Err(); e != nil {
+	if e := Redis.Set(fmt.Sprintf(RK_PermissionInfo, tab.ID), zservice.JsonMustMarshalString(tab)).Err(); e != nil {
 		ctx.LogError(e)
 	}
-	if e := Redis.Set(rk_sap, zservice.Uint32ToString(tab.PermissionID)).Err(); e != nil {
+	if e := Redis.Set(rk_sap, zservice.Uint32ToString(tab.ID)).Err(); e != nil {
 		ctx.LogError(e)
 	}
 
@@ -100,7 +96,7 @@ func GetPermissionBySAP(ctx *zservice.Context, service, action, path string) (*Z
 
 // 存储
 func (z *ZauthPermissionTable) Save(ctx *zservice.Context) *zservice.Error {
-	rk_info := fmt.Sprintf(RK_PermissionInfo, z.PermissionID)
+	rk_info := fmt.Sprintf(RK_PermissionInfo, z.ID)
 
 	// 上锁
 	un, e := Redis.Lock(rk_info)

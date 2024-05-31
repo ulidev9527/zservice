@@ -4,23 +4,22 @@ import (
 	"fmt"
 	"time"
 	"zservice/zservice"
+	"zservice/zservice/ex/gormservice"
 	"zservice/zservice/zglobal"
-
-	"gorm.io/gorm"
 )
 
 // 账号组织绑定
 type ZauthAccountOrgBindTable struct {
-	gorm.Model
+	gormservice.AllModel
 
 	OrgID     uint32 // 组ID
 	AccountID uint32 // 用户ID
-	Expires   uint32 // 过期时间
+	Expires   uint64 // 过期时间
 	State     uint32 `gorm:"default:1"` // 状态 0禁用 1开启
 }
 
 // 加入组织
-func AccountJoinOrg(ctx *zservice.Context, accountID uint32, orgID uint32, Expires uint32) (*ZauthAccountOrgBindTable, *zservice.Error) {
+func AccountJoinOrg(ctx *zservice.Context, accountID uint32, orgID uint32, Expires uint64) (*ZauthAccountOrgBindTable, *zservice.Error) {
 	// 验证参数是否正确
 	if has, e := HasOrgByID(ctx, orgID); e != nil {
 		return nil, e

@@ -59,7 +59,7 @@ func Logic_LoginByPhone(ctx *zservice.Context, in *zauth_pb.LoginByPhone_REQ) *z
 
 	// 设置关联信息
 	at.ExpiresSecond = in.Expires
-	at.UID = acc.UID
+	at.UID = acc.ID
 	at.LoginService = in.LoginService
 
 	// 存储

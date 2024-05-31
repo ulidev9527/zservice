@@ -3,20 +3,19 @@ package internal
 import (
 	"fmt"
 	"zservice/zservice"
+	"zservice/zservice/ex/gormservice"
 	"zservice/zservice/zglobal"
-
-	"gorm.io/gorm"
 )
 
 // 账号表
 type ZauthAccountTable struct {
-	gorm.Model
-	UID           uint32 `gorm:"unique"` // 用户唯一ID
-	LoginName     string `gorm:"unique"` // 登陆账号
-	LoginPass     string // 登陆密码
-	Phone         string `gorm:"unique"`    // 手机号 含区号 +86******
-	State         uint32 `gorm:"default:1"` // 账号状态 0 禁用 1 启用
-	PasswordToken string // 密码令牌
+	gormservice.TimeModel
+	ID             uint32 `gorm:"primaryKey"` // 用户唯一ID
+	LoginName      string `gorm:"unique"`     // 登陆账号
+	LoginPass      string // 登陆密码
+	LoginPassToken string // 密码令牌
+	Phone          string `gorm:"unique"`    // 手机号 含区号 +86******
+	State          uint32 `gorm:"default:1"` // 账号状态 0 禁用 1 启用
 }
 
 // 创建一个新的账号
@@ -25,7 +24,7 @@ func CreateAccount(ctx *zservice.Context) (*ZauthAccountTable, *zservice.Error) 
 	if e != nil {
 		return nil, e
 	}
-	z := &ZauthAccountTable{UID: accID}
+	z := &ZauthAccountTable{ID: accID}
 	if e := z.Save(ctx); e != nil {
 		return nil, e
 	}
@@ -36,17 +35,12 @@ func CreateAccount(ctx *zservice.Context) (*ZauthAccountTable, *zservice.Error) 
 func GetNewAccountID(ctx *zservice.Context) (uint32, *zservice.Error) {
 	return dbhelper.GetNewTableID(ctx, func() uint32 {
 		return zservice.RandomUInt32Range(1000000, 999999999) // 7-9位数
-	}, HasAccountByID, func(e *zservice.Error) *zservice.Error {
-		if e.GetCode() == zglobal.Code_Zauth_GenIDCountMaxErr {
-			return e.SetCode(zglobal.Code_Zauth_AccountGenIDCountMaxErr)
-		}
-		return e
-	})
+	}, HasAccountByID)
 }
 
 // 是否存在这个账号
-func HasAccountByID(ctx *zservice.Context, accountID uint32) (bool, *zservice.Error) {
-	return dbhelper.HasTableValue(ctx, &ZauthAccountTable{}, fmt.Sprintf(RK_AccountInfo, accountID), fmt.Sprintf("uid = %v", accountID))
+func HasAccountByID(ctx *zservice.Context, id uint32) (bool, *zservice.Error) {
+	return dbhelper.HasTableValue(ctx, &ZauthAccountTable{}, fmt.Sprintf(RK_AccountInfo, id), fmt.Sprintf("id = %v", id))
 }
 
 // 是否存在这个账号
@@ -56,14 +50,14 @@ func HasAccountByLoginName(ctx *zservice.Context, loginName string) (bool, *zser
 
 // 账号密码签名
 func AccountGenPassSign(z *ZauthAccountTable, password string) string {
-	return zservice.MD5String(fmt.Sprint(z.UID, z.PasswordToken, password))
+	return zservice.MD5String(fmt.Sprint(z.ID, z.LoginPassToken, password))
 }
 
 // 获取账号
-func GetAccountByAccountID(ctx *zservice.Context, accountID uint) (*ZauthAccountTable, *zservice.Error) {
+func GetAccountByID(ctx *zservice.Context, id uint) (*ZauthAccountTable, *zservice.Error) {
 	tab := ZauthAccountTable{}
 
-	if e := dbhelper.GetTableValue(ctx, &tab, fmt.Sprintf(RK_AccountInfo, accountID), fmt.Sprintf("account_id = %v", accountID)); e != nil {
+	if e := dbhelper.GetTableValue(ctx, &tab, fmt.Sprintf(RK_AccountInfo, id), fmt.Sprintf("id = %v", id)); e != nil {
 		return nil, e
 	}
 	return &tab, nil
@@ -79,7 +73,7 @@ func GetAccountByLoginName(ctx *zservice.Context, loginName string) (*ZauthAccou
 		if s, e := Redis.Get(rk).Result(); e != nil { // 是否有数据
 			return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 		} else {
-			if tab, e := GetAccountByAccountID(ctx, zservice.StringToUint(s)); e != nil {
+			if tab, e := GetAccountByID(ctx, zservice.StringToUint(s)); e != nil {
 				return nil, e
 			} else {
 				return tab, nil
@@ -96,10 +90,10 @@ func GetAccountByLoginName(ctx *zservice.Context, loginName string) (*ZauthAccou
 	}
 
 	// 更新缓存
-	if e := Redis.Set(rk, zservice.Uint32ToString(tab.UID)).Err(); e != nil {
+	if e := Redis.Set(rk, zservice.Uint32ToString(tab.ID)).Err(); e != nil {
 		ctx.LogError(e)
 	}
-	if e := Redis.Set(fmt.Sprintf(RK_AccountInfo, tab.UID), zservice.JsonMustMarshalString(tab)).Err(); e != nil {
+	if e := Redis.Set(fmt.Sprintf(RK_AccountInfo, tab.ID), zservice.JsonMustMarshalString(tab)).Err(); e != nil {
 		ctx.LogError(e)
 	}
 
@@ -115,7 +109,7 @@ func GetAccountByPhone(ctx *zservice.Context, phone string) (*ZauthAccountTable,
 		if s, e := Redis.Get(rk).Result(); e != nil { // 是否有数据
 			return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 		} else {
-			if tab, e := GetAccountByAccountID(ctx, zservice.StringToUint(s)); e != nil {
+			if tab, e := GetAccountByID(ctx, zservice.StringToUint(s)); e != nil {
 				return nil, e
 			} else {
 				return tab, nil
@@ -132,10 +126,10 @@ func GetAccountByPhone(ctx *zservice.Context, phone string) (*ZauthAccountTable,
 	}
 
 	// 更新缓存
-	if e := Redis.Set(rk, zservice.Uint32ToString(tab.UID)).Err(); e != nil {
+	if e := Redis.Set(rk, zservice.Uint32ToString(tab.ID)).Err(); e != nil {
 		ctx.LogError(e)
 	}
-	if e := Redis.Set(fmt.Sprintf(RK_AccountInfo, tab.UID), zservice.JsonMustMarshalString(tab)).Err(); e != nil {
+	if e := Redis.Set(fmt.Sprintf(RK_AccountInfo, tab.ID), zservice.JsonMustMarshalString(tab)).Err(); e != nil {
 		ctx.LogError(e)
 	}
 
@@ -161,7 +155,7 @@ func (z *ZauthAccountTable) AddLoginNameAndPassword(ctx *zservice.Context, name,
 	}
 
 	z.LoginName = name
-	z.PasswordToken = zservice.RandomMD5()
+	z.LoginPassToken = zservice.RandomMD5()
 	z.LoginPass = AccountGenPassSign(z, password)
 
 	return z.Save(ctx)
@@ -174,11 +168,11 @@ func (z *ZauthAccountTable) VerifyPass(ctx *zservice.Context, password string) b
 
 // 存储
 func (z *ZauthAccountTable) Save(ctx *zservice.Context) *zservice.Error {
-	if z.UID == 0 {
+	if z.ID == 0 {
 		return zservice.NewError("no account id").SetCode(zglobal.Code_ParamsErr)
 	}
 
-	rk_info := fmt.Sprintf(RK_AccountInfo, z.UID)
+	rk_info := fmt.Sprintf(RK_AccountInfo, z.ID)
 
 	// 上锁
 	un, e := Redis.Lock(rk_info)

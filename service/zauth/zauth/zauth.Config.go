@@ -67,7 +67,7 @@ func GetFileConfig(ctx *zservice.Context, fileName string, v any, keys ...string
 		for _, _v := range keys {
 			str := maps[_v]
 			if str == "" {
-				return zservice.NewError("key not exist", _v).SetCode(zglobal.Code_Zconfig_GetConfigFail)
+				return zservice.NewError("key not exist", _v).SetCode(zglobal.Code_Zauth_config_GetConfigFail)
 			}
 			useMap[_v] = str
 		}
@@ -82,7 +82,7 @@ func GetFileConfig(ctx *zservice.Context, fileName string, v any, keys ...string
 	jStr = fmt.Sprintf("[ %s ]", jStr)
 	zservice.LogInfo(jStr)
 	if e := json.Unmarshal([]byte(jStr), v); e != nil {
-		return zservice.NewError(e).SetCode(zglobal.Code_Zconfig_GetConfigFail)
+		return zservice.NewError(e).SetCode(zglobal.Code_Zauth_config_GetConfigFail)
 	}
 	return nil
 }

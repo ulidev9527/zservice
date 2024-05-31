@@ -61,9 +61,9 @@ func (db *DBHelper) SyncTableCache(ctx *zservice.Context, tabArr any, getRK func
 
 	if allCount > 0 && errorCount > 0 {
 		if errorCount < allCount {
-			return zservice.NewErrorf("SyncOrgTableCache has Error, A:%v E:%v", allCount, errorCount).SetCode(zglobal.Code_Zauth_SyncCacheIncomplete)
+			return zservice.NewErrorf("SyncOrgTableCache has Error, A:%v E:%v", allCount, errorCount).SetCode(zglobal.Code_SyncCacheIncomplete)
 		} else {
-			return zservice.NewError("SyncOrgTableCache Fail").SetCode(zglobal.Code_Zauth_SyncCacheErr)
+			return zservice.NewError("SyncOrgTableCache Fail").SetCode(zglobal.Code_SyncCacheErr)
 		}
 	} else {
 		return nil
@@ -94,18 +94,17 @@ func (db *DBHelper) GetNewTableID(
 	ctx *zservice.Context,
 	genID func() uint32,
 	verifyFN func(ctx *zservice.Context, id uint32) (bool, *zservice.Error),
-	handleErr func(e *zservice.Error) *zservice.Error,
 ) (uint32, *zservice.Error) {
 	forCount := 0
 	orgID := uint32(0)
 	for {
 		if forCount > 10 {
-			return 0, handleErr(zservice.NewError("gen id count max fail").SetCode(zglobal.Code_Zauth_GenIDCountMaxErr))
+			return 0, zservice.NewError("gen id count max fail").SetCode(zglobal.Code_GenIDCountMaxErr)
 		}
 		orgID = genID()
 
 		if has, e := verifyFN(ctx, orgID); e != nil {
-			return 0, handleErr(e)
+			return 0, e
 		} else if has {
 			forCount++
 			continue

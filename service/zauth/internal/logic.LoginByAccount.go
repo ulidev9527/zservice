@@ -47,7 +47,7 @@ func Logic_LoginByAccount(ctx *zservice.Context, in *zauth_pb.LoginByAccount_REQ
 
 	// 设置关联信息
 	at.ExpiresSecond = in.Expires
-	at.UID = acc.UID
+	at.UID = acc.ID
 	at.LoginService = in.LoginService
 
 	if e := at.Save(); e != nil {

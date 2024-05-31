@@ -26,13 +26,13 @@ func ParserExcel(fullPath string) (map[string]string, *zservice.Error) {
 			}
 		}()
 		if excel.SheetCount == 0 {
-			return zservice.NewError("excel sheet count is 0").SetCode(zglobal.Code_Zconfig_ExcelNoContent)
+			return zservice.NewError("excel sheet count is 0").SetCode(zglobal.Code_Zauth_config_ExcelNoContent)
 		}
 
 		sheets := excel.GetSheetList()
 		rows, e := excel.Rows(sheets[0])
 		if e != nil {
-			return zservice.NewError(e).SetCode(zglobal.Code_Zconfig_ParserFail)
+			return zservice.NewError(e).SetCode(zglobal.Code_Zauth_config_ParserFail)
 		}
 
 		// 开始循环 excel
@@ -45,7 +45,7 @@ func ParserExcel(fullPath string) (map[string]string, *zservice.Error) {
 			cols, e := rows.Columns()
 
 			if e != nil {
-				return zservice.NewError(e).SetCode(zglobal.Code_Zconfig_ParserFail)
+				return zservice.NewError(e).SetCode(zglobal.Code_Zauth_config_ParserFail)
 			}
 			if len(cols) == 0 {
 				continue

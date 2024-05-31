@@ -4,18 +4,17 @@ import (
 	"fmt"
 	"time"
 	"zservice/zservice"
+	"zservice/zservice/ex/gormservice"
 	"zservice/zservice/zglobal"
-
-	"gorm.io/gorm"
 )
 
 // 账号权限绑定表
 type ZauthPermissionBindTable struct {
-	gorm.Model
+	gormservice.AllModel
 	TargetType   uint32 // 外部ID类型 0无效 1组织 2账号
 	TargetID     uint32 // 外部ID
 	PermissionID uint32 // 权限ID
-	Expires      uint32 // 过期时间
+	Expires      uint64 // 过期时间
 	State        uint32 // 状态 0禁止访问 1允许访问
 }
 

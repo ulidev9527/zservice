@@ -24,13 +24,13 @@ func init() {
 func parserFileVerify(fullpath string) *zservice.Error {
 	fi, e := os.Stat(fullpath)
 	if os.IsNotExist(e) {
-		return zservice.NewError(e).SetCode(zglobal.Code_Zconfig_FileNotExist)
+		return zservice.NewError(e).SetCode(zglobal.Code_Zauth_config_FileNotExist)
 	}
 	if e != nil {
-		return zservice.NewError(e).SetCode(zglobal.Code_Zconfig_ParserFail)
+		return zservice.NewError(e).SetCode(zglobal.Code_Zauth_config_ParserFail)
 	}
 	if fi.IsDir() {
-		return zservice.NewError("file is dir").SetCode(zglobal.Code_Zconfig_PathIsDir)
+		return zservice.NewError("file is dir").SetCode(zglobal.Code_Zauth_config_PathIsDir)
 	}
 
 	return nil
@@ -43,15 +43,15 @@ func getFileMD5(fullPath string) (md5Str string, e *zservice.Error) {
 	// 验证文件正确性，文件不存在则创建
 	if e := parserFileVerify(md5FileFullPath); e != nil {
 		// 是否需要创建文件
-		if e.GetCode() == zglobal.Code_Zconfig_FileNotExist {
+		if e.GetCode() == zglobal.Code_Zauth_config_FileNotExist {
 			md5Str, e := zservice.Md5File(fullPath)
 			if e != nil {
-				return "", e.SetCode(zglobal.Code_Zconfig_GetFileMd5Fail)
+				return "", e.SetCode(zglobal.Code_Zauth_config_GetFileMd5Fail)
 			}
 			// 写入md5信息到文件
 			ee := os.WriteFile(md5FileFullPath, []byte(md5Str), 0644)
 			if ee != nil {
-				return "", zservice.NewError(ee).SetCode(zglobal.Code_Zconfig_GetFileMd5Fail)
+				return "", zservice.NewError(ee).SetCode(zglobal.Code_Zauth_config_GetFileMd5Fail)
 			}
 			return md5Str, nil
 		} else {
@@ -63,15 +63,15 @@ func getFileMD5(fullPath string) (md5Str string, e *zservice.Error) {
 	// 读取 md5 信息文件
 	data, ee := os.ReadFile(md5FileFullPath)
 	if ee != nil {
-		return "", zservice.NewError(ee).SetCode(zglobal.Code_Zconfig_GetFileMd5Fail)
+		return "", zservice.NewError(ee).SetCode(zglobal.Code_Zauth_config_GetFileMd5Fail)
 	}
 	if len(data) == 0 {
 		// 空文件 删除
 		ee := os.Remove(md5FileFullPath)
 		if ee != nil {
-			return "", zservice.NewError("file md5 is empty, del fail", ee).SetCode(zglobal.Code_Zconfig_GetFileMd5Fail)
+			return "", zservice.NewError("file md5 is empty, del fail", ee).SetCode(zglobal.Code_Zauth_config_GetFileMd5Fail)
 		}
-		return "", zservice.NewError("file md5 is empty").SetCode(zglobal.Code_Zconfig_GetFileMd5Fail)
+		return "", zservice.NewError("file md5 is empty").SetCode(zglobal.Code_Zauth_config_GetFileMd5Fail)
 	}
 	return string(data), nil
 }
@@ -93,7 +93,7 @@ func ParserFile(fileName string, parserType uint32) *zservice.Error {
 	// 解析器获取
 	parserFN, ok := fileParserMap[parserType]
 	if !ok {
-		return zservice.NewError("parser not found").SetCode(zglobal.Code_Zconfig_ParserNotExist)
+		return zservice.NewError("parser not found").SetCode(zglobal.Code_Zauth_config_ParserNotExist)
 	}
 
 	// md5 检查
@@ -107,17 +107,17 @@ func ParserFile(fileName string, parserType uint32) *zservice.Error {
 	if e := func() *zservice.Error {
 		has, e := Redis.Exists(rKeyMd5).Result()
 		if e != nil {
-			return zservice.NewError(e).SetCode(zglobal.Code_Zconfig_ParserFail)
+			return zservice.NewError(e).SetCode(zglobal.Code_Zauth_config_ParserFail)
 		}
 		if has == 0 { // 不存在 需要更新
 			return nil
 		}
 		str, e := Redis.Get(rKeyMd5).Result()
 		if e != nil {
-			return zservice.NewError(e).SetCode(zglobal.Code_Zconfig_ParserFail)
+			return zservice.NewError(e).SetCode(zglobal.Code_Zauth_config_ParserFail)
 		}
 		if str == fileMD5 {
-			return zservice.NewError("file md5 not change:", fileName).SetCode(zglobal.Code_Zconfig_FileMd5NotChange)
+			return zservice.NewError("file md5 not change:", fileName).SetCode(zglobal.Code_Zauth_config_FileMd5NotChange)
 		}
 		return nil // 有变化
 	}(); e != nil {

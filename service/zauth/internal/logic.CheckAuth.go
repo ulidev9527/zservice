@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
 	"zservice/zservice/zglobal"
@@ -109,13 +110,13 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 
 	// 检查是否拥有该权限
 	if at.UID == 0 { // 未登录, 不继续接下里用户判断流程
-		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_AuthFail, IsTokenRefresh: isRefreshToken, Token: at.Token}
+		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_Zauth_Fail, IsTokenRefresh: isRefreshToken, Token: at.Token}
 	}
 
 	// 服务登陆和token验证
 	if s, e := Redis.Get(fmt.Sprintf(RK_AccountLoginService, at.UID, authService)).Result(); e != nil {
 		ctx.LogError(e)
-		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_AuthFail, IsTokenRefresh: isRefreshToken, Token: at.Token}
+		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_Zauth_Fail, IsTokenRefresh: isRefreshToken, Token: at.Token}
 	} else if s != at.Token { // token 不正确, 需要重新登陆
 		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_LoginAgain, IsTokenRefresh: isRefreshToken, Token: at.Token}
 	}
@@ -123,7 +124,7 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 	// 检查是否有权限
 	isAllow, e := func() (bool, *zservice.Error) {
 		// 当前账号是否有权限配置
-		if tab, e := GetPermissionBind(ctx, 2, at.UID, permissionInfo.PermissionID); e != nil && e.GetCode() != zglobal.Code_NotFound {
+		if tab, e := GetPermissionBind(ctx, 2, at.UID, permissionInfo.ID); e != nil && e.GetCode() != zglobal.Code_NotFound {
 			return false, e
 		} else if tab != nil && tab.IsExpired() { // 过期的检查权限表示无效，检查所在组织是否有权限
 			return tab.State == 1, nil
@@ -135,8 +136,9 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 			"account_id = ? AND org_id IN (?)",
 			at.UID,
 			Mysql.Model(&ZauthPermissionBindTable{}).Where( // 查找所有分配权限的组
-				"permission_id = ? AND target_type = 1 AND state = 1 AND (expires IS NULL OR expires > NOW())",
-				permissionInfo.PermissionID,
+				"permission_id = ? AND target_type = 1 AND state = 1 AND (expires = 0 OR expires > ?)",
+				permissionInfo.ID,
+				time.Now().Unix(),
 			).Select("target_id"),
 		).First(bindInfo).Error; e != nil {
 			if !errors.Is(e, gorm.ErrRecordNotFound) {
@@ -153,7 +155,7 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 	if isAllow { // 是否允许访问
 		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_SUCC, IsTokenRefresh: isRefreshToken, Token: at.Token}
 	} else {
-		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_AuthFail, IsTokenRefresh: isRefreshToken, Token: at.Token}
+		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_Zauth_Fail, IsTokenRefresh: isRefreshToken, Token: at.Token}
 	}
 
 	// // 检查权限

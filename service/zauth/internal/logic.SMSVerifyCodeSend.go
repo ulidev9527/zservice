@@ -23,7 +23,7 @@ func Logic_SMSVerifyCodeSend(ctx *zservice.Context, in *zauth_pb.SMSVerifyCodeSe
 		return &zauth_pb.SMSSendVerifyCode_RES{Code: e.GetCode()}
 	} else if isBan {
 		ctx.LogError(zservice.NewError("phone is ban", in.Phone))
-		return &zauth_pb.SMSSendVerifyCode_RES{Code: zglobal.Code_Zauth_Phone_Ban}
+		return &zauth_pb.SMSSendVerifyCode_RES{Code: zglobal.Code_Zauth_Sms_Phone_Ban}
 	}
 
 	// CD 检查
@@ -34,7 +34,7 @@ func Logic_SMSVerifyCodeSend(ctx *zservice.Context, in *zauth_pb.SMSVerifyCodeSe
 		return &zauth_pb.SMSSendVerifyCode_RES{Code: zglobal.Code_ErrorBreakoff}
 	} else if has > 0 {
 		ctx.LogError(zservice.NewError("phone cd", in.Phone))
-		return &zauth_pb.SMSSendVerifyCode_RES{Code: zglobal.Code_Zauth_Phone_CD}
+		return &zauth_pb.SMSSendVerifyCode_RES{Code: zglobal.Code_Zauth_Sms_Phone_CD}
 	}
 
 	verifyCode := zservice.IntToString(zservice.RandomIntRange(100000, 999999))

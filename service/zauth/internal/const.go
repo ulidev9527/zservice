@@ -6,6 +6,7 @@ const (
 	E_PermissionAction_Open   = 3
 	E_PermissionAction_Close  = 4
 
+	RK_ServiceInfo         = "service:info:%v"              // 服务信息缓存
 	RK_TokenInfo           = "token:info:%v"                // toekn 缓存
 	RK_TokenLock           = "token:%v_lock"                // toekn 缓存锁
 	RK_OrgInfo             = "org:info:%v"                  // 组织信息缓存 %vOrgID

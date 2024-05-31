@@ -8,7 +8,7 @@ import (
 
 func Logic_PermissionUpdate(ctx *zservice.Context, in *zauth_pb.PermissionInfo) *zauth_pb.Default_RES {
 
-	if in.PermissionID == 0 || in.Name == "" || in.Service == "" {
+	if in.Id == 0 || in.Name == "" || in.Service == "" {
 		return &zauth_pb.Default_RES{Code: zglobal.Code_ParamsErr}
 	}
 
@@ -27,7 +27,7 @@ func Logic_PermissionUpdate(ctx *zservice.Context, in *zauth_pb.PermissionInfo) 
 	}
 
 	// 检查权限是否存在
-	if tab, e := GetPermissionByID(ctx, uint(in.PermissionID)); e != nil {
+	if tab, e := GetPermissionByID(ctx, uint(in.Id)); e != nil {
 		ctx.LogError(e)
 		return &zauth_pb.Default_RES{Code: e.GetCode()}
 	} else {

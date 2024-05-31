@@ -14,21 +14,21 @@ func Logic_OrgCreate(ctx *zservice.Context, in *zauth_pb.OrgInfo) *zauth_pb.OrgI
 	}
 
 	rootOrgID := uint32(0)
-	parentOrgID := in.ParentOrgID
+	parentOrgID := in.ParentID
 
 	if parentOrgID != 0 { // 非根组织
 		// 验证组织是否存在
-		if tab, e := GetOrgByID(ctx, uint(in.ParentOrgID)); e != nil {
+		if tab, e := GetOrgByID(ctx, in.ParentID); e != nil {
 			ctx.LogError(e)
 			return &zauth_pb.OrgInfo_RES{Code: e.GetCode()}
 		} else if tab == nil {
 			return &zauth_pb.OrgInfo_RES{Code: zglobal.Code_Zauth_Org_NotFund}
 		} else {
 			// 配置根组织
-			if tab.RootOrgID == 0 {
-				rootOrgID = tab.OrgID
+			if tab.RootID == 0 {
+				rootOrgID = tab.ID
 			} else {
-				rootOrgID = tab.RootOrgID
+				rootOrgID = tab.RootID
 			}
 		}
 	} else { // 根组织
@@ -48,11 +48,11 @@ func Logic_OrgCreate(ctx *zservice.Context, in *zauth_pb.OrgInfo) *zauth_pb.OrgI
 		return &zauth_pb.OrgInfo_RES{Code: e.GetCode()}
 	}
 	z := &ZauthOrgTable{
-		Name:        in.Name,
-		OrgID:       orgID,
-		RootOrgID:   rootOrgID,
-		ParentOrgID: parentOrgID,
-		State:       in.State,
+		Name:     in.Name,
+		ID:       orgID,
+		RootID:   rootOrgID,
+		ParentID: parentOrgID,
+		State:    in.State,
 	}
 
 	if e := z.Save(ctx); e != nil {
@@ -60,11 +60,11 @@ func Logic_OrgCreate(ctx *zservice.Context, in *zauth_pb.OrgInfo) *zauth_pb.OrgI
 		return &zauth_pb.OrgInfo_RES{Code: e.GetCode()}
 	}
 	return &zauth_pb.OrgInfo_RES{Code: zglobal.Code_SUCC, Info: &zauth_pb.OrgInfo{
-		OrgID:       uint32(z.OrgID),
-		Name:        z.Name,
-		ParentOrgID: uint32(z.ParentOrgID),
-		RootOrgID:   uint32(z.RootOrgID),
-		State:       uint32(z.State),
+		Id:       z.ID,
+		Name:     z.Name,
+		ParentID: z.ParentID,
+		RootID:   z.RootID,
+		State:    z.State,
 	}}
 
 }

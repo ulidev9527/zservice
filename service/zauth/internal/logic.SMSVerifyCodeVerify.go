@@ -20,7 +20,7 @@ func Logic_SMSVerifyCodeVerify(ctx *zservice.Context, in *zauth_pb.SMSVerifyCode
 		return &zauth_pb.Default_RES{Code: e.GetCode()}
 	} else if isBan {
 		ctx.LogError(zservice.NewError("phone is ban", in.Phone))
-		return &zauth_pb.Default_RES{Code: zglobal.Code_Zauth_Phone_Ban}
+		return &zauth_pb.Default_RES{Code: zglobal.Code_Zauth_Sms_Phone_Ban}
 	}
 
 	// 验证
@@ -31,14 +31,14 @@ func Logic_SMSVerifyCodeVerify(ctx *zservice.Context, in *zauth_pb.SMSVerifyCode
 		return &zauth_pb.Default_RES{Code: zglobal.Code_ErrorBreakoff}
 	} else if has == 0 {
 		ctx.LogError(zservice.NewError("phone code not found", in.Phone))
-		return &zauth_pb.Default_RES{Code: zglobal.Code_Zauth_Phone_VerifyCodeCacheNull}
+		return &zauth_pb.Default_RES{Code: zglobal.Code_Zauth_Sms_Phone_VerifyCodeCacheNull}
 	}
 
 	if codeStr, e := Redis.Get(rk).Result(); e != nil {
 		ctx.LogError(e)
 		return &zauth_pb.Default_RES{Code: zglobal.Code_ErrorBreakoff}
 	} else if codeStr != in.VerifyCode {
-		return &zauth_pb.Default_RES{Code: zglobal.Code_Zauth_Phone_VerifyCodeErr}
+		return &zauth_pb.Default_RES{Code: zglobal.Code_Zauth_Sms_Phone_VerifyCodeErr}
 	} else {
 		// 清除
 		if e := Redis.Del(rk).Err(); e != nil {

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"zservice/zservice"
+	"zservice/zservice/ex/gormservice"
 	"zservice/zservice/zglobal"
 
 	"github.com/redis/go-redis/v9"
@@ -13,18 +14,18 @@ import (
 
 // 组织表
 type ZauthOrgTable struct {
-	gorm.Model
-	Name        string // 组名
-	OrgID       uint32 `gorm:"unique"` // 组织ID
-	RootOrgID   uint32 // 根组织ID
-	ParentOrgID uint32 // 父级组ID
-	State       uint32 `gorm:"default:1"` // 状态 0 禁用 1 开启
+	gormservice.TimeModel
+	ID       uint32 `gorm:"primaryKey"` // 组织ID
+	Name     string // 组名
+	RootID   uint32 // 根组织ID
+	ParentID uint32 // 父级组ID
+	State    uint32 `gorm:"default:1"` // 状态 0 禁用 1 开启
 }
 
 // 同步组织表缓存
 func SyncOrgTableCache(ctx *zservice.Context) *zservice.Error {
 	return dbhelper.SyncTableCache(ctx, []ZauthOrgTable{}, func(v any) string {
-		return fmt.Sprintf(RK_OrgInfo, v.(ZauthOrgTable).OrgID)
+		return fmt.Sprintf(RK_OrgInfo, v.(ZauthOrgTable).ID)
 	})
 }
 
@@ -32,22 +33,17 @@ func SyncOrgTableCache(ctx *zservice.Context) *zservice.Error {
 func GetNewOrgID(ctx *zservice.Context) (uint32, *zservice.Error) {
 	return dbhelper.GetNewTableID(ctx, func() uint32 {
 		return zservice.RandomUInt32Range(100000, 99999999) // 1 是根权限，并且预留 10w 以下的id
-	}, HasOrgByID, func(e *zservice.Error) *zservice.Error {
-		if e.GetCode() == zglobal.Code_Zauth_GenIDCountMaxErr {
-			return e.SetCode(zglobal.Code_Zauth_OrgGenIDCountMaxErr)
-		}
-		return e
-	})
+	}, HasOrgByID)
 }
 
 // 是否存在这个组织
-func HasOrgByID(ctx *zservice.Context, orgID uint32) (bool, *zservice.Error) {
-	return dbhelper.HasTableValue(ctx, &ZauthOrgTable{}, fmt.Sprintf(RK_OrgInfo, orgID), fmt.Sprintf("org_id = %v", orgID))
+func HasOrgByID(ctx *zservice.Context, id uint32) (bool, *zservice.Error) {
+	return dbhelper.HasTableValue(ctx, &ZauthOrgTable{}, fmt.Sprintf(RK_OrgInfo, id), fmt.Sprintf("id = %v", id))
 }
 
 // 根据ID获取一个组织
-func GetOrgByID(ctx *zservice.Context, orgID uint) (*ZauthOrgTable, *zservice.Error) {
-	rk_info := fmt.Sprintf(RK_OrgInfo, orgID)
+func GetOrgByID(ctx *zservice.Context, id uint32) (*ZauthOrgTable, *zservice.Error) {
+	rk_info := fmt.Sprintf(RK_OrgInfo, id)
 	tab := &ZauthOrgTable{}
 
 	if s, e := Redis.Get(rk_info).Result(); e != nil {
@@ -61,7 +57,7 @@ func GetOrgByID(ctx *zservice.Context, orgID uint) (*ZauthOrgTable, *zservice.Er
 	}
 
 	// 未找到 查表
-	if e := Mysql.Model(&ZauthOrgTable{}).Where("org_id = ?", orgID).First(tab).Error; e != nil {
+	if e := Mysql.Model(&ZauthOrgTable{}).Where("id = ?", id).First(tab).Error; e != nil {
 		return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 	}
 	if tab.ID > 0 {
@@ -83,7 +79,7 @@ func GetRootOrgByName(ctx *zservice.Context, name string) (*ZauthOrgTable, *zser
 			return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 		}
 	} else {
-		if tab, e := GetOrgByID(ctx, zservice.StringToUint(s)); e != nil {
+		if tab, e := GetOrgByID(ctx, zservice.StringToUint32(s)); e != nil {
 			return nil, e
 		} else if tab != nil {
 			return tab, nil
@@ -91,7 +87,7 @@ func GetRootOrgByName(ctx *zservice.Context, name string) (*ZauthOrgTable, *zser
 	}
 
 	// 未找到 查表
-	if e := Mysql.Model(&ZauthOrgTable{}).Where("name = ? AND root_org_id = 0", name).First(tab).Error; e != nil {
+	if e := Mysql.Model(&ZauthOrgTable{}).Where("name = ? AND root_id = 0", name).First(tab).Error; e != nil {
 		if !errors.Is(e, gorm.ErrRecordNotFound) {
 			return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 		}
@@ -101,7 +97,7 @@ func GetRootOrgByName(ctx *zservice.Context, name string) (*ZauthOrgTable, *zser
 		return nil, nil
 	}
 	// 更新缓存
-	if e := Redis.Set(rk_rootName, zservice.Uint32ToString(tab.OrgID)).Err(); e != nil {
+	if e := Redis.Set(rk_rootName, zservice.Uint32ToString(tab.ID)).Err(); e != nil {
 		ctx.LogError(e)
 	}
 
@@ -111,11 +107,11 @@ func GetRootOrgByName(ctx *zservice.Context, name string) (*ZauthOrgTable, *zser
 // 组织存储
 func (z *ZauthOrgTable) Save(ctx *zservice.Context) *zservice.Error {
 
-	if z.OrgID == 0 {
+	if z.ID == 0 {
 		return zservice.NewError("param error").SetCode(zglobal.Code_ParamsErr)
 	}
 
-	rk_info := fmt.Sprintf(RK_OrgInfo, z.OrgID)
+	rk_info := fmt.Sprintf(RK_OrgInfo, z.ID)
 
 	// 上锁
 	un, e := Redis.Lock(rk_info)

@@ -53,19 +53,19 @@ func ZauthDBInit() {
 	}
 	// 超级管理员
 	adminOrg := Logic_OrgCreate(ctx, &zauth_pb.OrgInfo{
-		Name:        "超级管理员",
-		ParentOrgID: sysOrg.Info.OrgID,
+		Name:     "超级管理员",
+		ParentID: sysOrg.Info.Id,
 	})
 	if adminOrg.Code != zglobal.Code_SUCC {
 		ctx.LogPanic(adminOrg)
 	}
 
 	// 账号和组绑定
-	_, e = AccountJoinOrg(ctx, admAcc.UID, sysOrg.Info.OrgID, 0) // 加入系统组
+	_, e = AccountJoinOrg(ctx, admAcc.ID, sysOrg.Info.Id, 0) // 加入系统组
 	if e != nil {
 		ctx.LogPanic(e)
 	}
-	_, e = AccountJoinOrg(ctx, admAcc.UID, adminOrg.Info.OrgID, 0) // 加入超级管理员组
+	_, e = AccountJoinOrg(ctx, admAcc.ID, adminOrg.Info.Id, 0) // 加入超级管理员组
 	if e != nil {
 		ctx.LogPanic(e)
 	}
@@ -86,8 +86,8 @@ func ZauthDBInit() {
 		// _, e = Logic_PermissionBind(ctx, 1, adminOrg.Info.OrgID, pt.Info.PermissionID, 0, 1)
 		pBind := Logic_PermissionBind(ctx, &zauth_pb.PermissionBind_REQ{
 			TargetType:   1,
-			TargetID:     adminOrg.Info.OrgID,
-			PermissionID: pt.Info.PermissionID,
+			TargetID:     adminOrg.Info.Id,
+			PermissionID: pt.Info.Id,
 			Expires:      0,
 			State:        1,
 		})

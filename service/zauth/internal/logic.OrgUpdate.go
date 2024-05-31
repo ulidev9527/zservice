@@ -13,7 +13,7 @@ func Logic_OrgUpdate(ctx *zservice.Context, in *zauth_pb.OrgInfo) *zauth_pb.Defa
 	}
 
 	// 验证组织是否存在
-	if tab, e := GetOrgByID(ctx, uint(in.OrgID)); e != nil {
+	if tab, e := GetOrgByID(ctx, in.Id); e != nil {
 		ctx.LogError(e)
 		return &zauth_pb.Default_RES{Code: e.GetCode()}
 	} else if tab == nil {
