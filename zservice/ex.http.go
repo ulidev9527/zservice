@@ -91,6 +91,9 @@ func Get(ctx *Context, url string, params *map[string]any, header *map[string]st
 			logStr = fmt.Sprint(logStr, "&", k, "=", v)
 		}
 	}
+	if logStr == "" {
+		logStr = "?"
+	}
 	req, e := http.NewRequest(http.MethodGet, fmt.Sprintf("%v?%v", url, logStr[1:]), nil)
 	if e != nil {
 		return nil, NewError(e)

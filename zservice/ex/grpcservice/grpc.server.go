@@ -135,14 +135,15 @@ func NewGrpcService(c *GrpcServiceConfig) *GrpcService {
 
 func ServerUnaryInterceptor(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 
-	// 获取 zservice.Context 和 Trace数据
-	md, _ := metadata.FromIncomingContext(ctx)
-	zctx := zservice.NewContext(md.Get(zservice.S_S2S)[0])
-	ctx = context.WithValue(ctx, GRPC_contextEX_Middleware_Key, zctx)
-
 	// 获取客户端ID
 	pr, _ := peer.FromContext(ctx)
 	ipaddr := strings.Split(pr.Addr.String(), ":")[0]
+
+	// 获取 zservice.Context 和 Trace数据
+	md, _ := metadata.FromIncomingContext(ctx)
+	zctx := zservice.NewContext(md.Get(zservice.S_S2S)[0])
+	zctx.ContextS2S.RequestIP = ipaddr
+	ctx = context.WithValue(ctx, GRPC_contextEX_Middleware_Key, zctx)
 
 	// 异常捕获
 	defer func() {

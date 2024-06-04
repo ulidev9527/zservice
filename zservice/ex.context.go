@@ -15,6 +15,7 @@ type ContextS2S struct {
 	TraceID      string    `json:"ti"`  // 链路ID
 	TraceSpanID  int       `json:"tsi"` // 链路 , 自增处理
 	TraceService string    `json:"ts"`  // 链路服务
+	RequestIP    string    `json:"ip"`  // 请求IP
 	Service      string    `json:"s"`   // 服务
 	AuthToken    string    `json:"at"`  // token
 	AuthSign     string    `json:"as"`  // 授权的签名
@@ -52,7 +53,7 @@ func NewContext(traceJsonStr string) *Context {
 	}
 
 	// 链路数据更新
-	if ctx.ContextS2S.TraceID == "" {
+	if ctx.ContextS2S.TraceID == "" || len(ctx.ContextS2S.TraceID) != 20 {
 		ctx.ContextS2S.TraceTime = ctx.StartTime
 		ctx.ContextS2S.TraceID = RandomXID()
 		ctx.ContextS2S.TraceSpanID = 0

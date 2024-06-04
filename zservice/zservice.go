@@ -11,6 +11,8 @@ var mainService *ZService
 
 // zservice 初始化
 func Init(serviceName, serviceVersion string) {
+	mainService = createService(serviceName, nil)
+
 	// 配置初始化环境变量
 	SetEnv(ENV_ZSERVICE_NAME, serviceName)
 	SetEnv(ENV_ZSERVICE_VERSION, serviceVersion)
@@ -38,7 +40,7 @@ func Init(serviceName, serviceVersion string) {
 
 	// 加载远程环境变量
 	if Getenv(ENV_ZSERVICE_REMOTE_ENV_ADDR) != "" {
-		e := LoadRemoteEnv(Getenv(ENV_ZSERVICE_REMOTE_ENV_ADDR), Getenv(ENV_ZSERVICE_REMOTE_ENV_AUTH))
+		e := LoadRemoteEnv(Getenv(ENV_ZSERVICE_REMOTE_ENV_ADDR))
 		if e != nil {
 			LogError(e)
 		}
@@ -56,7 +58,8 @@ func Init(serviceName, serviceVersion string) {
 	LogInfof("run service up:   %s v%s", serviceName, Getenv(ENV_ZSERVICE_VERSION))
 	LogInfof("reg service name: %s", Getenv(ENV_ZSERVICE_NAME))
 
-	mainService = createService(Getenv(ENV_ZSERVICE_NAME), nil)
+	mainService.name = Getenv(ENV_ZSERVICE_NAME)
+	mainService.tranceName = mainService.name
 }
 
 // 获取服务名称

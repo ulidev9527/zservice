@@ -26,12 +26,14 @@ const (
 	RK_Sms_PhoneCode               = "sms:phoneCode:%s"                   // 手机号验证码 %s 手机号
 	RK_Config_ServiceFileConfig    = "config:service:%s:fileConfig:%s"    // 文件配置缓存
 	RK_Config_ServiceFileConfigMD5 = "config:service:%s:fileConfigMD5:%s" // 文件配置的 md5, 用于标识是否需要重新解析
+	RK_Config_ServiceEnvAuth       = "config:serviceEnvAuth:%s"           // 服务环境配置缓存
 
 	NSQ_Config_serviceFileConfigChange = "ConfigSercice_%s_FileConfigChange" // 文件配置变更通知
 
 	EV_Config_ServiceFileConfigChange = "ConfigService_%s_FileConfigChange" // 服务文件配置变更通知
 
-	FI_StaticRoot        = "static"                  // 静态文件根目录
-	FI_ServiceConfigFile = "static/%s/fileConfig/%s" // 服务配置文件路径
+	FI_StaticRoot        = "static"                         // 静态文件根目录
+	FI_ServiceConfigFile = "static/%s/fileConfig/%s"        // 服务配置文件路径
+	FI_ServiceEnvFile    = "static/serviceEnvConfig/%s.env" // 服务环境文件路径
 
 )

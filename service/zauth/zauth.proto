@@ -113,6 +113,22 @@ message ConfigSyncServiceFileConfig_REQ{
     string Service  = 2;  // 服务名
     uint32 parser   = 3;  // 解析器
 }
+message ConfigSyncServiceEnvConfig_REQ{
+    string filePath = 1;  // 文件路径
+    string service  = 2;  // 服务名
+}
+message ConfigSyncServiceEnvConfig_RES{
+    uint32 code = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
+    string auth = 2;  // 授权码
+}
+message ConfigGetServiceEnvConfig_REQ{
+    string service = 1;  // 服务名
+    string auth    = 2;  // 授权码
+}
+message ConfigGetServiceEnvConfig_RES{
+    uint32 code = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
+    string value = 2;  // 返回的数据
+}
 
 service zauth{
 
@@ -134,7 +150,9 @@ service zauth{
 
     rpc CheckAuth(CheckAuth_REQ) returns(CheckAuth_RES);  // 检查权限
 
-    rpc ConfigGetFileConfig(ConfigGetFileConfig_REQ) returns(ConfigGetFileConfig_RES);      // 获取文件配置
-    rpc ConfigSyncServiceFileConfig(ConfigSyncServiceFileConfig_REQ) returns(Default_RES);  // 同步服务的文件配置
+    rpc ConfigGetFileConfig(ConfigGetFileConfig_REQ) returns(ConfigGetFileConfig_RES);                       // 获取文件配置
+    rpc ConfigSyncServiceFileConfig(ConfigSyncServiceFileConfig_REQ) returns(Default_RES);                   // 同步服务的文件配置
+    rpc ConfigSyncServiceEnvConfig(ConfigSyncServiceEnvConfig_REQ) returns(ConfigSyncServiceEnvConfig_RES);  // 同步服务的环境变量
+    rpc ConfigGetServiceEnvConfig(ConfigGetServiceEnvConfig_REQ) returns(ConfigGetServiceEnvConfig_RES);  // 获取服务的环境变量
     
 }

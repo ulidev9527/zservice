@@ -15,11 +15,13 @@ import (
 func GinMiddlewareContext(zs *zservice.ZService) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 
-		zctx := func() *zservice.Context { // 提取处 C2S 信息
-			zzctx := zservice.NewEmptyContext()
+		zctx := func() *zservice.Context { // 提取 S2S / C2S 信息
+			s2sStr := ctx.Request.Header.Get(zservice.S_S2S)
 			c2sStr := ctx.Request.Header.Get(zservice.S_C2S)
+			zzctx := zservice.NewContext(s2sStr)
+			zzctx.ContextS2S.RequestIP = ctx.ClientIP()
 			if c2sStr == "" {
-				return zservice.NewEmptyContext()
+				return zzctx
 			}
 
 			if len(c2sStr) == 65 {
@@ -67,7 +69,7 @@ func GinMiddlewareContext(zs *zservice.ZService) gin.HandlerFunc {
 				buf := make([]byte, 1<<12)
 				stackSize := runtime.Stack(buf, true)
 				zctx.LogErrorf("GIN %v %v %v %v %v :Q %v :E %v %v",
-					ctx.ClientIP(), ctx.Request.Method, ctx.Request.URL,
+					zctx.RequestIP, ctx.Request.Method, ctx.Request.URL,
 					ctx.Writer.Status(), zctx.Since(), reqParams, e, string(buf[:stackSize]),
 				)
 				ctx.JSON(200, gin.H{"code": 0, "error": zctx.TraceID})
@@ -78,7 +80,7 @@ func GinMiddlewareContext(zs *zservice.ZService) gin.HandlerFunc {
 
 		// 打印日志
 		zctx.LogInfof("GIN %v %v %v %v %v :Q %v :S %v",
-			ctx.ClientIP(), ctx.Request.Method, ctx.Request.URL,
+			zctx.RequestIP, ctx.Request.Method, ctx.Request.URL,
 			ctx.Writer.Status(), zctx.Since(),
 			reqParams, grw.body.String(),
 		)

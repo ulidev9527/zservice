@@ -32,4 +32,35 @@ func initGinConfig() {
 		}))
 
 	})
+
+	Gin.POST("/config/:service/uploadEnvConfig", func(ctx *gin.Context) {
+
+		zctx := ginservice.GetCtxEX(ctx)
+		file, e := ctx.FormFile("file")
+		if e != nil {
+			zctx.LogError(e)
+			ctx.JSON(200, gin.H{"code": zglobal.Code_ErrorBreakoff})
+			return
+		}
+		serviceName := ctx.Param("service")
+		filePath := fmt.Sprintf(FI_ServiceEnvFile, serviceName)
+		ctx.SaveUploadedFile(file, filePath)
+
+		ctx.JSON(200, Logic_ConfigSyncServiceEnvConfig(zctx, &zauth_pb.ConfigSyncServiceEnvConfig_REQ{
+			Service:  serviceName,
+			FilePath: filePath,
+		}))
+	})
+
+	Gin.GET("/config/serviceEnvConfig/:auth", func(ctx *gin.Context) {
+
+		zctx := ginservice.GetCtxEX(ctx)
+		auth := ctx.Param("auth")
+
+		ctx.JSON(200, Logic_ConfigGetServiceEnvConfig(zctx, &zauth_pb.ConfigGetServiceEnvConfig_REQ{
+			Service: zctx.TraceService,
+			Auth:    auth,
+		}))
+
+	})
 }

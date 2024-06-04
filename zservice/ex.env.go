@@ -1,9 +1,11 @@
 package zservice
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"sync"
+	"zservice/service/zauth/zauth_pb"
 
 	"github.com/joho/godotenv"
 )
@@ -92,18 +94,23 @@ func LoadFileEnv(envFile string) *Error {
 }
 
 // 加载远程环境变量
-func LoadRemoteEnv(addr string, auth string) *Error {
+func LoadRemoteEnv(addr string) *Error {
 
 	if addr == "" {
 		return NewError("no remote env addr")
 	}
 
-	body, e := Get(NewEmptyContext(), addr, &map[string]any{"auth": auth}, nil)
+	body, e := Get(NewEmptyContext(), addr, nil, nil)
 	if e != nil {
 		return e
 	}
 
-	return LoadFileEnv(string(body))
+	res := zauth_pb.ConfigGetServiceEnvConfig_RES{}
+	if e := json.Unmarshal(body, &res); e != nil {
+		return NewError(e)
+	}
+
+	return LoadStringEnv(res.Value)
 }
 
 // 加载字符串中的环境变量
