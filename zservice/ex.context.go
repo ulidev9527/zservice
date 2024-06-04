@@ -72,7 +72,7 @@ func NewEmptyContext() *Context {
 	return NewContext("")
 }
 
-func TODO() context.Context {
+func ContextTODO() context.Context {
 	return context.TODO()
 }
 

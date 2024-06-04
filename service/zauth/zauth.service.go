@@ -2,17 +2,14 @@ package main
 
 import (
 	"zservice/service/zauth/internal"
-	"zservice/service/zauth/zauth"
 	"zservice/zservice"
 	"zservice/zservice/ex/etcdservice"
 	"zservice/zservice/ex/ginservice"
 	"zservice/zservice/ex/gormservice"
 	"zservice/zservice/ex/grpcservice"
-	"zservice/zservice/ex/nsqservice"
 	"zservice/zservice/ex/redisservice"
 
 	"github.com/gin-gonic/gin"
-	"github.com/nsqio/go-nsq"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"google.golang.org/grpc"
 	"gorm.io/gorm"
@@ -49,27 +46,11 @@ func main() {
 		internal.ZAuthInit()
 	})
 
-	internal.NsqService = nsqservice.NewNsqProducerService(&nsqservice.NsqProducerServiceConfig{
-		Addr: zservice.Getenv("NSQD_ADDR"),
-		OnStart: func(producer *nsq.Producer) {
-			internal.Nsq = producer
-			internal.InitNsq()
-		},
-	})
-
 	internal.EtcdService = etcdservice.NewEtcdService(&etcdservice.EtcdServiceConfig{
 		Addr: zservice.Getenv("ETCD_ADDR"),
 		OnStart: func(etcd *clientv3.Client) {
 			internal.Etcd = etcd
 			internal.InitEtcd()
-
-			zauth.Init(&zauth.ZAuthInitConfig{
-				ZauthServiceName: zservice.GetServiceName(),
-				Etcd:             internal.Etcd,
-				Redis:            internal.Redis,
-				NsqConsumerAddrs: zservice.Getenv("NSQD_ADDR"),
-				IsNsqdAddr:       true,
-			})
 		},
 	})
 
@@ -85,7 +66,7 @@ func main() {
 	internal.GinService = ginservice.NewGinService(&ginservice.GinServiceConfig{
 		ListenAddr: zservice.Getenv("GIN_LISTEN_ADDR"),
 		OnStart: func(engine *gin.Engine) {
-			engine.Use(zauth.GinCheckAuthMiddleware(internal.GinService.ZService))
+			engine.Use(internal.GinMiddlewareCheckAuth(internal.GinService.ZService))
 			internal.Gin = engine
 			internal.InitGin()
 		},
@@ -93,17 +74,15 @@ func main() {
 
 	zservice.AddDependService(
 		internal.MysqlService.ZService, internal.RedisService.ZService, systemS,
-		internal.NsqService.ZService, internal.EtcdService.ZService, internal.GrpcService.ZService,
+		internal.EtcdService.ZService, internal.GrpcService.ZService,
 		internal.GinService.ZService,
 	)
 
 	systemS.AddDependService(internal.MysqlService.ZService, internal.RedisService.ZService)
 
-	internal.NsqService.AddDependService(systemS)
-
 	internal.EtcdService.AddDependService(systemS)
 
-	internal.GrpcService.AddDependService(systemS, internal.NsqService.ZService, internal.EtcdService.ZService)
+	internal.GrpcService.AddDependService(systemS, internal.EtcdService.ZService)
 
 	internal.GinService.AddDependService(internal.GrpcService.ZService)
 

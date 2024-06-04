@@ -16,7 +16,7 @@ type ZauthPermissionTable struct {
 	gormservice.TimeModel
 	ID      uint32 `gorm:"primaryKey"` // 权限ID
 	Name    string // 权限名称
-	Service string // 服务ID
+	Service string // 服务名称
 	Action  string // 权限动作
 	Path    string // 权限路径
 	State   uint32 `gorm:"default:3"` // 状态 0禁用 1公开访问 2授权访问 3继承父级(默认)

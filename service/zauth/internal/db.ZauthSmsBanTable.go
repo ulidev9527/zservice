@@ -29,7 +29,7 @@ func IsSmsBan(ctx *zservice.Context, phone string) (bool, *zservice.Error) {
 	}
 
 	// 查缓存
-	rk_phoneBan := fmt.Sprintf(RK_PhoneBan, phone)
+	rk_phoneBan := fmt.Sprintf(RK_Sms_PhoneBan, phone)
 	has, e := Redis.Exists(rk_phoneBan).Result()
 	if e != nil {
 		return true, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)

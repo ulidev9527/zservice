@@ -2,7 +2,8 @@ package internal
 
 import (
 	"fmt"
-	"net/http"
+	"zservice/service/zauth/zauth_pb"
+	"zservice/zservice"
 	"zservice/zservice/ex/ginservice"
 	"zservice/zservice/zglobal"
 
@@ -11,25 +12,24 @@ import (
 
 func initGinConfig() {
 
-	Gin.GET("/config", func(ctx *gin.Context) {
+	Gin.POST("/config/:service/uploadFileConfig", func(ctx *gin.Context) {
+
 		zctx := ginservice.GetCtxEX(ctx)
-
-		auth := ctx.Query("auth")
-		zctx.LogWarn(auth)
-
-		ctx.String(200, "ok")
-	})
-
-	Gin.GET("/fileconfig_reset", func(ctx *gin.Context) {
-		zctx := ginservice.GetCtxEX(ctx)
-
-		fileName := ctx.Query("fileName")
-		if e := ParserFile(fileName, zglobal.E_ZConfig_Parser_Excel); e != nil {
+		file, e := ctx.FormFile("file")
+		if e != nil {
 			zctx.LogError(e)
-			ctx.String(http.StatusOK, fmt.Sprint(e.GetCode()))
-		} else {
-			ctx.String(200, "ok")
+			ctx.JSON(200, gin.H{"code": zglobal.Code_ErrorBreakoff})
+			return
 		}
+		serviceName := ctx.Param("service")
+		filePath := fmt.Sprintf(FI_ServiceConfigFile, serviceName, file.Filename)
+		ctx.SaveUploadedFile(file, filePath)
+
+		ctx.JSON(200, Logic_ConfigSyncServiceFileConfig(zctx, &zauth_pb.ConfigSyncServiceFileConfig_REQ{
+			Service:  serviceName,
+			FilePath: filePath,
+			Parser:   zservice.StringToUint32(ctx.PostForm("parser")),
+		}))
 
 	})
 }

@@ -1,21 +1,18 @@
 package zauth
 
 import (
-	"fmt"
 	"sync"
 	"zservice/service/zauth/internal"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
 	"zservice/zservice/ex/grpcservice"
-	"zservice/zservice/ex/nsqservice"
 	"zservice/zservice/ex/redisservice"
 
-	"github.com/nsqio/go-nsq"
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 var grpcClient zauth_pb.ZauthClient
-var fileConfigMap = &sync.Map{}
+var fileConfigMap = &sync.Map{} // 文件配置映射
 var zauthInitConfig *ZAuthInitConfig
 
 type ZAuthInitConfig struct {
@@ -45,17 +42,9 @@ func Init(c *ZAuthInitConfig) {
 		zservice.LogPanic("ZauthServiceName is nil")
 	}
 
-	nsqservice.NewNsqConsumer(&nsqservice.NsqConsumerConfig{
-		Addrs:      c.NsqConsumerAddrs,
-		IsNsqdAddr: c.IsNsqdAddr,
-		Topic:      internal.NSQ_FileConfig_Change,
-		Channel:    fmt.Sprintf("%s-%s", zservice.GetServiceName(), zservice.RandomXID()),
-		OnMessage: func(m *nsq.Message) error {
-			fileName := string(m.Body)
-			zservice.LogInfo("Update config ", fileName)
-			fileConfigMap.Delete(fileName)
-			return nil
-		},
+	// 服务配置改变监听
+	go internal.EV_Watch_Config_ServiceFileConfigChange(c.Etcd, zservice.GetServiceName(), func(s string) {
+		fileConfigMap.Delete(s)
+		zservice.LogInfo("Update config ", s)
 	})
-
 }

@@ -36,6 +36,6 @@ func (s *ZauthServer) SMSVerifyCodeVerify(ctx context.Context, in *zauth_pb.SMSV
 }
 
 // 获取文件配置
-func (s *ZauthServer) GetFileConfig(ctx context.Context, in *zauth_pb.GetFileConfig_REQ) (*zauth_pb.GetFileConfig_RES, error) {
-	return Logic_GetFileConfig(grpcservice.GetCtxEX(ctx), in), nil
+func (s *ZauthServer) ConfigGetFileConfig(ctx context.Context, in *zauth_pb.ConfigGetFileConfig_REQ) (*zauth_pb.ConfigGetFileConfig_RES, error) {
+	return Logic_ConfigGetFileConfig(grpcservice.GetCtxEX(ctx), in), nil
 }

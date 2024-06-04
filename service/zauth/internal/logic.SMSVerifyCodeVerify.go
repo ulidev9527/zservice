@@ -24,7 +24,7 @@ func Logic_SMSVerifyCodeVerify(ctx *zservice.Context, in *zauth_pb.SMSVerifyCode
 	}
 
 	// 验证
-	rk := fmt.Sprintf(RK_PhoneCode, in.Phone)
+	rk := fmt.Sprintf(RK_Sms_PhoneCode, in.Phone)
 
 	if has, e := Redis.Exists(rk).Result(); e != nil {
 		ctx.LogError(e)

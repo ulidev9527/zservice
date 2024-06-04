@@ -99,13 +99,19 @@ message SMSVerifyCodeVerify_REQ { // 发送验证码 请求
 }
 
 // 配置相关
-message GetFileConfig_REQ {
+message ConfigGetFileConfig_REQ {
     string fileName = 1;  // 文件名
     string keys     = 2;  // key 需要返回哪些值, 空值返回全部
+    string Service  = 3;  // 服务名
 }
-message GetFileConfig_RES{
+message ConfigGetFileConfig_RES{
     uint32 code  = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
     string value = 2;  // 返回的数据，根据情况不同返回数据不同
+}
+message ConfigSyncServiceFileConfig_REQ{
+    string filePath = 1;  // 文件路径
+    string Service  = 2;  // 服务名
+    uint32 parser   = 3;  // 解析器
 }
 
 service zauth{
@@ -124,10 +130,11 @@ service zauth{
     rpc OrgUpdate(OrgInfo) returns(OrgInfo_RES);              // 更新组织
     
     rpc SMSVerifyCodeSend(SMSVerifyCodeSend_REQ) returns(SMSSendVerifyCode_RES);  // 发送验证码
-    rpc SMSVerifyCodeVerify(SMSVerifyCodeVerify_REQ) returns(Default_RES);              // 验证验证码
+    rpc SMSVerifyCodeVerify(SMSVerifyCodeVerify_REQ) returns(Default_RES);        // 验证验证码
 
     rpc CheckAuth(CheckAuth_REQ) returns(CheckAuth_RES);  // 检查权限
 
-    rpc GetFileConfig(GetFileConfig_REQ) returns(GetFileConfig_RES);  // 获取文件配置
+    rpc ConfigGetFileConfig(ConfigGetFileConfig_REQ) returns(ConfigGetFileConfig_RES);      // 获取文件配置
+    rpc ConfigSyncServiceFileConfig(ConfigSyncServiceFileConfig_REQ) returns(Default_RES);  // 同步服务的文件配置
     
 }

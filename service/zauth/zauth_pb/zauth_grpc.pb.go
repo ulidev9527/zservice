@@ -19,20 +19,21 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Zauth_Logout_FullMethodName              = "/zauth_pb.zauth/Logout"
-	Zauth_LoginByPhone_FullMethodName        = "/zauth_pb.zauth/LoginByPhone"
-	Zauth_LoginByAccount_FullMethodName      = "/zauth_pb.zauth/LoginByAccount"
-	Zauth_PermissionCreate_FullMethodName    = "/zauth_pb.zauth/PermissionCreate"
-	Zauth_PermissionListGet_FullMethodName   = "/zauth_pb.zauth/PermissionListGet"
-	Zauth_PermissionUpdate_FullMethodName    = "/zauth_pb.zauth/PermissionUpdate"
-	Zauth_PermissionBind_FullMethodName      = "/zauth_pb.zauth/PermissionBind"
-	Zauth_OrgCreate_FullMethodName           = "/zauth_pb.zauth/OrgCreate"
-	Zauth_OrgListGet_FullMethodName          = "/zauth_pb.zauth/OrgListGet"
-	Zauth_OrgUpdate_FullMethodName           = "/zauth_pb.zauth/OrgUpdate"
-	Zauth_SMSVerifyCodeSend_FullMethodName   = "/zauth_pb.zauth/SMSVerifyCodeSend"
-	Zauth_SMSVerifyCodeVerify_FullMethodName = "/zauth_pb.zauth/SMSVerifyCodeVerify"
-	Zauth_CheckAuth_FullMethodName           = "/zauth_pb.zauth/CheckAuth"
-	Zauth_GetFileConfig_FullMethodName       = "/zauth_pb.zauth/GetFileConfig"
+	Zauth_Logout_FullMethodName                      = "/zauth_pb.zauth/Logout"
+	Zauth_LoginByPhone_FullMethodName                = "/zauth_pb.zauth/LoginByPhone"
+	Zauth_LoginByAccount_FullMethodName              = "/zauth_pb.zauth/LoginByAccount"
+	Zauth_PermissionCreate_FullMethodName            = "/zauth_pb.zauth/PermissionCreate"
+	Zauth_PermissionListGet_FullMethodName           = "/zauth_pb.zauth/PermissionListGet"
+	Zauth_PermissionUpdate_FullMethodName            = "/zauth_pb.zauth/PermissionUpdate"
+	Zauth_PermissionBind_FullMethodName              = "/zauth_pb.zauth/PermissionBind"
+	Zauth_OrgCreate_FullMethodName                   = "/zauth_pb.zauth/OrgCreate"
+	Zauth_OrgListGet_FullMethodName                  = "/zauth_pb.zauth/OrgListGet"
+	Zauth_OrgUpdate_FullMethodName                   = "/zauth_pb.zauth/OrgUpdate"
+	Zauth_SMSVerifyCodeSend_FullMethodName           = "/zauth_pb.zauth/SMSVerifyCodeSend"
+	Zauth_SMSVerifyCodeVerify_FullMethodName         = "/zauth_pb.zauth/SMSVerifyCodeVerify"
+	Zauth_CheckAuth_FullMethodName                   = "/zauth_pb.zauth/CheckAuth"
+	Zauth_ConfigGetFileConfig_FullMethodName         = "/zauth_pb.zauth/ConfigGetFileConfig"
+	Zauth_ConfigSyncServiceFileConfig_FullMethodName = "/zauth_pb.zauth/ConfigSyncServiceFileConfig"
 )
 
 // ZauthClient is the client API for Zauth service.
@@ -52,7 +53,8 @@ type ZauthClient interface {
 	SMSVerifyCodeSend(ctx context.Context, in *SMSVerifyCodeSend_REQ, opts ...grpc.CallOption) (*SMSSendVerifyCode_RES, error)
 	SMSVerifyCodeVerify(ctx context.Context, in *SMSVerifyCodeVerify_REQ, opts ...grpc.CallOption) (*Default_RES, error)
 	CheckAuth(ctx context.Context, in *CheckAuth_REQ, opts ...grpc.CallOption) (*CheckAuth_RES, error)
-	GetFileConfig(ctx context.Context, in *GetFileConfig_REQ, opts ...grpc.CallOption) (*GetFileConfig_RES, error)
+	ConfigGetFileConfig(ctx context.Context, in *ConfigGetFileConfig_REQ, opts ...grpc.CallOption) (*ConfigGetFileConfig_RES, error)
+	ConfigSyncServiceFileConfig(ctx context.Context, in *ConfigSyncServiceFileConfig_REQ, opts ...grpc.CallOption) (*Default_RES, error)
 }
 
 type zauthClient struct {
@@ -180,9 +182,18 @@ func (c *zauthClient) CheckAuth(ctx context.Context, in *CheckAuth_REQ, opts ...
 	return out, nil
 }
 
-func (c *zauthClient) GetFileConfig(ctx context.Context, in *GetFileConfig_REQ, opts ...grpc.CallOption) (*GetFileConfig_RES, error) {
-	out := new(GetFileConfig_RES)
-	err := c.cc.Invoke(ctx, Zauth_GetFileConfig_FullMethodName, in, out, opts...)
+func (c *zauthClient) ConfigGetFileConfig(ctx context.Context, in *ConfigGetFileConfig_REQ, opts ...grpc.CallOption) (*ConfigGetFileConfig_RES, error) {
+	out := new(ConfigGetFileConfig_RES)
+	err := c.cc.Invoke(ctx, Zauth_ConfigGetFileConfig_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *zauthClient) ConfigSyncServiceFileConfig(ctx context.Context, in *ConfigSyncServiceFileConfig_REQ, opts ...grpc.CallOption) (*Default_RES, error) {
+	out := new(Default_RES)
+	err := c.cc.Invoke(ctx, Zauth_ConfigSyncServiceFileConfig_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -206,7 +217,8 @@ type ZauthServer interface {
 	SMSVerifyCodeSend(context.Context, *SMSVerifyCodeSend_REQ) (*SMSSendVerifyCode_RES, error)
 	SMSVerifyCodeVerify(context.Context, *SMSVerifyCodeVerify_REQ) (*Default_RES, error)
 	CheckAuth(context.Context, *CheckAuth_REQ) (*CheckAuth_RES, error)
-	GetFileConfig(context.Context, *GetFileConfig_REQ) (*GetFileConfig_RES, error)
+	ConfigGetFileConfig(context.Context, *ConfigGetFileConfig_REQ) (*ConfigGetFileConfig_RES, error)
+	ConfigSyncServiceFileConfig(context.Context, *ConfigSyncServiceFileConfig_REQ) (*Default_RES, error)
 	mustEmbedUnimplementedZauthServer()
 }
 
@@ -253,8 +265,11 @@ func (UnimplementedZauthServer) SMSVerifyCodeVerify(context.Context, *SMSVerifyC
 func (UnimplementedZauthServer) CheckAuth(context.Context, *CheckAuth_REQ) (*CheckAuth_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckAuth not implemented")
 }
-func (UnimplementedZauthServer) GetFileConfig(context.Context, *GetFileConfig_REQ) (*GetFileConfig_RES, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetFileConfig not implemented")
+func (UnimplementedZauthServer) ConfigGetFileConfig(context.Context, *ConfigGetFileConfig_REQ) (*ConfigGetFileConfig_RES, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ConfigGetFileConfig not implemented")
+}
+func (UnimplementedZauthServer) ConfigSyncServiceFileConfig(context.Context, *ConfigSyncServiceFileConfig_REQ) (*Default_RES, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ConfigSyncServiceFileConfig not implemented")
 }
 func (UnimplementedZauthServer) mustEmbedUnimplementedZauthServer() {}
 
@@ -503,20 +518,38 @@ func _Zauth_CheckAuth_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Zauth_GetFileConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetFileConfig_REQ)
+func _Zauth_ConfigGetFileConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConfigGetFileConfig_REQ)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ZauthServer).GetFileConfig(ctx, in)
+		return srv.(ZauthServer).ConfigGetFileConfig(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Zauth_GetFileConfig_FullMethodName,
+		FullMethod: Zauth_ConfigGetFileConfig_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ZauthServer).GetFileConfig(ctx, req.(*GetFileConfig_REQ))
+		return srv.(ZauthServer).ConfigGetFileConfig(ctx, req.(*ConfigGetFileConfig_REQ))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Zauth_ConfigSyncServiceFileConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConfigSyncServiceFileConfig_REQ)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ZauthServer).ConfigSyncServiceFileConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Zauth_ConfigSyncServiceFileConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ZauthServer).ConfigSyncServiceFileConfig(ctx, req.(*ConfigSyncServiceFileConfig_REQ))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -581,8 +614,12 @@ var Zauth_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Zauth_CheckAuth_Handler,
 		},
 		{
-			MethodName: "GetFileConfig",
-			Handler:    _Zauth_GetFileConfig_Handler,
+			MethodName: "ConfigGetFileConfig",
+			Handler:    _Zauth_ConfigGetFileConfig_Handler,
+		},
+		{
+			MethodName: "ConfigSyncServiceFileConfig",
+			Handler:    _Zauth_ConfigSyncServiceFileConfig_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

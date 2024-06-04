@@ -20,15 +20,15 @@ func GetFileConfig(ctx *zservice.Context, fileName string, v any, keys ...string
 	val, has := fileConfigMap.Load(fileName)
 
 	if !has { // 配置中心拉取配置
-		req := &zauth_pb.GetFileConfig_REQ{
+		req := &zauth_pb.ConfigGetFileConfig_REQ{
 			FileName: fileName,
 		}
 
-		res, e := func() (*zauth_pb.GetFileConfig_RES, error) {
+		res, e := func() (*zauth_pb.ConfigGetFileConfig_RES, error) {
 			if zauthInitConfig.ZauthServiceName == zservice.GetServiceName() {
-				return internal.Logic_GetFileConfig(ctx, req), nil
+				return internal.Logic_ConfigGetFileConfig(ctx, req), nil
 			}
-			return grpcClient.GetFileConfig(ctx, req)
+			return grpcClient.ConfigGetFileConfig(ctx, req)
 		}()
 		if e != nil {
 			return zservice.NewError(e)

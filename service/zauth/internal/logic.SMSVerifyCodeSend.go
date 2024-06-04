@@ -27,7 +27,7 @@ func Logic_SMSVerifyCodeSend(ctx *zservice.Context, in *zauth_pb.SMSVerifyCodeSe
 	}
 
 	// CD 检查
-	rKeyCD := fmt.Sprintf(RK_PhoneCD, in.Phone)
+	rKeyCD := fmt.Sprintf(RK_Sms_PhoneCD, in.Phone)
 
 	if has, e := Redis.Exists(rKeyCD).Result(); e != nil {
 		ctx.LogError(e)
@@ -57,7 +57,7 @@ func Logic_SMSVerifyCodeSend(ctx *zservice.Context, in *zauth_pb.SMSVerifyCodeSe
 	}
 
 	// 验证码
-	e = Redis.SetEX(fmt.Sprintf(RK_PhoneCode, in.Phone), verifyCode, time.Duration(zservice.GetenvInt("SMS_CODE_CACHE"))*time.Second).Err()
+	e = Redis.SetEX(fmt.Sprintf(RK_Sms_PhoneCode, in.Phone), verifyCode, time.Duration(zservice.GetenvInt("SMS_CODE_CACHE"))*time.Second).Err()
 	if e != nil {
 		ctx.LogError(e)
 		return &zauth_pb.SMSSendVerifyCode_RES{Code: zglobal.Code_ErrorBreakoff}
