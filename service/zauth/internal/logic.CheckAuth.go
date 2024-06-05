@@ -157,27 +157,4 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 	} else {
 		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_Zauth_Fail, IsTokenRefresh: isRefreshToken, Token: at.Token}
 	}
-
-	// // 检查权限
-	// // 查询用户所有的组
-	// if e := Mysql.Raw(`
-	// WITH RECURSIVE cte(id) AS (
-	// 	SELECT g_id FROM account_group_bind_tables WHERE uid=?
-	// 	UNION ALL SELECT
-	// 	agt.g_id FROM cte JOIN account_group_tables agt ON cte.id = agt.id
-	// ) SELECT DISTINCT id FROM cte WHERE id > 0;
-	// `, 1001).Find(&[]struct{}{}).Error; e != nil {
-	// 	zservice.LogError(e)
-	// }
-
-	// if e := at.Save(); e != nil {
-	// 	ctx.LogError(e)
-	// 	return &zauth_pb.CheckAuth_RES{Code: e.GetCode()}
-	// }
-
-	// return &zauth_pb.CheckAuth_RES{
-	// 	Code:           zglobal.Code_SUCC,
-	// 	IsTokenRefresh: ctx.AuthToken != at.Token,
-	// 	Token:          at.Token,
-	// }
 }
