@@ -1,6 +1,7 @@
 package nsqservice
 
 import (
+	"encoding/json"
 	"zservice/zservice"
 
 	"github.com/nsqio/go-nsq"
@@ -11,7 +12,7 @@ type NsqConsumerConfig struct {
 	IsNsqdAddr bool   // 是否是 nsqd 地址
 	Topic      string // 主题
 	Channel    string // 频道
-	OnMessage  func(*nsq.Message) error
+	OnMessage  func(ctx *zservice.Context, body []byte)
 }
 
 // nsq consumer
@@ -21,7 +22,17 @@ func NewNsqConsumer(c *NsqConsumerConfig) {
 		zservice.LogPanic(e)
 	}
 
-	consumer.AddHandler(nsq.HandlerFunc(c.OnMessage))
+	consumer.AddHandler(nsq.HandlerFunc(func(message *nsq.Message) error {
+
+		bex := &BodyEx{}
+
+		if e := json.Unmarshal(message.Body, bex); e != nil {
+			return e
+		}
+		ctx := zservice.NewContext(bex.S2S)
+		c.OnMessage(ctx, bex.Body)
+		return nil
+	}))
 	consumer.SetLogger(&LogEx{}, nsq.LogLevelInfo)
 
 	startChan := make(chan any, 1)

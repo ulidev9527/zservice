@@ -151,7 +151,7 @@ func ServerUnaryInterceptor(ctx context.Context, req any, info *grpc.UnaryServer
 		if e != nil {
 			buf := make([]byte, 1<<10)
 			stackSize := runtime.Stack(buf, true)
-			zctx.LogErrorf("GRPC %v %v :Q %v :E %v %v", ipaddr, info.FullMethod, req, e, string(buf[:stackSize]))
+			zctx.LogErrorf("GRPC %v %v :Q %v :E %v :ST %v", ipaddr, info.FullMethod, req, e, string(buf[:stackSize]))
 		}
 	}()
 

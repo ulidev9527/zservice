@@ -2,6 +2,7 @@ package nsqservice
 
 import (
 	"fmt"
+	"runtime"
 	"zservice/zservice"
 
 	"github.com/nsqio/go-nsq"
@@ -59,4 +60,31 @@ func NewNsqProducerService(c *NsqProducerServiceConfig) *NsqProducerService {
 	})
 
 	return nps
+}
+
+func (nps *NsqProducerService) Publish(ctx *zservice.Context, topic string, body []byte) *zservice.Error {
+	bex := zservice.JsonMustMarshal(&BodyEx{
+		S2S:  zservice.JsonMustMarshalString(ctx.ContextS2S),
+		Body: body,
+	})
+
+	defer func() {
+		if e := recover(); e != nil {
+			buf := make([]byte, 1<<12)
+			stackSize := runtime.Stack(buf, true)
+			nps.LogPanicf("NSQ SE :T %s :Q %s :E %s :ST %s", topic, string(bex), e, string(buf[:stackSize]))
+		}
+	}()
+
+	if e := nps.Producer.Publish(topic, bex); e != nil {
+		nps.LogErrorf("NSQ SE :T %s :Q %s :E %s", topic, string(bex), e)
+		return zservice.NewError(e)
+	}
+	nps.LogErrorf("NSQ SE :T %s :Q %s", topic, string(bex))
+	return nil
+}
+
+func (nps *NsqProducerService) Stop() {
+
+	nps.Producer.Stop()
 }

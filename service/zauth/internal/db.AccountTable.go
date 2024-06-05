@@ -8,7 +8,7 @@ import (
 )
 
 // 账号表
-type ZauthAccountTable struct {
+type AccountTable struct {
 	gormservice.TimeModel
 	ID             uint32 `gorm:"primaryKey"` // 用户唯一ID
 	LoginName      string `gorm:"unique"`     // 登陆账号
@@ -19,12 +19,12 @@ type ZauthAccountTable struct {
 }
 
 // 创建一个新的账号
-func CreateAccount(ctx *zservice.Context) (*ZauthAccountTable, *zservice.Error) {
+func CreateAccount(ctx *zservice.Context) (*AccountTable, *zservice.Error) {
 	accID, e := GetNewAccountID(ctx)
 	if e != nil {
 		return nil, e
 	}
-	z := &ZauthAccountTable{ID: accID}
+	z := &AccountTable{ID: accID}
 	if e := z.Save(ctx); e != nil {
 		return nil, e
 	}
@@ -40,22 +40,22 @@ func GetNewAccountID(ctx *zservice.Context) (uint32, *zservice.Error) {
 
 // 是否存在这个账号
 func HasAccountByID(ctx *zservice.Context, id uint32) (bool, *zservice.Error) {
-	return dbhelper.HasTableValue(ctx, &ZauthAccountTable{}, fmt.Sprintf(RK_AccountInfo, id), fmt.Sprintf("id = %v", id))
+	return dbhelper.HasTableValue(ctx, &AccountTable{}, fmt.Sprintf(RK_AccountInfo, id), fmt.Sprintf("id = %v", id))
 }
 
 // 是否存在这个账号
 func HasAccountByLoginName(ctx *zservice.Context, loginName string) (bool, *zservice.Error) {
-	return dbhelper.HasTableValue(ctx, &ZauthAccountTable{}, fmt.Sprintf(RK_AccountLoginName, loginName), fmt.Sprintf("login_name = '%v'", loginName))
+	return dbhelper.HasTableValue(ctx, &AccountTable{}, fmt.Sprintf(RK_AccountLoginName, loginName), fmt.Sprintf("login_name = '%v'", loginName))
 }
 
 // 账号密码签名
-func AccountGenPassSign(z *ZauthAccountTable, password string) string {
+func AccountGenPassSign(z *AccountTable, password string) string {
 	return zservice.MD5String(fmt.Sprint(z.ID, z.LoginPassToken, password))
 }
 
 // 获取账号
-func GetAccountByID(ctx *zservice.Context, id uint) (*ZauthAccountTable, *zservice.Error) {
-	tab := ZauthAccountTable{}
+func GetAccountByID(ctx *zservice.Context, id uint) (*AccountTable, *zservice.Error) {
+	tab := AccountTable{}
 
 	if e := dbhelper.GetTableValue(ctx, &tab, fmt.Sprintf(RK_AccountInfo, id), fmt.Sprintf("id = %v", id)); e != nil {
 		return nil, e
@@ -64,7 +64,7 @@ func GetAccountByID(ctx *zservice.Context, id uint) (*ZauthAccountTable, *zservi
 }
 
 // 根据登陆名获取账号
-func GetAccountByLoginName(ctx *zservice.Context, loginName string) (*ZauthAccountTable, *zservice.Error) {
+func GetAccountByLoginName(ctx *zservice.Context, loginName string) (*AccountTable, *zservice.Error) {
 
 	rk := fmt.Sprintf(RK_AccountLoginName, loginName)
 	if has, e := Redis.Exists(rk).Result(); e != nil { // 是否有缓存
@@ -82,7 +82,7 @@ func GetAccountByLoginName(ctx *zservice.Context, loginName string) (*ZauthAccou
 	}
 
 	// 未找到 查表
-	tab := ZauthAccountTable{}
+	tab := AccountTable{}
 
 	// 验证数据库中是否存在
 	if e := Mysql.Model(&tab).Where(fmt.Sprintf("login_name = '%v'", loginName)).First(&tab).Error; e != nil {
@@ -101,7 +101,7 @@ func GetAccountByLoginName(ctx *zservice.Context, loginName string) (*ZauthAccou
 }
 
 // 根据手机号获取账号
-func GetAccountByPhone(ctx *zservice.Context, phone string) (*ZauthAccountTable, *zservice.Error) {
+func GetAccountByPhone(ctx *zservice.Context, phone string) (*AccountTable, *zservice.Error) {
 	rk := fmt.Sprintf(RK_AccountLoginPhone, phone)
 	if has, e := Redis.Exists(rk).Result(); e != nil { // 是否有缓存
 		return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
@@ -118,7 +118,7 @@ func GetAccountByPhone(ctx *zservice.Context, phone string) (*ZauthAccountTable,
 	}
 
 	// 未找到 查表
-	tab := ZauthAccountTable{}
+	tab := AccountTable{}
 
 	// 验证数据库中是否存在
 	if e := Mysql.Model(&tab).Where(fmt.Sprintf("phone = '%v'", phone)).First(&tab).Error; e != nil {
@@ -137,7 +137,7 @@ func GetAccountByPhone(ctx *zservice.Context, phone string) (*ZauthAccountTable,
 }
 
 // 添加登陆名和密码
-func (z *ZauthAccountTable) AddLoginNameAndPassword(ctx *zservice.Context, name, password string) *zservice.Error {
+func (z *AccountTable) AddLoginNameAndPassword(ctx *zservice.Context, name, password string) *zservice.Error {
 
 	rk := fmt.Sprintf(RK_AccountLoginName, name)
 	// 锁
@@ -162,12 +162,12 @@ func (z *ZauthAccountTable) AddLoginNameAndPassword(ctx *zservice.Context, name,
 }
 
 // 验证密码
-func (z *ZauthAccountTable) VerifyPass(ctx *zservice.Context, password string) bool {
+func (z *AccountTable) VerifyPass(ctx *zservice.Context, password string) bool {
 	return z.LoginPass == AccountGenPassSign(z, password)
 }
 
 // 存储
-func (z *ZauthAccountTable) Save(ctx *zservice.Context) *zservice.Error {
+func (z *AccountTable) Save(ctx *zservice.Context) *zservice.Error {
 	if z.ID == 0 {
 		return zservice.NewError("no account id").SetCode(zglobal.Code_ParamsErr)
 	}

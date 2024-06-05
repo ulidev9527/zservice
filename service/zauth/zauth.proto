@@ -9,16 +9,14 @@ message Default_RES {
 
 // 登陆相关
 message LoginByPhone_REQ {
-    string phone        = 1;   // 手机号 +86****
-    uint32 expires      = 2;   // 过期时间 没有传入 (单位: 秒)，最小 30s，过期时间到了后需要重新授权
-    string loginService = 3 ;  // 登陆目标
-    string verifyCode   = 4 ;  // 验证码
+    string phone      = 1;  // 手机号 +86****
+    uint32 expires    = 2;  // 过期时间 没有传入 (单位: 秒)，最小 30s，过期时间到了后需要重新授权
+    string verifyCode = 3;  // 验证码
 }
 message LoginByAccount_REQ {
     string account      = 1;   // 账号
     string password     = 2;   // 密码
     uint32 expires      = 3;   // 过期时间 没有传入 (单位: 秒)，最小 30s，过期时间到了后需要重新授权
-    string loginService = 4 ;  // 登陆目标
 }
 message CheckAuth_REQ{
     string Auth = 2;  // 权限, 字符串数组，[服务名, 动作, 路径]
@@ -122,12 +120,14 @@ message ConfigSyncServiceEnvConfig_RES{
     string auth = 2;  // 授权码
 }
 message ConfigGetServiceEnvConfig_REQ{
-    string service = 1;  // 服务名
-    string auth    = 2;  // 授权码
+    string auth    = 1;  // 授权码
 }
 message ConfigGetServiceEnvConfig_RES{
-    uint32 code = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
+    uint32 code  = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
     string value = 2;  // 返回的数据
+}
+message ConfigGetEnvConfig_REQ{
+    string service = 1;  // 服务名
 }
 
 service zauth{
@@ -135,6 +135,7 @@ service zauth{
     rpc Logout(Default_REQ) returns(Default_RES);                 // 登出
     rpc LoginByPhone(LoginByPhone_REQ) returns(Default_RES);      // 手机号登陆
     rpc LoginByAccount(LoginByAccount_REQ) returns(Default_RES);  // 账户登陆
+    rpc LoginCheck(Default_REQ) returns(Default_RES);             // 登陆检查
     
     rpc PermissionCreate(PermissionInfo) returns(PermissionInfo_RES);              // 创建权限
     rpc PermissionListGet(PermissionListGet_REQ) returns(PermissionInfoList_RES);  // 获取权限列表权限列表
@@ -153,6 +154,6 @@ service zauth{
     rpc ConfigGetFileConfig(ConfigGetFileConfig_REQ) returns(ConfigGetFileConfig_RES);                       // 获取文件配置
     rpc ConfigSyncServiceFileConfig(ConfigSyncServiceFileConfig_REQ) returns(Default_RES);                   // 同步服务的文件配置
     rpc ConfigSyncServiceEnvConfig(ConfigSyncServiceEnvConfig_REQ) returns(ConfigSyncServiceEnvConfig_RES);  // 同步服务的环境变量
-    rpc ConfigGetServiceEnvConfig(ConfigGetServiceEnvConfig_REQ) returns(ConfigGetServiceEnvConfig_RES);  // 获取服务的环境变量
-    
+    rpc ConfigGetServiceEnvConfig(ConfigGetServiceEnvConfig_REQ) returns(ConfigGetServiceEnvConfig_RES);     // 获取服务的环境变量
+    rpc ConfigGetEnvConfig(ConfigGetEnvConfig_REQ) returns(ConfigGetServiceEnvConfig_RES);                         // 获取环境变量
 }

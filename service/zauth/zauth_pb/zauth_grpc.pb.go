@@ -22,6 +22,7 @@ const (
 	Zauth_Logout_FullMethodName                      = "/zauth_pb.zauth/Logout"
 	Zauth_LoginByPhone_FullMethodName                = "/zauth_pb.zauth/LoginByPhone"
 	Zauth_LoginByAccount_FullMethodName              = "/zauth_pb.zauth/LoginByAccount"
+	Zauth_LoginCheck_FullMethodName                  = "/zauth_pb.zauth/LoginCheck"
 	Zauth_PermissionCreate_FullMethodName            = "/zauth_pb.zauth/PermissionCreate"
 	Zauth_PermissionListGet_FullMethodName           = "/zauth_pb.zauth/PermissionListGet"
 	Zauth_PermissionUpdate_FullMethodName            = "/zauth_pb.zauth/PermissionUpdate"
@@ -36,6 +37,7 @@ const (
 	Zauth_ConfigSyncServiceFileConfig_FullMethodName = "/zauth_pb.zauth/ConfigSyncServiceFileConfig"
 	Zauth_ConfigSyncServiceEnvConfig_FullMethodName  = "/zauth_pb.zauth/ConfigSyncServiceEnvConfig"
 	Zauth_ConfigGetServiceEnvConfig_FullMethodName   = "/zauth_pb.zauth/ConfigGetServiceEnvConfig"
+	Zauth_ConfigGetEnvConfig_FullMethodName          = "/zauth_pb.zauth/ConfigGetEnvConfig"
 )
 
 // ZauthClient is the client API for Zauth service.
@@ -45,6 +47,7 @@ type ZauthClient interface {
 	Logout(ctx context.Context, in *Default_REQ, opts ...grpc.CallOption) (*Default_RES, error)
 	LoginByPhone(ctx context.Context, in *LoginByPhone_REQ, opts ...grpc.CallOption) (*Default_RES, error)
 	LoginByAccount(ctx context.Context, in *LoginByAccount_REQ, opts ...grpc.CallOption) (*Default_RES, error)
+	LoginCheck(ctx context.Context, in *Default_REQ, opts ...grpc.CallOption) (*Default_RES, error)
 	PermissionCreate(ctx context.Context, in *PermissionInfo, opts ...grpc.CallOption) (*PermissionInfo_RES, error)
 	PermissionListGet(ctx context.Context, in *PermissionListGet_REQ, opts ...grpc.CallOption) (*PermissionInfoList_RES, error)
 	PermissionUpdate(ctx context.Context, in *PermissionInfo, opts ...grpc.CallOption) (*PermissionInfo_RES, error)
@@ -59,6 +62,7 @@ type ZauthClient interface {
 	ConfigSyncServiceFileConfig(ctx context.Context, in *ConfigSyncServiceFileConfig_REQ, opts ...grpc.CallOption) (*Default_RES, error)
 	ConfigSyncServiceEnvConfig(ctx context.Context, in *ConfigSyncServiceEnvConfig_REQ, opts ...grpc.CallOption) (*ConfigSyncServiceEnvConfig_RES, error)
 	ConfigGetServiceEnvConfig(ctx context.Context, in *ConfigGetServiceEnvConfig_REQ, opts ...grpc.CallOption) (*ConfigGetServiceEnvConfig_RES, error)
+	ConfigGetEnvConfig(ctx context.Context, in *ConfigGetEnvConfig_REQ, opts ...grpc.CallOption) (*ConfigGetServiceEnvConfig_RES, error)
 }
 
 type zauthClient struct {
@@ -90,6 +94,15 @@ func (c *zauthClient) LoginByPhone(ctx context.Context, in *LoginByPhone_REQ, op
 func (c *zauthClient) LoginByAccount(ctx context.Context, in *LoginByAccount_REQ, opts ...grpc.CallOption) (*Default_RES, error) {
 	out := new(Default_RES)
 	err := c.cc.Invoke(ctx, Zauth_LoginByAccount_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *zauthClient) LoginCheck(ctx context.Context, in *Default_REQ, opts ...grpc.CallOption) (*Default_RES, error) {
+	out := new(Default_RES)
+	err := c.cc.Invoke(ctx, Zauth_LoginCheck_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -222,6 +235,15 @@ func (c *zauthClient) ConfigGetServiceEnvConfig(ctx context.Context, in *ConfigG
 	return out, nil
 }
 
+func (c *zauthClient) ConfigGetEnvConfig(ctx context.Context, in *ConfigGetEnvConfig_REQ, opts ...grpc.CallOption) (*ConfigGetServiceEnvConfig_RES, error) {
+	out := new(ConfigGetServiceEnvConfig_RES)
+	err := c.cc.Invoke(ctx, Zauth_ConfigGetEnvConfig_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ZauthServer is the server API for Zauth service.
 // All implementations must embed UnimplementedZauthServer
 // for forward compatibility
@@ -229,6 +251,7 @@ type ZauthServer interface {
 	Logout(context.Context, *Default_REQ) (*Default_RES, error)
 	LoginByPhone(context.Context, *LoginByPhone_REQ) (*Default_RES, error)
 	LoginByAccount(context.Context, *LoginByAccount_REQ) (*Default_RES, error)
+	LoginCheck(context.Context, *Default_REQ) (*Default_RES, error)
 	PermissionCreate(context.Context, *PermissionInfo) (*PermissionInfo_RES, error)
 	PermissionListGet(context.Context, *PermissionListGet_REQ) (*PermissionInfoList_RES, error)
 	PermissionUpdate(context.Context, *PermissionInfo) (*PermissionInfo_RES, error)
@@ -243,6 +266,7 @@ type ZauthServer interface {
 	ConfigSyncServiceFileConfig(context.Context, *ConfigSyncServiceFileConfig_REQ) (*Default_RES, error)
 	ConfigSyncServiceEnvConfig(context.Context, *ConfigSyncServiceEnvConfig_REQ) (*ConfigSyncServiceEnvConfig_RES, error)
 	ConfigGetServiceEnvConfig(context.Context, *ConfigGetServiceEnvConfig_REQ) (*ConfigGetServiceEnvConfig_RES, error)
+	ConfigGetEnvConfig(context.Context, *ConfigGetEnvConfig_REQ) (*ConfigGetServiceEnvConfig_RES, error)
 	mustEmbedUnimplementedZauthServer()
 }
 
@@ -258,6 +282,9 @@ func (UnimplementedZauthServer) LoginByPhone(context.Context, *LoginByPhone_REQ)
 }
 func (UnimplementedZauthServer) LoginByAccount(context.Context, *LoginByAccount_REQ) (*Default_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LoginByAccount not implemented")
+}
+func (UnimplementedZauthServer) LoginCheck(context.Context, *Default_REQ) (*Default_RES, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LoginCheck not implemented")
 }
 func (UnimplementedZauthServer) PermissionCreate(context.Context, *PermissionInfo) (*PermissionInfo_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PermissionCreate not implemented")
@@ -300,6 +327,9 @@ func (UnimplementedZauthServer) ConfigSyncServiceEnvConfig(context.Context, *Con
 }
 func (UnimplementedZauthServer) ConfigGetServiceEnvConfig(context.Context, *ConfigGetServiceEnvConfig_REQ) (*ConfigGetServiceEnvConfig_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ConfigGetServiceEnvConfig not implemented")
+}
+func (UnimplementedZauthServer) ConfigGetEnvConfig(context.Context, *ConfigGetEnvConfig_REQ) (*ConfigGetServiceEnvConfig_RES, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ConfigGetEnvConfig not implemented")
 }
 func (UnimplementedZauthServer) mustEmbedUnimplementedZauthServer() {}
 
@@ -364,6 +394,24 @@ func _Zauth_LoginByAccount_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ZauthServer).LoginByAccount(ctx, req.(*LoginByAccount_REQ))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Zauth_LoginCheck_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Default_REQ)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ZauthServer).LoginCheck(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Zauth_LoginCheck_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ZauthServer).LoginCheck(ctx, req.(*Default_REQ))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -620,6 +668,24 @@ func _Zauth_ConfigGetServiceEnvConfig_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Zauth_ConfigGetEnvConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConfigGetEnvConfig_REQ)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ZauthServer).ConfigGetEnvConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Zauth_ConfigGetEnvConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ZauthServer).ConfigGetEnvConfig(ctx, req.(*ConfigGetEnvConfig_REQ))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Zauth_ServiceDesc is the grpc.ServiceDesc for Zauth service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -638,6 +704,10 @@ var Zauth_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "LoginByAccount",
 			Handler:    _Zauth_LoginByAccount_Handler,
+		},
+		{
+			MethodName: "LoginCheck",
+			Handler:    _Zauth_LoginCheck_Handler,
 		},
 		{
 			MethodName: "PermissionCreate",
@@ -694,6 +764,10 @@ var Zauth_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ConfigGetServiceEnvConfig",
 			Handler:    _Zauth_ConfigGetServiceEnvConfig_Handler,
+		},
+		{
+			MethodName: "ConfigGetEnvConfig",
+			Handler:    _Zauth_ConfigGetEnvConfig_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

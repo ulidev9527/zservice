@@ -9,7 +9,7 @@ import (
 func Logic_LoginByAccount(ctx *zservice.Context, in *zauth_pb.LoginByAccount_REQ) *zauth_pb.Default_RES {
 
 	// 验证参数
-	if in.Account == "" || in.Password == "" || in.LoginService == "" {
+	if in.Account == "" || in.Password == "" {
 		return &zauth_pb.Default_RES{Code: zglobal.Code_ParamsErr}
 	}
 
@@ -21,7 +21,7 @@ func Logic_LoginByAccount(ctx *zservice.Context, in *zauth_pb.LoginByAccount_REQ
 	}
 
 	if at.UID != 0 { // 已登陆的
-		if at.LoginService == in.LoginService {
+		if at.LoginService == ctx.TraceService {
 			return &zauth_pb.Default_RES{Code: zglobal.Code_SUCC}
 		}
 
@@ -48,7 +48,7 @@ func Logic_LoginByAccount(ctx *zservice.Context, in *zauth_pb.LoginByAccount_REQ
 	// 设置关联信息
 	at.ExpiresSecond = in.Expires
 	at.UID = acc.ID
-	at.LoginService = in.LoginService
+	at.LoginService = ctx.TraceService
 
 	if e := at.Save(); e != nil {
 		ctx.LogError(e)

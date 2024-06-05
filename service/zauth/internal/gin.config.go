@@ -2,6 +2,7 @@ package internal
 
 import (
 	"fmt"
+	"net/http"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
 	"zservice/zservice/ex/ginservice"
@@ -18,14 +19,14 @@ func initGinConfig() {
 		file, e := ctx.FormFile("file")
 		if e != nil {
 			zctx.LogError(e)
-			ctx.JSON(200, gin.H{"code": zglobal.Code_ErrorBreakoff})
+			ctx.JSON(http.StatusOK, gin.H{"code": zglobal.Code_ErrorBreakoff})
 			return
 		}
 		serviceName := ctx.Param("service")
 		filePath := fmt.Sprintf(FI_ServiceConfigFile, serviceName, file.Filename)
 		ctx.SaveUploadedFile(file, filePath)
 
-		ctx.JSON(200, Logic_ConfigSyncServiceFileConfig(zctx, &zauth_pb.ConfigSyncServiceFileConfig_REQ{
+		ctx.JSON(http.StatusOK, Logic_ConfigSyncServiceFileConfig(zctx, &zauth_pb.ConfigSyncServiceFileConfig_REQ{
 			Service:  serviceName,
 			FilePath: filePath,
 			Parser:   zservice.StringToUint32(ctx.PostForm("parser")),
@@ -39,16 +40,25 @@ func initGinConfig() {
 		file, e := ctx.FormFile("file")
 		if e != nil {
 			zctx.LogError(e)
-			ctx.JSON(200, gin.H{"code": zglobal.Code_ErrorBreakoff})
+			ctx.JSON(http.StatusOK, gin.H{"code": zglobal.Code_ErrorBreakoff})
 			return
 		}
 		serviceName := ctx.Param("service")
 		filePath := fmt.Sprintf(FI_ServiceEnvFile, serviceName)
 		ctx.SaveUploadedFile(file, filePath)
 
-		ctx.JSON(200, Logic_ConfigSyncServiceEnvConfig(zctx, &zauth_pb.ConfigSyncServiceEnvConfig_REQ{
+		ctx.JSON(http.StatusOK, Logic_ConfigSyncServiceEnvConfig(zctx, &zauth_pb.ConfigSyncServiceEnvConfig_REQ{
 			Service:  serviceName,
 			FilePath: filePath,
+		}))
+	})
+
+	Gin.GET("/config/:service/envConfig", func(ctx *gin.Context) {
+
+		zctx := ginservice.GetCtxEX(ctx)
+		serviceName := ctx.Param("service")
+		ctx.JSON(http.StatusOK, Logic_ConfigGetEnvConfig(zctx, &zauth_pb.ConfigGetEnvConfig_REQ{
+			Service: serviceName,
 		}))
 	})
 
@@ -57,9 +67,8 @@ func initGinConfig() {
 		zctx := ginservice.GetCtxEX(ctx)
 		auth := ctx.Param("auth")
 
-		ctx.JSON(200, Logic_ConfigGetServiceEnvConfig(zctx, &zauth_pb.ConfigGetServiceEnvConfig_REQ{
-			Service: zctx.TraceService,
-			Auth:    auth,
+		ctx.JSON(http.StatusOK, Logic_ConfigGetServiceEnvConfig(zctx, &zauth_pb.ConfigGetServiceEnvConfig_REQ{
+			Auth: auth,
 		}))
 
 	})

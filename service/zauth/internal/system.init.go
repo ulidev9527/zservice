@@ -21,7 +21,7 @@ func ZauthDBInit() {
 	ctx := zservice.NewEmptyContext()
 	// 检查账号表是否为空，为空表示未初始化
 	count := int64(0)
-	if e := Mysql.Model(&ZauthAccountTable{}).Count(&count).Error; e != nil {
+	if e := Mysql.Model(&AccountTable{}).Count(&count).Error; e != nil {
 		ctx.LogPanic(e)
 	}
 

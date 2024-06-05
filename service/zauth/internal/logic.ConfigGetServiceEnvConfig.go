@@ -12,11 +12,11 @@ import (
 )
 
 func Logic_ConfigGetServiceEnvConfig(ctx *zservice.Context, in *zauth_pb.ConfigGetServiceEnvConfig_REQ) *zauth_pb.ConfigGetServiceEnvConfig_RES {
-	if len(in.Auth) != 128 && in.Service == "" {
+	if len(in.Auth) != 128 && ctx.TraceService == "" {
 		return &zauth_pb.ConfigGetServiceEnvConfig_RES{Code: zglobal.Code_ParamsErr}
 	}
 
-	rk_auth := fmt.Sprintf(RK_Config_ServiceEnvAuth, in.Service)
+	rk_auth := fmt.Sprintf(RK_Config_ServiceEnvAuth, ctx.TraceService)
 
 	if str, e := Redis.Get(rk_auth).Result(); e != nil {
 		if e != redis.Nil {
@@ -27,7 +27,7 @@ func Logic_ConfigGetServiceEnvConfig(ctx *zservice.Context, in *zauth_pb.ConfigG
 		return &zauth_pb.ConfigGetServiceEnvConfig_RES{Code: zglobal.Code_NotFound}
 	}
 
-	if fi, e := os.Open(fmt.Sprintf(FI_ServiceEnvFile, in.Service)); e != nil {
+	if fi, e := os.Open(fmt.Sprintf(FI_ServiceEnvFile, ctx.TraceService)); e != nil {
 		ctx.LogError(e)
 		return &zauth_pb.ConfigGetServiceEnvConfig_RES{Code: zglobal.Code_OpenFileErr}
 	} else {

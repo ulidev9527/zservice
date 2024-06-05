@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"net/http"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice/ex/ginservice"
 	"zservice/zservice/zglobal"
@@ -27,11 +28,11 @@ func gin_SMS_SendVerifyCode(ctx *gin.Context) {
 
 	if e := ctx.ShouldBind(&req); e != nil {
 		zctx.LogError(e)
-		ctx.JSON(200, gin.H{"code": zglobal.Code_ParamsErr})
+		ctx.JSON(http.StatusOK, gin.H{"code": zglobal.Code_ParamsErr})
 		return
 	}
 
-	ctx.JSON(200, Logic_SMSVerifyCodeSend(zctx, &zauth_pb.SMSVerifyCodeSend_REQ{Phone: req.Phone, VerifyCode: req.VerifyCode}))
+	ctx.JSON(http.StatusOK, Logic_SMSVerifyCodeSend(zctx, &zauth_pb.SMSVerifyCodeSend_REQ{Phone: req.Phone, VerifyCode: req.VerifyCode}))
 
 }
 
@@ -44,9 +45,9 @@ func gin_SMS_VerifyCodeVerify(ctx *gin.Context) {
 
 	if e := ctx.ShouldBind(&req); e != nil {
 		zctx.LogError(e)
-		ctx.JSON(200, gin.H{"code": zglobal.Code_ParamsErr})
+		ctx.JSON(http.StatusOK, gin.H{"code": zglobal.Code_ParamsErr})
 		return
 	}
 
-	ctx.JSON(200, Logic_SMSVerifyCodeVerify(zctx, &zauth_pb.SMSVerifyCodeVerify_REQ{Phone: req.Phone, VerifyCode: req.VerifyCode}))
+	ctx.JSON(http.StatusOK, Logic_SMSVerifyCodeVerify(zctx, &zauth_pb.SMSVerifyCodeVerify_REQ{Phone: req.Phone, VerifyCode: req.VerifyCode}))
 }

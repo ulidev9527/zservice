@@ -10,7 +10,11 @@ type TimeModel struct {
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
 
+type IDModel struct {
+	ID uint `gorm:"primaryKey,autoIncrement"`
+}
+
 type AllModel struct {
 	TimeModel
-	ID uint `gorm:"primaryKey,autoIncrement"`
+	IDModel
 }

@@ -130,10 +130,10 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 			return tab.State == 1, nil
 		}
 
-		bindInfo := &ZauthAccountOrgBindTable{}
+		bindInfo := &AccountOrgBindTable{}
 
-		if e := Mysql.Model(&ZauthAccountOrgBindTable{}).Where( // 查找组中是否有当前账号的绑定信息
-			"account_id = ? AND org_id IN (?)",
+		if e := Mysql.Model(&AccountOrgBindTable{}).Where( // 查找组中是否有当前账号的绑定信息
+			"uid = ? AND org_id IN (?)",
 			at.UID,
 			Mysql.Model(&ZauthPermissionBindTable{}).Where( // 查找所有分配权限的组
 				"permission_id = ? AND target_type = 1 AND state = 1 AND (expires = 0 OR expires > ?)",

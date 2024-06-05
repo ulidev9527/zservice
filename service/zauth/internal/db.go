@@ -18,10 +18,10 @@ var (
 
 func InitMysql() {
 
-	Mysql.AutoMigrate(&ZauthAccountTable{})
+	Mysql.AutoMigrate(&AccountTable{})
 	Mysql.AutoMigrate(&ZauthOrgTable{})
 	Mysql.AutoMigrate(&ZauthPermissionTable{})
-	Mysql.AutoMigrate(&ZauthAccountOrgBindTable{})
+	Mysql.AutoMigrate(&AccountOrgBindTable{})
 	Mysql.AutoMigrate(&ZauthPermissionBindTable{})
 	Mysql.AutoMigrate(&ZauthSmsBanTable{})
 

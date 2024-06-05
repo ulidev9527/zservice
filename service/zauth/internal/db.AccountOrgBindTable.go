@@ -9,17 +9,17 @@ import (
 )
 
 // 账号组织绑定
-type ZauthAccountOrgBindTable struct {
+type AccountOrgBindTable struct {
 	gormservice.AllModel
 
-	OrgID     uint32 // 组ID
-	AccountID uint32 // 用户ID
-	Expires   uint64 // 过期时间
-	State     uint32 `gorm:"default:1"` // 状态 0禁用 1开启
+	OrgID   uint32 // 组ID
+	UID     uint32 // 用户ID
+	Expires uint64 // 过期时间
+	State   uint32 `gorm:"default:1"` // 状态 0禁用 1开启
 }
 
 // 加入组织
-func AccountJoinOrg(ctx *zservice.Context, accountID uint32, orgID uint32, Expires uint64) (*ZauthAccountOrgBindTable, *zservice.Error) {
+func AccountJoinOrg(ctx *zservice.Context, uid uint32, orgID uint32, Expires uint64) (*AccountOrgBindTable, *zservice.Error) {
 	// 验证参数是否正确
 	if has, e := HasOrgByID(ctx, orgID); e != nil {
 		return nil, e
@@ -27,24 +27,24 @@ func AccountJoinOrg(ctx *zservice.Context, accountID uint32, orgID uint32, Expir
 		return nil, zservice.NewError("org not found:", orgID).SetCode(zglobal.Code_Zauth_Org_NotFund)
 	}
 
-	if has, e := HasAccountByID(ctx, accountID); e != nil {
+	if has, e := HasAccountByID(ctx, uid); e != nil {
 		return nil, e
 	} else if !has {
-		return nil, zservice.NewError("account not found:", accountID).SetCode(zglobal.Code_Zauth_Account_NotFund)
+		return nil, zservice.NewError("account not found:", uid).SetCode(zglobal.Code_Zauth_Account_NotFund)
 	}
 
 	// 是否已经绑定
-	if has, e := HasAccountOrgBindByAOID(ctx, accountID, orgID); e != nil {
+	if has, e := HasAccountOrgBindByAOID(ctx, uid, orgID); e != nil {
 		return nil, e
 	} else if has {
-		return nil, zservice.NewError("account already join org:", accountID, orgID).SetCode(zglobal.Code_Zauth_AccountAlreadyJoin_Org)
+		return nil, zservice.NewError("account already join org:", uid, orgID).SetCode(zglobal.Code_Zauth_AccountAlreadyJoin_Org)
 	}
 
 	// 准备写入数据
-	z := &ZauthAccountOrgBindTable{
-		OrgID:     orgID,
-		AccountID: accountID,
-		Expires:   Expires,
+	z := &AccountOrgBindTable{
+		OrgID:   orgID,
+		UID:     uid,
+		Expires: Expires,
 	}
 
 	if e := z.Save(ctx); e != nil {
@@ -54,12 +54,12 @@ func AccountJoinOrg(ctx *zservice.Context, accountID uint32, orgID uint32, Expir
 }
 
 // 是否有账号和组织绑定
-func HasAccountOrgBindByAOID(ctx *zservice.Context, accountID uint32, orgID uint32) (bool, *zservice.Error) {
-	return dbhelper.HasTableValue(ctx, &ZauthAccountOrgBindTable{}, fmt.Sprintf(RK_AOBind_Info, orgID, accountID), fmt.Sprintf("account_id = %v and org_id = %v", accountID, orgID))
+func HasAccountOrgBindByAOID(ctx *zservice.Context, uid uint32, orgID uint32) (bool, *zservice.Error) {
+	return dbhelper.HasTableValue(ctx, &AccountOrgBindTable{}, fmt.Sprintf(RK_AOBind_Info, orgID, uid), fmt.Sprintf("uid = %v and org_id = %v", uid, orgID))
 }
 
 // 是否过期
-func (z *ZauthAccountOrgBindTable) IsExpired() bool {
+func (z *AccountOrgBindTable) IsExpired() bool {
 	if z.Expires == 0 {
 		return false
 	}
@@ -67,7 +67,7 @@ func (z *ZauthAccountOrgBindTable) IsExpired() bool {
 }
 
 // 是否启动
-func (z *ZauthAccountOrgBindTable) IsAllow() bool {
+func (z *AccountOrgBindTable) IsAllow() bool {
 	if z.IsExpired() {
 		return false
 	}
@@ -75,13 +75,13 @@ func (z *ZauthAccountOrgBindTable) IsAllow() bool {
 }
 
 // 存储
-func (z *ZauthAccountOrgBindTable) Save(ctx *zservice.Context) *zservice.Error {
+func (z *AccountOrgBindTable) Save(ctx *zservice.Context) *zservice.Error {
 
-	if z.OrgID == 0 || z.AccountID == 0 {
+	if z.OrgID == 0 || z.UID == 0 {
 		return zservice.NewError("param error").SetCode(zglobal.Code_ParamsErr)
 	}
 
-	rk_info := fmt.Sprintf(RK_AOBind_Info, z.OrgID, z.AccountID)
+	rk_info := fmt.Sprintf(RK_AOBind_Info, z.OrgID, z.UID)
 	un, e := Redis.Lock(rk_info)
 	if e != nil {
 		return e

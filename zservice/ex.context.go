@@ -61,9 +61,13 @@ func NewContext(traceJsonStr string) *Context {
 		ctx.ContextS2S.TraceSpanID++
 	}
 
-	// 链路服务更新
-	ctx.ContextS2S.TraceService = ctx.ContextS2S.Service
-	ctx.ContextS2S.Service = mainService.tranceName
+	// 链路服务名更新
+	if ctx.ContextS2S.Service == "" {
+		ctx.ContextS2S.TraceService = mainService.name
+	} else {
+		ctx.ContextS2S.TraceService = ctx.ContextS2S.Service
+	}
+	ctx.ContextS2S.Service = mainService.name
 
 	return ctx
 }

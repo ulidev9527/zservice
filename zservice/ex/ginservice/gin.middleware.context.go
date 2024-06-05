@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"net/http"
 	"runtime"
 	"strings"
 	"zservice/zservice"
@@ -68,11 +69,11 @@ func GinMiddlewareContext(zs *zservice.ZService) gin.HandlerFunc {
 			if e != nil {
 				buf := make([]byte, 1<<12)
 				stackSize := runtime.Stack(buf, true)
-				zctx.LogErrorf("GIN %v %v %v %v %v :Q %v :E %v %v",
+				zctx.LogErrorf("GIN %v %v %v %v %v :Q %v :E %v :ST %v",
 					zctx.RequestIP, ctx.Request.Method, ctx.Request.URL,
 					ctx.Writer.Status(), zctx.Since(), reqParams, e, string(buf[:stackSize]),
 				)
-				ctx.JSON(200, gin.H{"code": 0, "error": zctx.TraceID})
+				ctx.JSON(http.StatusOK, gin.H{"code": 0, "error": zctx.TraceID})
 			}
 		}()
 

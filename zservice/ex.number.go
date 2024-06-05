@@ -32,6 +32,11 @@ func Uint32ToString(u uint32) string {
 	return fmt.Sprintf("%d", u)
 }
 
+// uint32 to int
+func Uint32ToInt(u uint32) int {
+	return int(u)
+}
+
 // uint64 to string
 func UInt64ToString(u uint64) string {
 	return fmt.Sprintf("%d", u)

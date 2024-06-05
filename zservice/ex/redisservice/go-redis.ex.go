@@ -42,7 +42,7 @@ func (r *GoRedisEX) Client() *redis.Client {
 	return r.client
 }
 
-// 加锁 timeout 默认 1分钟
+// 加锁 timeout 默认 1分钟, 已经加锁的直接返回错误
 func (r *GoRedisEX) Lock(key string, timeout ...time.Duration) (func(), *zservice.Error) {
 	return r.LockCtx(context.TODO(), key)
 }

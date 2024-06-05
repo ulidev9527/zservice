@@ -77,4 +77,6 @@ const (
 
 	Time_1m    = time.Second * 60    // 1 分钟
 	Time_10Day = time.Hour * 24 * 10 // 10 天
+
+	NSQ_Topic_zlog_AddKV = "zlog_add_kv" // 添加 kv 日志
 )

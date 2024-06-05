@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"net/http"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice/ex/ginservice"
 	"zservice/zservice/zglobal"
@@ -31,41 +32,39 @@ func gin_handle_Login(ctx *gin.Context) {
 
 	if e := ctx.ShouldBind(&req); e != nil {
 		zctx.LogError(e)
-		ctx.JSON(200, gin.H{"code": zglobal.Code_ParamsErr})
+		ctx.JSON(http.StatusOK, gin.H{"code": zglobal.Code_ParamsErr})
 		return
 	}
 
 	switch req.LoginType {
 	case 1: // 手机号登陆
 		res := Logic_LoginByPhone(zctx, &zauth_pb.LoginByPhone_REQ{
-			Phone:        req.Phone,
-			Expires:      uint32(zglobal.Time_10Day.Seconds()),
-			LoginService: "zauth",
-			VerifyCode:   req.SMSVerifyCode,
+			Phone:      req.Phone,
+			Expires:    uint32(zglobal.Time_10Day.Seconds()),
+			VerifyCode: req.SMSVerifyCode,
 		})
 
 		if res.Code == zglobal.Code_SUCC {
 			ginservice.SyncHeader(ctx)
 		}
 
-		ctx.JSON(200, gin.H{"code": res.Code})
+		ctx.JSON(http.StatusOK, gin.H{"code": res.Code})
 		return
 	case 2: // 账号登陆
 		res := Logic_LoginByAccount(zctx, &zauth_pb.LoginByAccount_REQ{
-			Account:      req.LoginName,
-			Password:     req.LoginPass,
-			Expires:      uint32(zglobal.Time_10Day.Seconds()),
-			LoginService: "zauth",
+			Account:  req.LoginName,
+			Password: req.LoginPass,
+			Expires:  uint32(zglobal.Time_10Day.Seconds()),
 		})
 
 		if res.Code == zglobal.Code_SUCC {
 			ginservice.SyncHeader(ctx)
 		}
 
-		ctx.JSON(200, gin.H{"code": res.Code})
+		ctx.JSON(http.StatusOK, gin.H{"code": res.Code})
 		return
 	default:
-		ctx.JSON(200, gin.H{"code": zglobal.Code_ParamsErr})
+		ctx.JSON(http.StatusOK, gin.H{"code": zglobal.Code_ParamsErr})
 		return
 	}
 }
