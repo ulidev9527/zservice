@@ -1,0 +1,19 @@
+syntax = "proto3";
+package zlog_pb;
+option go_package="./zlog_pb";
+
+message Default_REQ{} // 默认请求
+message Default_RES {
+    uint32 code = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
+}
+
+message LogKV_REQ{
+    uint32 uid      = 1;
+    string key      = 2;
+    string value    = 3;
+    int64 saveTime = 4;
+}
+
+service zlog{
+    rpc AddLogKV(LogKV_REQ) returns(Default_RES);// 添加键值对日志日志
+}
