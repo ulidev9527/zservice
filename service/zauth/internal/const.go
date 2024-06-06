@@ -27,6 +27,7 @@ const (
 	RK_Config_ServiceFileConfig    = "config:service:%s:fileConfig:%s"    // 文件配置缓存
 	RK_Config_ServiceFileConfigMD5 = "config:service:%s:fileConfigMD5:%s" // 文件配置的 md5, 用于标识是否需要重新解析
 	RK_Config_ServiceEnvAuth       = "config:serviceEnvAuth:%s"           // 服务环境配置缓存
+	RK_Service_Regist              = "service:regist:%s"                  // 服务注册 %s 服务名
 
 	NSQ_Config_serviceFileConfigChange = "ConfigSercice_%s_FileConfigChange" // 文件配置变更通知
 

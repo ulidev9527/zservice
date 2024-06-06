@@ -14,9 +14,9 @@ type ContextS2S struct {
 	TraceTime    time.Time `json:"tt"`  // 链路初始化时间
 	TraceID      string    `json:"ti"`  // 链路ID
 	TraceSpanID  int       `json:"tsi"` // 链路 , 自增处理
-	TraceService string    `json:"ts"`  // 链路服务
+	TraceService string    `json:"ts"`  // 链路服务, 之前的服务
 	RequestIP    string    `json:"ip"`  // 请求IP
-	Service      string    `json:"s"`   // 服务
+	NowService   string    `json:"ns"`  // 当前服务
 	AuthToken    string    `json:"at"`  // token
 	AuthSign     string    `json:"as"`  // 授权的签名
 	ClientSign   string    `json:"cs"`  // 客户端签名
@@ -62,12 +62,12 @@ func NewContext(traceJsonStr string) *Context {
 	}
 
 	// 链路服务名更新
-	if ctx.ContextS2S.Service == "" {
+	if ctx.ContextS2S.NowService == "" {
 		ctx.ContextS2S.TraceService = mainService.name
 	} else {
-		ctx.ContextS2S.TraceService = ctx.ContextS2S.Service
+		ctx.ContextS2S.TraceService = ctx.ContextS2S.NowService
 	}
-	ctx.ContextS2S.Service = mainService.name
+	ctx.ContextS2S.NowService = mainService.name
 
 	return ctx
 }

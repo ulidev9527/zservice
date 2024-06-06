@@ -155,5 +155,7 @@ service zauth{
     rpc ConfigSyncServiceFileConfig(ConfigSyncServiceFileConfig_REQ) returns(Default_RES);                   // 同步服务的文件配置
     rpc ConfigSyncServiceEnvConfig(ConfigSyncServiceEnvConfig_REQ) returns(ConfigSyncServiceEnvConfig_RES);  // 同步服务的环境变量
     rpc ConfigGetServiceEnvConfig(ConfigGetServiceEnvConfig_REQ) returns(ConfigGetServiceEnvConfig_RES);     // 获取服务的环境变量
-    rpc ConfigGetEnvConfig(ConfigGetEnvConfig_REQ) returns(ConfigGetServiceEnvConfig_RES);                         // 获取环境变量
+    rpc ConfigGetEnvConfig(ConfigGetEnvConfig_REQ) returns(ConfigGetServiceEnvConfig_RES);                   // 获取环境变量
+
+    rpc ServiceRegist(Default_REQ)returns(Default_RES);  // 服务注册, 创建服务组/服务权限
 }

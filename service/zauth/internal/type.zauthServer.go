@@ -20,6 +20,16 @@ func (s *ZauthServer) LoginByPhone(ctx context.Context, in *zauth_pb.LoginByPhon
 	return Logic_LoginByPhone(grpcservice.GetCtxEX(ctx), in), nil
 }
 
+// 账号密码登陆
+func (s *ZauthServer) LoginByAccount(ctx context.Context, in *zauth_pb.LoginByAccount_REQ) (*zauth_pb.Default_RES, error) {
+	return Logic_LoginByAccount(grpcservice.GetCtxEX(ctx), in), nil
+}
+
+// 登陆检查
+func (s *ZauthServer) LoginCheck(ctx context.Context, in *zauth_pb.Default_REQ) (*zauth_pb.Default_RES, error) {
+	return Logic_LoginCheck(grpcservice.GetCtxEX(ctx), in), nil
+}
+
 // 检查权限
 func (s *ZauthServer) CheckAuth(ctx context.Context, in *zauth_pb.CheckAuth_REQ) (*zauth_pb.CheckAuth_RES, error) {
 	return Logic_CheckAuth(grpcservice.GetCtxEX(ctx), in), nil

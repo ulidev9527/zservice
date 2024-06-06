@@ -44,7 +44,7 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 
 	// 权限相关参数列表
 	authArr := zservice.JsonMustUnmarshal_StringArray([]byte(in.Auth))
-	if len(authArr) == 0 {
+	if len(authArr) != 3 {
 		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_ParamsErr, IsTokenRefresh: isRefreshToken, Token: at.Token}
 	}
 
@@ -110,6 +110,11 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 
 	// 检查是否拥有该权限
 	if at.UID == 0 { // 未登录, 不继续接下里用户判断流程
+		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_Zauth_Fail, IsTokenRefresh: isRefreshToken, Token: at.Token}
+	}
+
+	// 检查登陆服务是否正确
+	if at.LoginService != authService {
 		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_Zauth_Fail, IsTokenRefresh: isRefreshToken, Token: at.Token}
 	}
 

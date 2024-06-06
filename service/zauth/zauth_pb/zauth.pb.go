@@ -1683,7 +1683,7 @@ var file_zauth_proto_rawDesc = []byte{
 	0x32, 0x0a, 0x16, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x47, 0x65, 0x74, 0x45, 0x6e, 0x76, 0x43,
 	0x6f, 0x6e, 0x66, 0x69, 0x67, 0x5f, 0x52, 0x45, 0x51, 0x12, 0x18, 0x0a, 0x07, 0x73, 0x65, 0x72,
 	0x76, 0x69, 0x63, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x73, 0x65, 0x72, 0x76,
-	0x69, 0x63, 0x65, 0x32, 0xd4, 0x0b, 0x0a, 0x05, 0x7a, 0x61, 0x75, 0x74, 0x68, 0x12, 0x36, 0x0a,
+	0x69, 0x63, 0x65, 0x32, 0x93, 0x0c, 0x0a, 0x05, 0x7a, 0x61, 0x75, 0x74, 0x68, 0x12, 0x36, 0x0a,
 	0x06, 0x4c, 0x6f, 0x67, 0x6f, 0x75, 0x74, 0x12, 0x15, 0x2e, 0x7a, 0x61, 0x75, 0x74, 0x68, 0x5f,
 	0x70, 0x62, 0x2e, 0x44, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x5f, 0x52, 0x45, 0x51, 0x1a, 0x15,
 	0x2e, 0x7a, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x70, 0x62, 0x2e, 0x44, 0x65, 0x66, 0x61, 0x75, 0x6c,
@@ -1776,8 +1776,12 @@ var file_zauth_proto_rawDesc = []byte{
 	0x67, 0x47, 0x65, 0x74, 0x45, 0x6e, 0x76, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x5f, 0x52, 0x45,
 	0x51, 0x1a, 0x27, 0x2e, 0x7a, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x70, 0x62, 0x2e, 0x43, 0x6f, 0x6e,
 	0x66, 0x69, 0x67, 0x47, 0x65, 0x74, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x45, 0x6e, 0x76,
-	0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x5f, 0x52, 0x45, 0x53, 0x42, 0x0c, 0x5a, 0x0a, 0x2e, 0x2f,
-	0x7a, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x70, 0x62, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x5f, 0x52, 0x45, 0x53, 0x12, 0x3d, 0x0a, 0x0d, 0x53, 0x65,
+	0x72, 0x76, 0x69, 0x63, 0x65, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x12, 0x15, 0x2e, 0x7a, 0x61,
+	0x75, 0x74, 0x68, 0x5f, 0x70, 0x62, 0x2e, 0x44, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x5f, 0x52,
+	0x45, 0x51, 0x1a, 0x15, 0x2e, 0x7a, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x70, 0x62, 0x2e, 0x44, 0x65,
+	0x66, 0x61, 0x75, 0x6c, 0x74, 0x5f, 0x52, 0x45, 0x53, 0x42, 0x0c, 0x5a, 0x0a, 0x2e, 0x2f, 0x7a,
+	0x61, 0x75, 0x74, 0x68, 0x5f, 0x70, 0x62, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -1845,27 +1849,29 @@ var file_zauth_proto_depIdxs = []int32{
 	21, // 20: zauth_pb.zauth.ConfigSyncServiceEnvConfig:input_type -> zauth_pb.ConfigSyncServiceEnvConfig_REQ
 	23, // 21: zauth_pb.zauth.ConfigGetServiceEnvConfig:input_type -> zauth_pb.ConfigGetServiceEnvConfig_REQ
 	25, // 22: zauth_pb.zauth.ConfigGetEnvConfig:input_type -> zauth_pb.ConfigGetEnvConfig_REQ
-	1,  // 23: zauth_pb.zauth.Logout:output_type -> zauth_pb.Default_RES
-	1,  // 24: zauth_pb.zauth.LoginByPhone:output_type -> zauth_pb.Default_RES
-	1,  // 25: zauth_pb.zauth.LoginByAccount:output_type -> zauth_pb.Default_RES
-	1,  // 26: zauth_pb.zauth.LoginCheck:output_type -> zauth_pb.Default_RES
-	7,  // 27: zauth_pb.zauth.PermissionCreate:output_type -> zauth_pb.PermissionInfo_RES
-	8,  // 28: zauth_pb.zauth.PermissionListGet:output_type -> zauth_pb.PermissionInfoList_RES
-	7,  // 29: zauth_pb.zauth.PermissionUpdate:output_type -> zauth_pb.PermissionInfo_RES
-	1,  // 30: zauth_pb.zauth.PermissionBind:output_type -> zauth_pb.Default_RES
-	12, // 31: zauth_pb.zauth.OrgCreate:output_type -> zauth_pb.OrgInfo_RES
-	13, // 32: zauth_pb.zauth.OrgListGet:output_type -> zauth_pb.OrgInfoList_RES
-	12, // 33: zauth_pb.zauth.OrgUpdate:output_type -> zauth_pb.OrgInfo_RES
-	16, // 34: zauth_pb.zauth.SMSVerifyCodeSend:output_type -> zauth_pb.SMSSendVerifyCode_RES
-	1,  // 35: zauth_pb.zauth.SMSVerifyCodeVerify:output_type -> zauth_pb.Default_RES
-	5,  // 36: zauth_pb.zauth.CheckAuth:output_type -> zauth_pb.CheckAuth_RES
-	19, // 37: zauth_pb.zauth.ConfigGetFileConfig:output_type -> zauth_pb.ConfigGetFileConfig_RES
-	1,  // 38: zauth_pb.zauth.ConfigSyncServiceFileConfig:output_type -> zauth_pb.Default_RES
-	22, // 39: zauth_pb.zauth.ConfigSyncServiceEnvConfig:output_type -> zauth_pb.ConfigSyncServiceEnvConfig_RES
-	24, // 40: zauth_pb.zauth.ConfigGetServiceEnvConfig:output_type -> zauth_pb.ConfigGetServiceEnvConfig_RES
-	24, // 41: zauth_pb.zauth.ConfigGetEnvConfig:output_type -> zauth_pb.ConfigGetServiceEnvConfig_RES
-	23, // [23:42] is the sub-list for method output_type
-	4,  // [4:23] is the sub-list for method input_type
+	0,  // 23: zauth_pb.zauth.ServiceRegist:input_type -> zauth_pb.Default_REQ
+	1,  // 24: zauth_pb.zauth.Logout:output_type -> zauth_pb.Default_RES
+	1,  // 25: zauth_pb.zauth.LoginByPhone:output_type -> zauth_pb.Default_RES
+	1,  // 26: zauth_pb.zauth.LoginByAccount:output_type -> zauth_pb.Default_RES
+	1,  // 27: zauth_pb.zauth.LoginCheck:output_type -> zauth_pb.Default_RES
+	7,  // 28: zauth_pb.zauth.PermissionCreate:output_type -> zauth_pb.PermissionInfo_RES
+	8,  // 29: zauth_pb.zauth.PermissionListGet:output_type -> zauth_pb.PermissionInfoList_RES
+	7,  // 30: zauth_pb.zauth.PermissionUpdate:output_type -> zauth_pb.PermissionInfo_RES
+	1,  // 31: zauth_pb.zauth.PermissionBind:output_type -> zauth_pb.Default_RES
+	12, // 32: zauth_pb.zauth.OrgCreate:output_type -> zauth_pb.OrgInfo_RES
+	13, // 33: zauth_pb.zauth.OrgListGet:output_type -> zauth_pb.OrgInfoList_RES
+	12, // 34: zauth_pb.zauth.OrgUpdate:output_type -> zauth_pb.OrgInfo_RES
+	16, // 35: zauth_pb.zauth.SMSVerifyCodeSend:output_type -> zauth_pb.SMSSendVerifyCode_RES
+	1,  // 36: zauth_pb.zauth.SMSVerifyCodeVerify:output_type -> zauth_pb.Default_RES
+	5,  // 37: zauth_pb.zauth.CheckAuth:output_type -> zauth_pb.CheckAuth_RES
+	19, // 38: zauth_pb.zauth.ConfigGetFileConfig:output_type -> zauth_pb.ConfigGetFileConfig_RES
+	1,  // 39: zauth_pb.zauth.ConfigSyncServiceFileConfig:output_type -> zauth_pb.Default_RES
+	22, // 40: zauth_pb.zauth.ConfigSyncServiceEnvConfig:output_type -> zauth_pb.ConfigSyncServiceEnvConfig_RES
+	24, // 41: zauth_pb.zauth.ConfigGetServiceEnvConfig:output_type -> zauth_pb.ConfigGetServiceEnvConfig_RES
+	24, // 42: zauth_pb.zauth.ConfigGetEnvConfig:output_type -> zauth_pb.ConfigGetServiceEnvConfig_RES
+	1,  // 43: zauth_pb.zauth.ServiceRegist:output_type -> zauth_pb.Default_RES
+	24, // [24:44] is the sub-list for method output_type
+	4,  // [4:24] is the sub-list for method input_type
 	4,  // [4:4] is the sub-list for extension type_name
 	4,  // [4:4] is the sub-list for extension extendee
 	0,  // [0:4] is the sub-list for field type_name

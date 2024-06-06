@@ -116,6 +116,21 @@ func main() {
 				zservice.LogInfo(mapn)
 			})
 
+			zservice.TestAction("lpush", func() {
+				rk := "lpushKey"
+				db.LPush(rk, 1, 2, 3, 4)
+
+			})
+
+			zservice.TestAction("lrange", func() {
+				rk := "lpushKey"
+				s, e := db.LRange(rk, 0, -1).Result()
+				if e != nil {
+					zservice.LogError(e)
+				}
+				zservice.LogInfo(s)
+			})
+
 		},
 	})
 

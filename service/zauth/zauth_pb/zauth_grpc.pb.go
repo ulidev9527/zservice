@@ -38,6 +38,7 @@ const (
 	Zauth_ConfigSyncServiceEnvConfig_FullMethodName  = "/zauth_pb.zauth/ConfigSyncServiceEnvConfig"
 	Zauth_ConfigGetServiceEnvConfig_FullMethodName   = "/zauth_pb.zauth/ConfigGetServiceEnvConfig"
 	Zauth_ConfigGetEnvConfig_FullMethodName          = "/zauth_pb.zauth/ConfigGetEnvConfig"
+	Zauth_ServiceRegist_FullMethodName               = "/zauth_pb.zauth/ServiceRegist"
 )
 
 // ZauthClient is the client API for Zauth service.
@@ -63,6 +64,7 @@ type ZauthClient interface {
 	ConfigSyncServiceEnvConfig(ctx context.Context, in *ConfigSyncServiceEnvConfig_REQ, opts ...grpc.CallOption) (*ConfigSyncServiceEnvConfig_RES, error)
 	ConfigGetServiceEnvConfig(ctx context.Context, in *ConfigGetServiceEnvConfig_REQ, opts ...grpc.CallOption) (*ConfigGetServiceEnvConfig_RES, error)
 	ConfigGetEnvConfig(ctx context.Context, in *ConfigGetEnvConfig_REQ, opts ...grpc.CallOption) (*ConfigGetServiceEnvConfig_RES, error)
+	ServiceRegist(ctx context.Context, in *Default_REQ, opts ...grpc.CallOption) (*Default_RES, error)
 }
 
 type zauthClient struct {
@@ -244,6 +246,15 @@ func (c *zauthClient) ConfigGetEnvConfig(ctx context.Context, in *ConfigGetEnvCo
 	return out, nil
 }
 
+func (c *zauthClient) ServiceRegist(ctx context.Context, in *Default_REQ, opts ...grpc.CallOption) (*Default_RES, error) {
+	out := new(Default_RES)
+	err := c.cc.Invoke(ctx, Zauth_ServiceRegist_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ZauthServer is the server API for Zauth service.
 // All implementations must embed UnimplementedZauthServer
 // for forward compatibility
@@ -267,6 +278,7 @@ type ZauthServer interface {
 	ConfigSyncServiceEnvConfig(context.Context, *ConfigSyncServiceEnvConfig_REQ) (*ConfigSyncServiceEnvConfig_RES, error)
 	ConfigGetServiceEnvConfig(context.Context, *ConfigGetServiceEnvConfig_REQ) (*ConfigGetServiceEnvConfig_RES, error)
 	ConfigGetEnvConfig(context.Context, *ConfigGetEnvConfig_REQ) (*ConfigGetServiceEnvConfig_RES, error)
+	ServiceRegist(context.Context, *Default_REQ) (*Default_RES, error)
 	mustEmbedUnimplementedZauthServer()
 }
 
@@ -330,6 +342,9 @@ func (UnimplementedZauthServer) ConfigGetServiceEnvConfig(context.Context, *Conf
 }
 func (UnimplementedZauthServer) ConfigGetEnvConfig(context.Context, *ConfigGetEnvConfig_REQ) (*ConfigGetServiceEnvConfig_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ConfigGetEnvConfig not implemented")
+}
+func (UnimplementedZauthServer) ServiceRegist(context.Context, *Default_REQ) (*Default_RES, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ServiceRegist not implemented")
 }
 func (UnimplementedZauthServer) mustEmbedUnimplementedZauthServer() {}
 
@@ -686,6 +701,24 @@ func _Zauth_ConfigGetEnvConfig_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Zauth_ServiceRegist_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Default_REQ)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ZauthServer).ServiceRegist(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Zauth_ServiceRegist_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ZauthServer).ServiceRegist(ctx, req.(*Default_REQ))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Zauth_ServiceDesc is the grpc.ServiceDesc for Zauth service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -768,6 +801,10 @@ var Zauth_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ConfigGetEnvConfig",
 			Handler:    _Zauth_ConfigGetEnvConfig_Handler,
+		},
+		{
+			MethodName: "ServiceRegist",
+			Handler:    _Zauth_ServiceRegist_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
