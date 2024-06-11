@@ -97,3 +97,21 @@ func StringToInt64(str string) int64 {
 	}
 	return i
 }
+
+// string to float32
+func StringToFloat(str string) float32 {
+	i, err := strconv.ParseFloat(str, 32)
+	if err != nil {
+		i = 0
+	}
+	return float32(i)
+}
+
+// string to float64
+func StringToFloat64(str string) float64 {
+	i, err := strconv.ParseFloat(str, 64)
+	if err != nil {
+		i = 0
+	}
+	return i
+}

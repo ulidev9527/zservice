@@ -102,17 +102,48 @@ func ParserExcel(fullPath string) (map[string]string, *zservice.Error) {
 
 				value := cols[i]
 
+				if vtype == "number" {
+					if strings.Contains(value, ".") {
+						vtype = "float"
+					} else {
+						vtype = "int"
+					}
+				}
+
+				// 类型转换
 				switch strings.ToLower(vtype) {
 				case "int":
-					data[field] = zservice.StringToInt(value)
+				case "int32":
+				case "int64":
+					data[field] = zservice.StringToInt64(value)
 					continue
+				case "float":
+				case "float32":
+				case "float64":
+					data[field] = zservice.StringToFloat64(value)
 				case "int[]":
+				case "int32[]":
+				case "int64[]":
 					arr := strings.Split(value, ",")
-					list := []int{}
+					list := []int64{}
 					for i := 0; i < len(arr); i++ {
-						list = append(list, zservice.StringToInt(arr[i]))
+						list = append(list, zservice.StringToInt64(arr[i]))
 					}
 					data[field] = list
+					continue
+				case "float[]":
+				case "float32[]":
+				case "float64[]":
+					arr := strings.Split(value, ",")
+					list := []float64{}
+					for i := 0; i < len(arr); i++ {
+						list = append(list, zservice.StringToFloat64(arr[i]))
+					}
+					data[field] = list
+					continue
+
+				case "bool":
+					data[field] = zservice.StringToBoolean(value)
 					continue
 				default: // 默认 string 类型
 					data[field] = value

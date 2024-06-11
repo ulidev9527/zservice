@@ -7,7 +7,7 @@ message Default_RES {
     uint32 code = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
 }
 
-// 登陆相关
+// 账户/登陆相关
 message LoginByPhone_REQ {
     string phone      = 1;  // 手机号 +86****
     uint32 expires    = 2;  // 过期时间 没有传入 (单位: 秒)，最小 30s，过期时间到了后需要重新授权
@@ -18,6 +18,10 @@ message LoginByAccount_REQ {
     string password     = 2;   // 密码
     uint32 expires      = 3;   // 过期时间 没有传入 (单位: 秒)，最小 30s，过期时间到了后需要重新授权
 }
+message Login_RES{
+    uint32 code           = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
+    uint32 uid            = 2;  // 用户ID
+}
 message CheckAuth_REQ{
     string Auth = 2;  // 权限, 字符串数组，[服务名, 动作, 路径]
 }
@@ -25,6 +29,10 @@ message CheckAuth_RES{
     uint32 code           = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
     bool   isTokenRefresh = 2;  // 是否需要刷新token, true 表示需要，不受错误码影响
     string token          = 3;  // 新的令牌， IsTokenRefresh 和 Token 为固定格式，不受错误码影响
+    uint32 uid            = 4;  // 用户ID
+}
+message HasAccountID_REQ{
+    uint32 accountID = 1;  // 账号ID
 }
 
 // 权限相关
@@ -96,6 +104,11 @@ message SMSVerifyCodeVerify_REQ { // 发送验证码 请求
     string verifyCode = 2;  // 验证码
 }
 
+// 其它
+message ZZZZString_REQ{
+    string str = 1; // 字符串
+}
+
 // 配置相关
 message ConfigGetFileConfig_REQ {
     string fileName = 1;  // 文件名
@@ -132,10 +145,11 @@ message ConfigGetEnvConfig_REQ{
 
 service zauth{
 
-    rpc Logout(Default_REQ) returns(Default_RES);                 // 登出
-    rpc LoginByPhone(LoginByPhone_REQ) returns(Default_RES);      // 手机号登陆
-    rpc LoginByAccount(LoginByAccount_REQ) returns(Default_RES);  // 账户登陆
-    rpc LoginCheck(Default_REQ) returns(Default_RES);             // 登陆检查
+    rpc Logout(Default_REQ) returns(Default_RES);               // 登出
+    rpc LoginByPhone(LoginByPhone_REQ) returns(Login_RES);      // 手机号登陆
+    rpc LoginByAccount(LoginByAccount_REQ) returns(Login_RES);  // 账户登陆
+    rpc LoginCheck(Default_REQ) returns(Default_RES);           // 登陆检查
+    rpc HasAccountID(HasAccountID_REQ) returns(Default_RES);    // 检查账户是否存在
     
     rpc PermissionCreate(PermissionInfo) returns(PermissionInfo_RES);              // 创建权限
     rpc PermissionListGet(PermissionListGet_REQ) returns(PermissionInfoList_RES);  // 获取权限列表权限列表
@@ -150,6 +164,8 @@ service zauth{
     rpc SMSVerifyCodeVerify(SMSVerifyCodeVerify_REQ) returns(Default_RES);        // 验证验证码
 
     rpc CheckAuth(CheckAuth_REQ) returns(CheckAuth_RES);  // 检查权限
+
+    rpc ZZZZString(ZZZZString_REQ) returns(Default_RES); // 验证ZZZZ字符串
 
     rpc ConfigGetFileConfig(ConfigGetFileConfig_REQ) returns(ConfigGetFileConfig_RES);                       // 获取文件配置
     rpc ConfigSyncServiceFileConfig(ConfigSyncServiceFileConfig_REQ) returns(Default_RES);                   // 同步服务的文件配置

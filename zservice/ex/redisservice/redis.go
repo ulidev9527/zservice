@@ -77,3 +77,7 @@ func NewRedisService(c *RedisServiceConfig) *RedisService {
 	})
 	return rs
 }
+
+func IsNilErr(e error) bool {
+	return e == redis.Nil
+}

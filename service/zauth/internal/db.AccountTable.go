@@ -168,9 +168,6 @@ func (z *AccountTable) VerifyPass(ctx *zservice.Context, password string) bool {
 
 // 存储
 func (z *AccountTable) Save(ctx *zservice.Context) *zservice.Error {
-	if z.ID == 0 {
-		return zservice.NewError("no account id").SetCode(zglobal.Code_ParamsErr)
-	}
 
 	rk_info := fmt.Sprintf(RK_AccountInfo, z.ID)
 
@@ -181,20 +178,16 @@ func (z *AccountTable) Save(ctx *zservice.Context) *zservice.Error {
 	}
 	defer un()
 
-	if z.ID == 0 { // 创建
-		if e := Mysql.Create(z).Error; e != nil {
-			return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
-		}
-	} else { // 更新
-		if e := Mysql.Save(z).Error; e != nil {
-			return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
-		}
+	if e := Mysql.Save(z).Error; e != nil {
+		return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 	}
 
 	// 删缓存
-	if e := Redis.Del(rk_info).Err(); e != nil {
-		zservice.LogError(zglobal.Code_Redis_DelFail, e)
-	}
+	zservice.Go(func() {
+		if e := Redis.Del(rk_info).Err(); e != nil {
+			ctx.LogError(zglobal.Code_Redis_DelFail, e)
+		}
+	})
 
 	return nil
 }

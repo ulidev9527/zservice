@@ -5,9 +5,8 @@ import (
 	"path"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
+	"zservice/zservice/ex/redisservice"
 	"zservice/zservice/zglobal"
-
-	"github.com/redis/go-redis/v9"
 )
 
 // 同步服务配置
@@ -36,7 +35,7 @@ func Logic_ConfigSyncServiceFileConfig(ctx *zservice.Context, in *zauth_pb.Confi
 	}
 	rk_md5 := fmt.Sprintf(RK_Config_ServiceFileConfigMD5, in.Service, fileName)
 	if s, e := Redis.Get(rk_md5).Result(); e != nil {
-		if e != redis.Nil {
+		if !redisservice.IsNilErr(e) {
 			ctx.LogError(e)
 			return &zauth_pb.Default_RES{Code: zglobal.Code_ErrorBreakoff}
 		}

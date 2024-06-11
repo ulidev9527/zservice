@@ -1,6 +1,7 @@
 package gormservice
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -82,4 +83,9 @@ func NewGormMysqlService(c *GormMysqlServiceConfig) *GormMysqlService {
 
 	gs.ZService = zs
 	return gs
+}
+
+// 是否是记录未找到
+func IsNotFound(e error) bool {
+	return errors.Is(e, gorm.ErrRecordNotFound)
 }

@@ -5,9 +5,8 @@ import (
 	"time"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
+	"zservice/zservice/ex/redisservice"
 	"zservice/zservice/zglobal"
-
-	"github.com/redis/go-redis/v9"
 )
 
 func Logic_ConfigSyncServiceEnvConfig(ctx *zservice.Context, in *zauth_pb.ConfigSyncServiceEnvConfig_REQ) *zauth_pb.ConfigSyncServiceEnvConfig_RES {
@@ -33,7 +32,7 @@ func Logic_ConfigSyncServiceEnvConfig(ctx *zservice.Context, in *zauth_pb.Config
 	authKey := fmt.Sprint(zservice.RandomStringLow(96), si)
 	rk_auth := fmt.Sprintf(RK_Config_ServiceEnvAuth, in.Service)
 	if e := Redis.Set(rk_auth, authKey).Err(); e != nil {
-		if e != redis.Nil {
+		if !redisservice.IsNilErr(e) {
 			ctx.LogError(e)
 			return &zauth_pb.ConfigSyncServiceEnvConfig_RES{Code: zglobal.Code_ErrorBreakoff}
 		}

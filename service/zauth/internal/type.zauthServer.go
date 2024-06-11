@@ -16,13 +16,18 @@ func (s *ZauthServer) Logout(ctx context.Context, in *zauth_pb.Default_REQ) (*za
 }
 
 // 手机号登陆
-func (s *ZauthServer) LoginByPhone(ctx context.Context, in *zauth_pb.LoginByPhone_REQ) (*zauth_pb.Default_RES, error) {
+func (s *ZauthServer) LoginByPhone(ctx context.Context, in *zauth_pb.LoginByPhone_REQ) (*zauth_pb.Login_RES, error) {
 	return Logic_LoginByPhone(grpcservice.GetCtxEX(ctx), in), nil
 }
 
 // 账号密码登陆
-func (s *ZauthServer) LoginByAccount(ctx context.Context, in *zauth_pb.LoginByAccount_REQ) (*zauth_pb.Default_RES, error) {
+func (s *ZauthServer) LoginByAccount(ctx context.Context, in *zauth_pb.LoginByAccount_REQ) (*zauth_pb.Login_RES, error) {
 	return Logic_LoginByAccount(grpcservice.GetCtxEX(ctx), in), nil
+}
+
+// 是否有账号
+func (s *ZauthServer) HasAccountID(ctx context.Context, in *zauth_pb.HasAccountID_REQ) (*zauth_pb.Default_RES, error) {
+	return Logic_HasAccountID(grpcservice.GetCtxEX(ctx), in), nil
 }
 
 // 登陆检查
@@ -43,6 +48,11 @@ func (s *ZauthServer) SMSVerifyCodeSend(ctx context.Context, in *zauth_pb.SMSVer
 // 短信验证码校验
 func (s *ZauthServer) SMSVerifyCodeVerify(ctx context.Context, in *zauth_pb.SMSVerifyCodeVerify_REQ) (*zauth_pb.Default_RES, error) {
 	return Logic_SMSVerifyCodeVerify(grpcservice.GetCtxEX(ctx), in), nil
+}
+
+// ZZZZ字符串验证
+func (s *ZauthServer) ZZZZString(ctx context.Context, in *zauth_pb.ZZZZString_REQ) (*zauth_pb.Default_RES, error) {
+	return Logic_ZZZZString(grpcservice.GetCtxEX(ctx), in), nil
 }
 
 // 获取文件配置

@@ -24,6 +24,7 @@ func CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zservice.Erro
 		if res.IsTokenRefresh {
 			ctx.AuthToken = res.Token
 		}
+		ctx.AuthID = res.Uid
 		return nil
 	}
 }

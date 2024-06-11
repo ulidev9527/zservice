@@ -11,12 +11,13 @@ const (
 	Code_ParamsErr     = 6 // 参数错误
 	Code_LoginAgain    = 7 // 请重新登录, 重新拉取 token 进行登陆
 	Code_NotFound      = 8 // 资源不存在/没找到/数据未查询到
+	Code_Wait          = 9 // 等待
 
 	Code_OpenFileErr         = 101 // 打开文件错误
 	Code_WiteFileErr         = 102 // 写入文件错误
 	Code_CloseFileErr        = 103 // 关闭文件错误
 	Code_EmptyFile           = 104 // 文件为空
-	Code_RedisKeyLockFail    = 105 // redis 锁失败
+	Code_Already_Lock        = 105 // 已经上锁
 	Code_SyncCacheIncomplete = 106 // 数据同步不完全
 	Code_SyncCacheErr        = 107 // 数据同步失败
 	Code_GenIDCountMaxErr    = 108 // 生成ID错误次数超上限
@@ -75,8 +76,11 @@ const (
 
 	E_ZConfig_Parser_Excel = 1 // excel 解析器
 
-	Time_1m    = time.Second * 60    // 1 分钟
-	Time_10Day = time.Hour * 24 * 10 // 10 天
+	Time_0     = time.Duration(0)      // 0 秒
+	Time_10ms  = time.Millisecond * 10 // 10 毫秒
+	Time_1m    = time.Second * 60      // 1 分钟
+	Time_10Day = time.Hour * 24 * 10   // 10 天
+	Time_3Day  = time.Hour * 24 * 3    // 3 天
 
 	NSQ_Topic_zlog_AddKV = "zlog_add_kv" // 添加 kv 日志
 )

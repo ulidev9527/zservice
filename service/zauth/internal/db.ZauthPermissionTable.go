@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"zservice/zservice"
 	"zservice/zservice/ex/gormservice"
+	"zservice/zservice/ex/redisservice"
 	"zservice/zservice/zglobal"
 
-	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
@@ -54,7 +54,7 @@ func GetPermissionByID(ctx *zservice.Context, id uint) (*ZauthPermissionTable, *
 func GetPermissionBySAP(ctx *zservice.Context, service, action, path string) (*ZauthPermissionTable, *zservice.Error) {
 	rk_sap := fmt.Sprintf(RK_PermissionSAP, service, action, path)
 	if s, e := Redis.Get(rk_sap).Result(); e != nil {
-		if e != redis.Nil {
+		if !redisservice.IsNilErr(e) {
 			return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 		}
 
@@ -105,20 +105,16 @@ func (z *ZauthPermissionTable) Save(ctx *zservice.Context) *zservice.Error {
 	}
 	defer un()
 
-	if z.ID == 0 { // 创建
-		if e := Mysql.Create(z).Error; e != nil {
-			return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
-		}
-	} else { // 更新
-		if e := Mysql.Save(z).Error; e != nil {
-			return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
-		}
+	if e := Mysql.Save(z).Error; e != nil {
+		return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 	}
 
 	// 删除缓存
-	if e := Redis.Del(rk_info).Err(); e != nil {
-		zservice.LogError(zglobal.Code_Redis_DelFail, e)
-	}
+	zservice.Go(func() {
+		if e := Redis.Del(rk_info).Err(); e != nil {
+			zservice.LogError(zglobal.Code_Redis_DelFail, e)
+		}
+	})
 
 	return nil
 }

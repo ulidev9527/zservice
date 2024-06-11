@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 	"zservice/zservice"
 	"zservice/zservice/zglobal"
@@ -24,6 +25,10 @@ func (r *GoRedisEX) AddKeyPrefix(key string) string {
 		return key
 	}
 
+	if strings.HasPrefix(key, r.keyPrefix) {
+		return key
+	}
+
 	return r.keyPrefix + key
 }
 func (r *GoRedisEX) AddkeyPrefixs(key ...string) []string {
@@ -32,7 +37,7 @@ func (r *GoRedisEX) AddkeyPrefixs(key ...string) []string {
 		return key
 	}
 	for i := 0; i < len(key); i++ {
-		key[i] = r.keyPrefix + key[i]
+		key[i] = r.AddKeyPrefix(key[i])
 	}
 	return key
 }
@@ -53,12 +58,12 @@ func (r *GoRedisEX) LockCtx(ctx context.Context, key string, timeout ...time.Dur
 		timeout = append(timeout, zglobal.Time_1m)
 	}
 
-	has, e := r.SetNX(lockKey, "1", timeout[0]).Result()
+	ok, e := r.SetNX(lockKey, "1", timeout[0]).Result()
 	if e != nil {
 		return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 	}
-	if !has {
-		return nil, zservice.NewErrorf("lock %s fail", lockKey).SetCode(zglobal.Code_RedisKeyLockFail)
+	if !ok {
+		return nil, zservice.NewErrorf("lock %s fail", lockKey).SetCode(zglobal.Code_Already_Lock)
 	}
 
 	return func() {
@@ -107,27 +112,6 @@ func (r *GoRedisEX) SetNX(key string, value string, expiration time.Duration) *r
 }
 func (r *GoRedisEX) SetNXCtx(ctx context.Context, key string, value string, expiration time.Duration) *redis.BoolCmd {
 	return r.client.SetNX(ctx, r.AddKeyPrefix(key), value, expiration)
-}
-
-func (r *GoRedisEX) Del(keys ...string) *redis.IntCmd {
-	return r.DelCtx(context.TODO(), keys...)
-}
-func (r *GoRedisEX) DelCtx(ctx context.Context, keys ...string) *redis.IntCmd {
-	return r.client.Del(ctx, r.AddkeyPrefixs(keys...)...)
-}
-
-func (r *GoRedisEX) Exists(keys ...string) *redis.IntCmd {
-	return r.ExistsCtx(context.TODO(), keys...)
-}
-func (r *GoRedisEX) ExistsCtx(ctx context.Context, keys ...string) *redis.IntCmd {
-	return r.client.Exists(ctx, r.AddkeyPrefixs(keys...)...)
-}
-
-func (r *GoRedisEX) Expire(key string, expiration time.Duration) *redis.BoolCmd {
-	return r.ExpireCtx(context.TODO(), key, expiration)
-}
-func (r *GoRedisEX) ExpireCtx(ctx context.Context, key string, expiration time.Duration) *redis.BoolCmd {
-	return r.client.Expire(ctx, r.AddKeyPrefix(key), expiration)
 }
 
 func (r *GoRedisEX) HMGet(key string, fields ...string) *redis.SliceCmd {

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 	"zservice/service/zauth/zauth_pb"
 
@@ -13,13 +14,25 @@ import (
 // 环境变量缓存
 var envCacheMap = &sync.Map{}
 
+func init() {
+	// 获取所有环境变量
+	strArr := os.Environ()
+	for _, v := range strArr {
+		arr := strings.Split(v, "=")
+		SetEnv(arr[0], arr[1])
+	}
+}
+
+// 合并环境变量
 func MergeEnv(envs map[string]string) {
 	for k, v := range envs {
 		SetEnv(k, v)
 	}
 }
 
+// 获取环境变量，key 不限制大小写
 func Getenv(key string) string {
+	key = strings.ToUpper(key)
 	s, has := envCacheMap.Load(key)
 	if has {
 		return s.(string)
@@ -39,6 +52,7 @@ func Getenv(key string) string {
 }
 
 func SetEnv(key string, value string) {
+	key = strings.ToUpper(key)
 	if key == ENV_ZSERVICE_VERSION && Getenv(key) != "" {
 		return
 	}

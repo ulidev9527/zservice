@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"zservice/zservice"
 	"zservice/zservice/ex/gormservice"
+	"zservice/zservice/ex/redisservice"
 	"zservice/zservice/zglobal"
 
-	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
@@ -47,7 +47,7 @@ func GetOrgByID(ctx *zservice.Context, id uint32) (*ZauthOrgTable, *zservice.Err
 	tab := &ZauthOrgTable{}
 
 	if s, e := Redis.Get(rk_info).Result(); e != nil {
-		if e != redis.Nil {
+		if !redisservice.IsNilErr(e) {
 			return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 		}
 	} else if e := json.Unmarshal([]byte(s), tab); e != nil {
@@ -75,7 +75,7 @@ func GetRootOrgByName(ctx *zservice.Context, name string) (*ZauthOrgTable, *zser
 	tab := &ZauthOrgTable{}
 
 	if s, e := Redis.Get(rk_rootName).Result(); e != nil {
-		if e != redis.Nil {
+		if !redisservice.IsNilErr(e) {
 			return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 		}
 	} else {
@@ -107,10 +107,6 @@ func GetRootOrgByName(ctx *zservice.Context, name string) (*ZauthOrgTable, *zser
 // 组织存储
 func (z *ZauthOrgTable) Save(ctx *zservice.Context) *zservice.Error {
 
-	if z.ID == 0 {
-		return zservice.NewError("param error").SetCode(zglobal.Code_ParamsErr)
-	}
-
 	rk_info := fmt.Sprintf(RK_OrgInfo, z.ID)
 
 	// 上锁
@@ -121,20 +117,16 @@ func (z *ZauthOrgTable) Save(ctx *zservice.Context) *zservice.Error {
 	}
 	defer un()
 
-	if z.ID == 0 { // 创建
-
-		if e := Mysql.Create(&z).Error; e != nil {
-			return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
-		}
-	} else { // 更新
-		if e := Mysql.Save(&z).Error; e != nil {
-			return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
-		}
+	if e := Mysql.Save(&z).Error; e != nil {
+		return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 	}
 
 	// 删缓存
-	if e := Redis.Del(rk_info).Err(); e != nil {
-		zservice.LogError(zglobal.Code_Redis_DelFail, e)
-	}
+	zservice.Go(func() {
+		if e := Redis.Del(rk_info).Err(); e != nil {
+			zservice.LogError(zglobal.Code_Redis_DelFail, e)
+		}
+	})
+
 	return nil
 }

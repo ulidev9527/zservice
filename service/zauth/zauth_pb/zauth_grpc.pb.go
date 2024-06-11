@@ -23,6 +23,7 @@ const (
 	Zauth_LoginByPhone_FullMethodName                = "/zauth_pb.zauth/LoginByPhone"
 	Zauth_LoginByAccount_FullMethodName              = "/zauth_pb.zauth/LoginByAccount"
 	Zauth_LoginCheck_FullMethodName                  = "/zauth_pb.zauth/LoginCheck"
+	Zauth_HasAccountID_FullMethodName                = "/zauth_pb.zauth/HasAccountID"
 	Zauth_PermissionCreate_FullMethodName            = "/zauth_pb.zauth/PermissionCreate"
 	Zauth_PermissionListGet_FullMethodName           = "/zauth_pb.zauth/PermissionListGet"
 	Zauth_PermissionUpdate_FullMethodName            = "/zauth_pb.zauth/PermissionUpdate"
@@ -33,6 +34,7 @@ const (
 	Zauth_SMSVerifyCodeSend_FullMethodName           = "/zauth_pb.zauth/SMSVerifyCodeSend"
 	Zauth_SMSVerifyCodeVerify_FullMethodName         = "/zauth_pb.zauth/SMSVerifyCodeVerify"
 	Zauth_CheckAuth_FullMethodName                   = "/zauth_pb.zauth/CheckAuth"
+	Zauth_ZZZZString_FullMethodName                  = "/zauth_pb.zauth/ZZZZString"
 	Zauth_ConfigGetFileConfig_FullMethodName         = "/zauth_pb.zauth/ConfigGetFileConfig"
 	Zauth_ConfigSyncServiceFileConfig_FullMethodName = "/zauth_pb.zauth/ConfigSyncServiceFileConfig"
 	Zauth_ConfigSyncServiceEnvConfig_FullMethodName  = "/zauth_pb.zauth/ConfigSyncServiceEnvConfig"
@@ -46,9 +48,10 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ZauthClient interface {
 	Logout(ctx context.Context, in *Default_REQ, opts ...grpc.CallOption) (*Default_RES, error)
-	LoginByPhone(ctx context.Context, in *LoginByPhone_REQ, opts ...grpc.CallOption) (*Default_RES, error)
-	LoginByAccount(ctx context.Context, in *LoginByAccount_REQ, opts ...grpc.CallOption) (*Default_RES, error)
+	LoginByPhone(ctx context.Context, in *LoginByPhone_REQ, opts ...grpc.CallOption) (*Login_RES, error)
+	LoginByAccount(ctx context.Context, in *LoginByAccount_REQ, opts ...grpc.CallOption) (*Login_RES, error)
 	LoginCheck(ctx context.Context, in *Default_REQ, opts ...grpc.CallOption) (*Default_RES, error)
+	HasAccountID(ctx context.Context, in *HasAccountID_REQ, opts ...grpc.CallOption) (*Default_RES, error)
 	PermissionCreate(ctx context.Context, in *PermissionInfo, opts ...grpc.CallOption) (*PermissionInfo_RES, error)
 	PermissionListGet(ctx context.Context, in *PermissionListGet_REQ, opts ...grpc.CallOption) (*PermissionInfoList_RES, error)
 	PermissionUpdate(ctx context.Context, in *PermissionInfo, opts ...grpc.CallOption) (*PermissionInfo_RES, error)
@@ -59,6 +62,7 @@ type ZauthClient interface {
 	SMSVerifyCodeSend(ctx context.Context, in *SMSVerifyCodeSend_REQ, opts ...grpc.CallOption) (*SMSSendVerifyCode_RES, error)
 	SMSVerifyCodeVerify(ctx context.Context, in *SMSVerifyCodeVerify_REQ, opts ...grpc.CallOption) (*Default_RES, error)
 	CheckAuth(ctx context.Context, in *CheckAuth_REQ, opts ...grpc.CallOption) (*CheckAuth_RES, error)
+	ZZZZString(ctx context.Context, in *ZZZZString_REQ, opts ...grpc.CallOption) (*Default_RES, error)
 	ConfigGetFileConfig(ctx context.Context, in *ConfigGetFileConfig_REQ, opts ...grpc.CallOption) (*ConfigGetFileConfig_RES, error)
 	ConfigSyncServiceFileConfig(ctx context.Context, in *ConfigSyncServiceFileConfig_REQ, opts ...grpc.CallOption) (*Default_RES, error)
 	ConfigSyncServiceEnvConfig(ctx context.Context, in *ConfigSyncServiceEnvConfig_REQ, opts ...grpc.CallOption) (*ConfigSyncServiceEnvConfig_RES, error)
@@ -84,8 +88,8 @@ func (c *zauthClient) Logout(ctx context.Context, in *Default_REQ, opts ...grpc.
 	return out, nil
 }
 
-func (c *zauthClient) LoginByPhone(ctx context.Context, in *LoginByPhone_REQ, opts ...grpc.CallOption) (*Default_RES, error) {
-	out := new(Default_RES)
+func (c *zauthClient) LoginByPhone(ctx context.Context, in *LoginByPhone_REQ, opts ...grpc.CallOption) (*Login_RES, error) {
+	out := new(Login_RES)
 	err := c.cc.Invoke(ctx, Zauth_LoginByPhone_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -93,8 +97,8 @@ func (c *zauthClient) LoginByPhone(ctx context.Context, in *LoginByPhone_REQ, op
 	return out, nil
 }
 
-func (c *zauthClient) LoginByAccount(ctx context.Context, in *LoginByAccount_REQ, opts ...grpc.CallOption) (*Default_RES, error) {
-	out := new(Default_RES)
+func (c *zauthClient) LoginByAccount(ctx context.Context, in *LoginByAccount_REQ, opts ...grpc.CallOption) (*Login_RES, error) {
+	out := new(Login_RES)
 	err := c.cc.Invoke(ctx, Zauth_LoginByAccount_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -105,6 +109,15 @@ func (c *zauthClient) LoginByAccount(ctx context.Context, in *LoginByAccount_REQ
 func (c *zauthClient) LoginCheck(ctx context.Context, in *Default_REQ, opts ...grpc.CallOption) (*Default_RES, error) {
 	out := new(Default_RES)
 	err := c.cc.Invoke(ctx, Zauth_LoginCheck_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *zauthClient) HasAccountID(ctx context.Context, in *HasAccountID_REQ, opts ...grpc.CallOption) (*Default_RES, error) {
+	out := new(Default_RES)
+	err := c.cc.Invoke(ctx, Zauth_HasAccountID_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -201,6 +214,15 @@ func (c *zauthClient) CheckAuth(ctx context.Context, in *CheckAuth_REQ, opts ...
 	return out, nil
 }
 
+func (c *zauthClient) ZZZZString(ctx context.Context, in *ZZZZString_REQ, opts ...grpc.CallOption) (*Default_RES, error) {
+	out := new(Default_RES)
+	err := c.cc.Invoke(ctx, Zauth_ZZZZString_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *zauthClient) ConfigGetFileConfig(ctx context.Context, in *ConfigGetFileConfig_REQ, opts ...grpc.CallOption) (*ConfigGetFileConfig_RES, error) {
 	out := new(ConfigGetFileConfig_RES)
 	err := c.cc.Invoke(ctx, Zauth_ConfigGetFileConfig_FullMethodName, in, out, opts...)
@@ -260,9 +282,10 @@ func (c *zauthClient) ServiceRegist(ctx context.Context, in *Default_REQ, opts .
 // for forward compatibility
 type ZauthServer interface {
 	Logout(context.Context, *Default_REQ) (*Default_RES, error)
-	LoginByPhone(context.Context, *LoginByPhone_REQ) (*Default_RES, error)
-	LoginByAccount(context.Context, *LoginByAccount_REQ) (*Default_RES, error)
+	LoginByPhone(context.Context, *LoginByPhone_REQ) (*Login_RES, error)
+	LoginByAccount(context.Context, *LoginByAccount_REQ) (*Login_RES, error)
 	LoginCheck(context.Context, *Default_REQ) (*Default_RES, error)
+	HasAccountID(context.Context, *HasAccountID_REQ) (*Default_RES, error)
 	PermissionCreate(context.Context, *PermissionInfo) (*PermissionInfo_RES, error)
 	PermissionListGet(context.Context, *PermissionListGet_REQ) (*PermissionInfoList_RES, error)
 	PermissionUpdate(context.Context, *PermissionInfo) (*PermissionInfo_RES, error)
@@ -273,6 +296,7 @@ type ZauthServer interface {
 	SMSVerifyCodeSend(context.Context, *SMSVerifyCodeSend_REQ) (*SMSSendVerifyCode_RES, error)
 	SMSVerifyCodeVerify(context.Context, *SMSVerifyCodeVerify_REQ) (*Default_RES, error)
 	CheckAuth(context.Context, *CheckAuth_REQ) (*CheckAuth_RES, error)
+	ZZZZString(context.Context, *ZZZZString_REQ) (*Default_RES, error)
 	ConfigGetFileConfig(context.Context, *ConfigGetFileConfig_REQ) (*ConfigGetFileConfig_RES, error)
 	ConfigSyncServiceFileConfig(context.Context, *ConfigSyncServiceFileConfig_REQ) (*Default_RES, error)
 	ConfigSyncServiceEnvConfig(context.Context, *ConfigSyncServiceEnvConfig_REQ) (*ConfigSyncServiceEnvConfig_RES, error)
@@ -289,14 +313,17 @@ type UnimplementedZauthServer struct {
 func (UnimplementedZauthServer) Logout(context.Context, *Default_REQ) (*Default_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Logout not implemented")
 }
-func (UnimplementedZauthServer) LoginByPhone(context.Context, *LoginByPhone_REQ) (*Default_RES, error) {
+func (UnimplementedZauthServer) LoginByPhone(context.Context, *LoginByPhone_REQ) (*Login_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LoginByPhone not implemented")
 }
-func (UnimplementedZauthServer) LoginByAccount(context.Context, *LoginByAccount_REQ) (*Default_RES, error) {
+func (UnimplementedZauthServer) LoginByAccount(context.Context, *LoginByAccount_REQ) (*Login_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LoginByAccount not implemented")
 }
 func (UnimplementedZauthServer) LoginCheck(context.Context, *Default_REQ) (*Default_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LoginCheck not implemented")
+}
+func (UnimplementedZauthServer) HasAccountID(context.Context, *HasAccountID_REQ) (*Default_RES, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HasAccountID not implemented")
 }
 func (UnimplementedZauthServer) PermissionCreate(context.Context, *PermissionInfo) (*PermissionInfo_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PermissionCreate not implemented")
@@ -327,6 +354,9 @@ func (UnimplementedZauthServer) SMSVerifyCodeVerify(context.Context, *SMSVerifyC
 }
 func (UnimplementedZauthServer) CheckAuth(context.Context, *CheckAuth_REQ) (*CheckAuth_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckAuth not implemented")
+}
+func (UnimplementedZauthServer) ZZZZString(context.Context, *ZZZZString_REQ) (*Default_RES, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ZZZZString not implemented")
 }
 func (UnimplementedZauthServer) ConfigGetFileConfig(context.Context, *ConfigGetFileConfig_REQ) (*ConfigGetFileConfig_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ConfigGetFileConfig not implemented")
@@ -427,6 +457,24 @@ func _Zauth_LoginCheck_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ZauthServer).LoginCheck(ctx, req.(*Default_REQ))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Zauth_HasAccountID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HasAccountID_REQ)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ZauthServer).HasAccountID(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Zauth_HasAccountID_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ZauthServer).HasAccountID(ctx, req.(*HasAccountID_REQ))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -611,6 +659,24 @@ func _Zauth_CheckAuth_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Zauth_ZZZZString_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ZZZZString_REQ)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ZauthServer).ZZZZString(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Zauth_ZZZZString_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ZauthServer).ZZZZString(ctx, req.(*ZZZZString_REQ))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Zauth_ConfigGetFileConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ConfigGetFileConfig_REQ)
 	if err := dec(in); err != nil {
@@ -743,6 +809,10 @@ var Zauth_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Zauth_LoginCheck_Handler,
 		},
 		{
+			MethodName: "HasAccountID",
+			Handler:    _Zauth_HasAccountID_Handler,
+		},
+		{
 			MethodName: "PermissionCreate",
 			Handler:    _Zauth_PermissionCreate_Handler,
 		},
@@ -781,6 +851,10 @@ var Zauth_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CheckAuth",
 			Handler:    _Zauth_CheckAuth_Handler,
+		},
+		{
+			MethodName: "ZZZZString",
+			Handler:    _Zauth_ZZZZString_Handler,
 		},
 		{
 			MethodName: "ConfigGetFileConfig",

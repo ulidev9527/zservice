@@ -2,6 +2,7 @@ package zhelper
 
 import (
 	"errors"
+	"time"
 	"zservice/zservice"
 	"zservice/zservice/ex/redisservice"
 	"zservice/zservice/zglobal"
@@ -118,7 +119,7 @@ func (db *DBHelper) GetNewTableID(
 
 // 获取指定值
 // 注意，如果没找到数据回返回：zglobal.Code_NotFound
-func (db *DBHelper) GetTableValue(ctx *zservice.Context, tab any, rk string, sqlWhere string) *zservice.Error {
+func (db *DBHelper) GetTableValue(ctx *zservice.Context, tab any, rk string, sqlWhere string, expire ...time.Duration) *zservice.Error {
 	// 读缓存
 	if has, e := db.Redis.Exists(rk).Result(); e != nil {
 		return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
@@ -138,9 +139,17 @@ func (db *DBHelper) GetTableValue(ctx *zservice.Context, tab any, rk string, sql
 	}
 
 	// 更新缓存
-	if e := db.Redis.Set(rk, string(zservice.JsonMustMarshal(tab))).Err(); e != nil {
-		return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
-	}
+	zservice.Go(func() {
+		if e := func() error {
+			if len(expire) > 0 {
+				return db.Redis.SetEX(rk, string(zservice.JsonMustMarshal(tab)), expire[0]).Err()
+			} else {
+				return db.Redis.SetEX(rk, string(zservice.JsonMustMarshal(tab)), zglobal.Time_3Day).Err()
+			}
+		}(); e != nil {
+			ctx.LogError(e)
+		}
+	})
 
 	return nil
 }

@@ -118,7 +118,17 @@ func main() {
 
 			zservice.TestAction("lpush", func() {
 				rk := "lpushKey"
-				db.LPush(rk, 1, 2, 3, 4)
+				if e := db.LPush(rk, 1, 2, 3, 4).Err(); e != nil {
+					zservice.LogError(e)
+				}
+
+				if e := db.LPush(rk, zservice.JsonMustMarshalString(&MapNNN{
+					ID:   111,
+					Name: "nnnn",
+					TTT:  time.Now(),
+				})).Err(); e != nil {
+					zservice.LogError(e)
+				}
 
 			})
 
@@ -129,6 +139,60 @@ func main() {
 					zservice.LogError(e)
 				}
 				zservice.LogInfo(s)
+			})
+			zservice.TestAction("rpop", func() {
+				rk := "lpushKey"
+
+				for i := 0; i < 5; i++ {
+
+					s, e := db.RPop(rk).Result()
+					if e != nil {
+						zservice.LogError(e)
+					}
+					zservice.LogInfo(s)
+					time.Sleep(time.Millisecond * 100)
+				}
+			})
+
+			zservice.TestAction("scan", func() {
+
+				if keys, index, e := db.Scan(0, "*", 1000).Result(); e != nil {
+					zservice.LogError(e)
+				} else {
+					zservice.LogInfo(keys, index)
+				}
+
+				if keys, index, e := db.ScanType(0, "*", 1000, "string").Result(); e != nil {
+					zservice.LogError(e)
+				} else {
+					zservice.LogInfo(keys, index)
+				}
+
+			})
+
+			zservice.TestAction("setnx", func() {
+
+				rk := "setnxKey"
+				if has, e := db.SetNX(rk, "value", zglobal.Time_1m).Result(); e != nil {
+					zservice.LogError(e)
+				} else {
+					zservice.LogInfo("setnx", has)
+				}
+
+			})
+
+			zservice.TestAction("setex", func() {
+
+				rk := "setexKey"
+
+				if e := db.SetEX(rk, "value", zglobal.Time_1m).Err(); e != nil {
+					zservice.LogError(e)
+				}
+
+				if e := db.SetEX(rk, "value", zglobal.Time_1m).Err(); e != nil {
+					zservice.LogError(e)
+				}
+
 			})
 
 		},
