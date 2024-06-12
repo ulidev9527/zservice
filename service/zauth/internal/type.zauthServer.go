@@ -51,8 +51,8 @@ func (s *ZauthServer) SMSVerifyCodeVerify(ctx context.Context, in *zauth_pb.SMSV
 }
 
 // ZZZZ字符串验证
-func (s *ZauthServer) ZZZZString(ctx context.Context, in *zauth_pb.ZZZZString_REQ) (*zauth_pb.Default_RES, error) {
-	return Logic_ZZZZString(grpcservice.GetCtxEX(ctx), in), nil
+func (s *ZauthServer) HasZZZZString(ctx context.Context, in *zauth_pb.HasZZZZString_REQ) (*zauth_pb.Default_RES, error) {
+	return Logic_HasZZZZString(grpcservice.GetCtxEX(ctx), in), nil
 }
 
 // 获取文件配置

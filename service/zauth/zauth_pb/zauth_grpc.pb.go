@@ -34,7 +34,7 @@ const (
 	Zauth_SMSVerifyCodeSend_FullMethodName           = "/zauth_pb.zauth/SMSVerifyCodeSend"
 	Zauth_SMSVerifyCodeVerify_FullMethodName         = "/zauth_pb.zauth/SMSVerifyCodeVerify"
 	Zauth_CheckAuth_FullMethodName                   = "/zauth_pb.zauth/CheckAuth"
-	Zauth_ZZZZString_FullMethodName                  = "/zauth_pb.zauth/ZZZZString"
+	Zauth_HasZZZZString_FullMethodName             = "/zauth_pb.zauth/HasZZZZString"
 	Zauth_ConfigGetFileConfig_FullMethodName         = "/zauth_pb.zauth/ConfigGetFileConfig"
 	Zauth_ConfigSyncServiceFileConfig_FullMethodName = "/zauth_pb.zauth/ConfigSyncServiceFileConfig"
 	Zauth_ConfigSyncServiceEnvConfig_FullMethodName  = "/zauth_pb.zauth/ConfigSyncServiceEnvConfig"
@@ -62,7 +62,7 @@ type ZauthClient interface {
 	SMSVerifyCodeSend(ctx context.Context, in *SMSVerifyCodeSend_REQ, opts ...grpc.CallOption) (*SMSSendVerifyCode_RES, error)
 	SMSVerifyCodeVerify(ctx context.Context, in *SMSVerifyCodeVerify_REQ, opts ...grpc.CallOption) (*Default_RES, error)
 	CheckAuth(ctx context.Context, in *CheckAuth_REQ, opts ...grpc.CallOption) (*CheckAuth_RES, error)
-	ZZZZString(ctx context.Context, in *ZZZZString_REQ, opts ...grpc.CallOption) (*Default_RES, error)
+	HasZZZZString(ctx context.Context, in *HasZZZZString_REQ, opts ...grpc.CallOption) (*Default_RES, error)
 	ConfigGetFileConfig(ctx context.Context, in *ConfigGetFileConfig_REQ, opts ...grpc.CallOption) (*ConfigGetFileConfig_RES, error)
 	ConfigSyncServiceFileConfig(ctx context.Context, in *ConfigSyncServiceFileConfig_REQ, opts ...grpc.CallOption) (*Default_RES, error)
 	ConfigSyncServiceEnvConfig(ctx context.Context, in *ConfigSyncServiceEnvConfig_REQ, opts ...grpc.CallOption) (*ConfigSyncServiceEnvConfig_RES, error)
@@ -214,9 +214,9 @@ func (c *zauthClient) CheckAuth(ctx context.Context, in *CheckAuth_REQ, opts ...
 	return out, nil
 }
 
-func (c *zauthClient) ZZZZString(ctx context.Context, in *ZZZZString_REQ, opts ...grpc.CallOption) (*Default_RES, error) {
+func (c *zauthClient) HasZZZZString(ctx context.Context, in *HasZZZZString_REQ, opts ...grpc.CallOption) (*Default_RES, error) {
 	out := new(Default_RES)
-	err := c.cc.Invoke(ctx, Zauth_ZZZZString_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, Zauth_HasZZZZString_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -296,7 +296,7 @@ type ZauthServer interface {
 	SMSVerifyCodeSend(context.Context, *SMSVerifyCodeSend_REQ) (*SMSSendVerifyCode_RES, error)
 	SMSVerifyCodeVerify(context.Context, *SMSVerifyCodeVerify_REQ) (*Default_RES, error)
 	CheckAuth(context.Context, *CheckAuth_REQ) (*CheckAuth_RES, error)
-	ZZZZString(context.Context, *ZZZZString_REQ) (*Default_RES, error)
+	HasZZZZString(context.Context, *HasZZZZString_REQ) (*Default_RES, error)
 	ConfigGetFileConfig(context.Context, *ConfigGetFileConfig_REQ) (*ConfigGetFileConfig_RES, error)
 	ConfigSyncServiceFileConfig(context.Context, *ConfigSyncServiceFileConfig_REQ) (*Default_RES, error)
 	ConfigSyncServiceEnvConfig(context.Context, *ConfigSyncServiceEnvConfig_REQ) (*ConfigSyncServiceEnvConfig_RES, error)
@@ -355,8 +355,8 @@ func (UnimplementedZauthServer) SMSVerifyCodeVerify(context.Context, *SMSVerifyC
 func (UnimplementedZauthServer) CheckAuth(context.Context, *CheckAuth_REQ) (*CheckAuth_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckAuth not implemented")
 }
-func (UnimplementedZauthServer) ZZZZString(context.Context, *ZZZZString_REQ) (*Default_RES, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ZZZZString not implemented")
+func (UnimplementedZauthServer) HasZZZZString(context.Context, *HasZZZZString_REQ) (*Default_RES, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HasZZZZString not implemented")
 }
 func (UnimplementedZauthServer) ConfigGetFileConfig(context.Context, *ConfigGetFileConfig_REQ) (*ConfigGetFileConfig_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ConfigGetFileConfig not implemented")
@@ -659,20 +659,20 @@ func _Zauth_CheckAuth_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Zauth_ZZZZString_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ZZZZString_REQ)
+func _Zauth_HasZZZZString_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HasZZZZString_REQ)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ZauthServer).ZZZZString(ctx, in)
+		return srv.(ZauthServer).HasZZZZString(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Zauth_ZZZZString_FullMethodName,
+		FullMethod: Zauth_HasZZZZString_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ZauthServer).ZZZZString(ctx, req.(*ZZZZString_REQ))
+		return srv.(ZauthServer).HasZZZZString(ctx, req.(*HasZZZZString_REQ))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -853,8 +853,8 @@ var Zauth_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Zauth_CheckAuth_Handler,
 		},
 		{
-			MethodName: "ZZZZString",
-			Handler:    _Zauth_ZZZZString_Handler,
+			MethodName: "HasZZZZString",
+			Handler:    _Zauth_HasZZZZString_Handler,
 		},
 		{
 			MethodName: "ConfigGetFileConfig",

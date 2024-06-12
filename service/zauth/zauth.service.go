@@ -86,5 +86,9 @@ func main() {
 
 	internal.GinService.AddDependService(internal.GrpcService.ZService)
 
-	zservice.Start().WaitStart().WaitStop()
+	zservice.Start().WaitStart()
+
+	internal.ZZZZString.Reload(zservice.NewEmptyContext(), zservice.Getenv("zzzzString_file_path"))
+
+	zservice.WaitStop()
 }

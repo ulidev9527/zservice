@@ -9,13 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// 登陆香港初始化
-func initGinLogin() {
-
-	Gin.POST("/login", gin_handle_Login)
-
-}
-
 type gin_T_Login struct {
 	LoginType     uint   `json:"lt"`  // 登陆类型 1.手机短信 2.账号密码
 	Phone         string `json:"p"`   // T1 手机号
@@ -25,7 +18,7 @@ type gin_T_Login struct {
 }
 
 // 登陆
-func gin_handle_Login(ctx *gin.Context) {
+func gin_post_login(ctx *gin.Context) {
 	zctx := ginservice.GetCtxEX(ctx)
 
 	req := gin_T_Login{}

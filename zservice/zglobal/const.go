@@ -3,15 +3,16 @@ package zglobal
 import "time"
 
 const (
-	Code_SUCC          = 1 // 成功
-	Code_Fail          = 2 // 失败
-	Code_ErrorBreakoff = 3 // 中断
-	Code_Zauth_Fail    = 4 // 鉴权失败
-	Code_NotImplement  = 5 // 未实现
-	Code_ParamsErr     = 6 // 参数错误
-	Code_LoginAgain    = 7 // 请重新登录, 重新拉取 token 进行登陆
-	Code_NotFound      = 8 // 资源不存在/没找到/数据未查询到
-	Code_Wait          = 9 // 等待
+	Code_SUCC          = 1  // 成功
+	Code_Fail          = 2  // 失败
+	Code_ErrorBreakoff = 3  // 中断
+	Code_Zauth_Fail    = 4  // 鉴权失败
+	Code_NotImplement  = 5  // 未实现
+	Code_ParamsErr     = 6  // 参数错误
+	Code_LoginAgain    = 7  // 请重新登录, 重新拉取 token 进行登陆
+	Code_NotFound      = 8  // 资源不存在/没找到/数据未查询到
+	Code_Wait          = 9  // 等待
+	Code_ZZZZ          = 10 // 字符串不合格
 
 	Code_OpenFileErr         = 101 // 打开文件错误
 	Code_WiteFileErr         = 102 // 写入文件错误

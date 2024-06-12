@@ -105,7 +105,7 @@ message SMSVerifyCodeVerify_REQ { // 发送验证码 请求
 }
 
 // 其它
-message ZZZZString_REQ{
+message HasZZZZString_REQ{
     string str = 1; // 字符串
 }
 
@@ -165,7 +165,7 @@ service zauth{
 
     rpc CheckAuth(CheckAuth_REQ) returns(CheckAuth_RES);  // 检查权限
 
-    rpc ZZZZString(ZZZZString_REQ) returns(Default_RES); // 验证ZZZZ字符串
+    rpc HasZZZZString(HasZZZZString_REQ) returns(Default_RES); // 验证ZZZZ字符串
 
     rpc ConfigGetFileConfig(ConfigGetFileConfig_REQ) returns(ConfigGetFileConfig_RES);                       // 获取文件配置
     rpc ConfigSyncServiceFileConfig(ConfigSyncServiceFileConfig_REQ) returns(Default_RES);                   // 同步服务的文件配置
