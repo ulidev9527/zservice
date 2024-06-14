@@ -13,6 +13,8 @@ const (
 	Code_NotFound      = 8  // 资源不存在/没找到/数据未查询到
 	Code_Wait          = 9  // 等待
 	Code_ZZZZ          = 10 // 字符串不合格
+	Code_CountErr      = 11 // 数量不合格
+	Code_RepetitionErr = 12 // 数据重复
 
 	Code_OpenFileErr         = 101 // 打开文件错误
 	Code_WiteFileErr         = 102 // 写入文件错误
@@ -73,7 +75,6 @@ const (
 	Code_Zauth_config_GetFileMd5Fail   = 2006 // 读取文件 md5 失败
 	Code_Zauth_config_FileMd5NotChange = 2007 // 文件 md5 未变化
 	Code_Zauth_config_ExcelNoContent   = 2008 // excel 内容为空
-	Code_Zauth_config_GetConfigFail    = 2009 // 获取配置失败
 
 	E_ZConfig_Parser_Excel = 1 // excel 解析器
 

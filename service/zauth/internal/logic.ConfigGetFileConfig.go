@@ -14,10 +14,10 @@ func Logic_ConfigGetFileConfig(ctx *zservice.Context, in *zauth_pb.ConfigGetFile
 	has, e := Redis.Exists(fKey).Result()
 	if e != nil {
 		ctx.LogError(e)
-		return &zauth_pb.ConfigGetFileConfig_RES{Code: zglobal.Code_Zauth_config_GetConfigFail}
+		return &zauth_pb.ConfigGetFileConfig_RES{Code: zglobal.Code_NotFound}
 	}
 	if has == 0 {
-		return &zauth_pb.ConfigGetFileConfig_RES{Code: zglobal.Code_Zauth_config_GetConfigFail}
+		return &zauth_pb.ConfigGetFileConfig_RES{Code: zglobal.Code_NotFound}
 	}
 
 	// 获取全部
@@ -25,10 +25,10 @@ func Logic_ConfigGetFileConfig(ctx *zservice.Context, in *zauth_pb.ConfigGetFile
 		val, e := Redis.HGetAll(fKey).Result()
 		if e != nil {
 			ctx.LogError(e)
-			return &zauth_pb.ConfigGetFileConfig_RES{Code: zglobal.Code_Zauth_config_GetConfigFail}
+			return &zauth_pb.ConfigGetFileConfig_RES{Code: zglobal.Code_NotFound}
 		}
 		if len(val) == 0 {
-			return &zauth_pb.ConfigGetFileConfig_RES{Code: zglobal.Code_Zauth_config_GetConfigFail}
+			return &zauth_pb.ConfigGetFileConfig_RES{Code: zglobal.Code_NotFound}
 		}
 
 		return &zauth_pb.ConfigGetFileConfig_RES{Code: zglobal.Code_SUCC, Value: string(zservice.JsonMustMarshal(val))}
@@ -43,20 +43,20 @@ func Logic_ConfigGetFileConfig(ctx *zservice.Context, in *zauth_pb.ConfigGetFile
 		val, e := Redis.HGet(fKey, newArr[0]).Result()
 		if e != nil || val == "" {
 			ctx.LogError(e)
-			return &zauth_pb.ConfigGetFileConfig_RES{Code: zglobal.Code_Zauth_config_GetConfigFail}
+			return &zauth_pb.ConfigGetFileConfig_RES{Code: zglobal.Code_NotFound}
 		}
 		if val == "" {
-			return &zauth_pb.ConfigGetFileConfig_RES{Code: zglobal.Code_Zauth_config_GetConfigFail}
+			return &zauth_pb.ConfigGetFileConfig_RES{Code: zglobal.Code_NotFound}
 		}
 		return &zauth_pb.ConfigGetFileConfig_RES{Code: zglobal.Code_SUCC, Value: val}
 	} else {
 		valueArr, e := Redis.HMGet(fKey, keyArr...).Result()
 		if e != nil {
 			ctx.LogError(e)
-			return &zauth_pb.ConfigGetFileConfig_RES{Code: zglobal.Code_Zauth_config_GetConfigFail}
+			return &zauth_pb.ConfigGetFileConfig_RES{Code: zglobal.Code_NotFound}
 		}
 		if len(valueArr) == 0 {
-			return &zauth_pb.ConfigGetFileConfig_RES{Code: zglobal.Code_Zauth_config_GetConfigFail}
+			return &zauth_pb.ConfigGetFileConfig_RES{Code: zglobal.Code_NotFound}
 		}
 		return &zauth_pb.ConfigGetFileConfig_RES{Code: zglobal.Code_SUCC, Value: string(zservice.JsonMustMarshal(valueArr))}
 	}

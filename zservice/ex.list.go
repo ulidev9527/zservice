@@ -41,3 +41,13 @@ func ListFilterString(arr []string, fn func(item string) bool) []string {
 	}
 	return newArr
 }
+
+// 数组中是否有某个值
+func ListHas(arr interface{}, fn func(item any) bool) bool {
+	for _, v := range arr.([]interface{}) {
+		if fn(v) {
+			return true
+		}
+	}
+	return false
+}

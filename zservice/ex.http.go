@@ -8,10 +8,10 @@ import (
 	"strings"
 )
 
-func RequestSend(ctx *Context, req *http.Request) ([]byte, *Error) {
+func RequestSend(ctx *Context, in *http.Request) ([]byte, *Error) {
 	b, _ := json.Marshal(&ctx.ContextS2S)
-	req.Header.Set(S_S2S, string(b))
-	res, e := (&http.Client{}).Do(req) // 发起请求
+	in.Header.Set(S_S2S, string(b))
+	res, e := (&http.Client{}).Do(in) // 发起请求
 	if e != nil {
 		return nil, NewError(e)
 	}

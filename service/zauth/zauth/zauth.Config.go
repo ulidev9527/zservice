@@ -10,6 +10,7 @@ import (
 )
 
 // 获取文件配置
+var fileConfigMap = &sync.Map{} // 文件配置映射
 
 // 获取指定文件的配置
 // 不传 key 返回所有配置数组

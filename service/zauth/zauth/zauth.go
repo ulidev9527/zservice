@@ -1,7 +1,6 @@
 package zauth
 
 import (
-	"sync"
 	"zservice/service/zauth/internal"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
@@ -12,7 +11,6 @@ import (
 )
 
 var grpcClient zauth_pb.ZauthClient
-var fileConfigMap = &sync.Map{} // 文件配置映射
 var zauthInitConfig *ZAuthInitConfig
 
 type ZAuthInitConfig struct {
