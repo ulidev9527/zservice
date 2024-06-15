@@ -47,7 +47,7 @@ func Logic_LoginByAccount(ctx *zservice.Context, in *zauth_pb.LoginByAccount_REQ
 
 	// 设置关联信息
 	at.ExpiresSecond = in.Expires
-	at.UID = acc.ID
+	at.UID = acc.UID
 	at.LoginService = ctx.TraceService
 
 	if e := at.Save(); e != nil {
@@ -55,5 +55,5 @@ func Logic_LoginByAccount(ctx *zservice.Context, in *zauth_pb.LoginByAccount_REQ
 		return &zauth_pb.Login_RES{Code: e.GetCode()}
 	}
 
-	return &zauth_pb.Login_RES{Code: zglobal.Code_SUCC, Uid: acc.ID}
+	return &zauth_pb.Login_RES{Code: zglobal.Code_SUCC, Uid: acc.UID}
 }

@@ -10,7 +10,7 @@ import (
 
 // 账号组织绑定
 type AccountOrgBindTable struct {
-	gormservice.AllModel
+	gormservice.Model
 
 	OrgID   uint32 // 组ID
 	UID     uint32 // 用户ID

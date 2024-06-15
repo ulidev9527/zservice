@@ -28,7 +28,7 @@ func Logic_ServiceRegist(ctx *zservice.Context, in *zauth_pb.Default_REQ) *zauth
 		ctx.LogError(e)
 		return &zauth_pb.Default_RES{Code: e.GetCode()}
 	} else if tab != nil {
-		orgID = tab.ID
+		orgID = tab.OrgID
 	} else {
 		// 创建服务组
 		res := Logic_OrgCreate(ctx, &zauth_pb.OrgInfo{Name: ctx.TraceService})

@@ -40,7 +40,9 @@ func ZauthDBInit() {
 		adminPass := zservice.RandomString(16)
 		adminPassMd5 := zservice.MD5String(adminPass)
 
-		ctx.LogInfof("Create admin account succ, AdminName: %s, AdminPass: %s PassMD5: %s", adminName, adminPass, adminPassMd5)
+		ctx.LogInfo("Create admin account --------------------")
+		ctx.LogWarnf("AdminName: %s, AdminPass: %s PassMD5: %s", adminName, adminPass, adminPassMd5)
+		ctx.LogInfo("Create admin account --------------------")
 		if e := admAcc.AddLoginNameAndPassword(ctx, adminName, zservice.MD5String(adminPass)); e != nil {
 			ctx.LogPanic(e)
 		}
@@ -61,11 +63,11 @@ func ZauthDBInit() {
 	}
 
 	// 账号和组绑定
-	_, e = AccountJoinOrg(ctx, admAcc.ID, sysOrg.Info.Id, 0) // 加入系统组
+	_, e = AccountJoinOrg(ctx, admAcc.UID, sysOrg.Info.Id, 0) // 加入系统组
 	if e != nil {
 		ctx.LogPanic(e)
 	}
-	_, e = AccountJoinOrg(ctx, admAcc.ID, adminOrg.Info.Id, 0) // 加入超级管理员组
+	_, e = AccountJoinOrg(ctx, admAcc.UID, adminOrg.Info.Id, 0) // 加入超级管理员组
 	if e != nil {
 		ctx.LogPanic(e)
 	}

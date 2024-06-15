@@ -9,8 +9,8 @@ import (
 )
 
 // 账号权限绑定表
-type ZauthPermissionBindTable struct {
-	gormservice.AllModel
+type PermissionBindTable struct {
+	gormservice.Model
 	TargetType   uint32 // 外部ID类型 0无效 1组织 2账号
 	TargetID     uint32 // 外部ID
 	PermissionID uint32 // 权限ID
@@ -21,15 +21,15 @@ type ZauthPermissionBindTable struct {
 // 是否有权限绑定
 func HasPermissionBind(ctx *zservice.Context, targetType uint32, targetID uint32, permissionID uint32) (bool, *zservice.Error) {
 	return dbhelper.HasTableValue(ctx,
-		&ZauthPermissionBindTable{},
+		&PermissionBindTable{},
 		fmt.Sprintf(RK_PermissionBindInfo, targetType, targetID, permissionID),
 		fmt.Sprintf("target_type = %d AND target_id = %d AND permission_id = %d", targetType, targetID, permissionID),
 	)
 }
 
 // 获取权限绑定
-func GetPermissionBind(ctx *zservice.Context, targetType uint32, targetID uint32, permissionID uint32) (*ZauthPermissionBindTable, *zservice.Error) {
-	tab := &ZauthPermissionBindTable{}
+func GetPermissionBind(ctx *zservice.Context, targetType uint32, targetID uint32, permissionID uint32) (*PermissionBindTable, *zservice.Error) {
+	tab := &PermissionBindTable{}
 	if e := dbhelper.GetTableValue(ctx,
 		tab,
 		fmt.Sprintf(RK_PermissionBindInfo, targetType, targetID, permissionID),
@@ -42,7 +42,7 @@ func GetPermissionBind(ctx *zservice.Context, targetType uint32, targetID uint32
 }
 
 // 是否过期
-func (z *ZauthPermissionBindTable) IsExpired() bool {
+func (z *PermissionBindTable) IsExpired() bool {
 	if z.Expires == 0 {
 		return false
 	}
@@ -50,7 +50,7 @@ func (z *ZauthPermissionBindTable) IsExpired() bool {
 }
 
 // 存储
-func (z *ZauthPermissionBindTable) Save(ctx *zservice.Context) *zservice.Error {
+func (z *PermissionBindTable) Save(ctx *zservice.Context) *zservice.Error {
 
 	rk_info := fmt.Sprintf(RK_PermissionBindInfo, z.TargetType, z.TargetID, z.PermissionID)
 

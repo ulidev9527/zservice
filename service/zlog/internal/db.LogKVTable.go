@@ -4,7 +4,7 @@ import "zservice/zservice/ex/gormservice"
 
 // 键值对存储
 type LogKVTable struct {
-	gormservice.IDModel
+	gormservice.Model
 	UID      uint32 // 用户ID
 	Key      string // 键
 	Value    string // 值

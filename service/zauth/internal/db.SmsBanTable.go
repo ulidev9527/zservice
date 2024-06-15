@@ -12,8 +12,8 @@ import (
 )
 
 // 短信封禁
-type ZauthSmsBanTable struct {
-	gormservice.AllModel
+type SmsBanTable struct {
+	gormservice.Model
 	Phone   string // 手机号
 	Expires uint64 // 过期时间
 	BanMsg  string // 封禁原因
@@ -39,8 +39,8 @@ func IsSmsBan(ctx *zservice.Context, phone string) (bool, *zservice.Error) {
 	}
 
 	// 查数据库
-	tb := &ZauthSmsBanTable{}
-	if e := Mysql.Model(&ZauthSmsBanTable{}).Where("phone = ? and expires > now()", phone).Order("expires DESC").Limit(1).First(&tb).Error; e != nil {
+	tb := &SmsBanTable{}
+	if e := Mysql.Model(&SmsBanTable{}).Where("phone = ? and expires > now()", phone).Order("expires DESC").Limit(1).First(&tb).Error; e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
 			return false, nil
 		} else {

@@ -68,7 +68,7 @@ func Logic_PermissionBind(ctx *zservice.Context, in *zauth_pb.PermissionBind_REQ
 		}
 	}
 	// 创建新数据
-	tab := &ZauthPermissionBindTable{
+	tab := &PermissionBindTable{
 		TargetType:   in.TargetType,
 		TargetID:     in.TargetID,
 		PermissionID: in.PermissionID,

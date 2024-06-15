@@ -53,7 +53,7 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 	authPath := authArr[2]
 
 	// 获取与指定参数最接近的权限对象
-	permissionInfo, e := func() (*ZauthPermissionTable, *zservice.Error) {
+	permissionInfo, e := func() (*PermissionTable, *zservice.Error) {
 		var service = authService
 		var action = authAction
 		var path = authPath
@@ -80,8 +80,8 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 		}
 
 		// 未找到 查表
-		tabs := []ZauthPermissionTable{}
-		if e := Mysql.Model(&ZauthPermissionTable{}).Where("(service, action, path) IN ?", inArr).Order("LENGTH(action) DESC, LENGTH(path) DESC").Find(&tabs).Error; e != nil {
+		tabs := []PermissionTable{}
+		if e := Mysql.Model(&PermissionTable{}).Where("(service, action, path) IN ?", inArr).Order("LENGTH(action) DESC, LENGTH(path) DESC").Find(&tabs).Error; e != nil {
 			if !errors.Is(e, gorm.ErrRecordNotFound) {
 				return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
 			}
@@ -129,7 +129,7 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 	// 检查是否有权限
 	isAllow, e := func() (bool, *zservice.Error) {
 		// 当前账号是否有权限配置
-		if tab, e := GetPermissionBind(ctx, 2, at.UID, permissionInfo.ID); e != nil && e.GetCode() != zglobal.Code_NotFound {
+		if tab, e := GetPermissionBind(ctx, 2, at.UID, permissionInfo.PermissionID); e != nil && e.GetCode() != zglobal.Code_NotFound {
 			return false, e
 		} else if tab != nil && tab.IsExpired() { // 过期的检查权限表示无效，检查所在组织是否有权限
 			return tab.State == 1, nil
@@ -140,9 +140,9 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 		if e := Mysql.Model(&AccountOrgBindTable{}).Where( // 查找组中是否有当前账号的绑定信息
 			"uid = ? AND org_id IN (?)",
 			at.UID,
-			Mysql.Model(&ZauthPermissionBindTable{}).Where( // 查找所有分配权限的组
+			Mysql.Model(&PermissionBindTable{}).Where( // 查找所有分配权限的组
 				"permission_id = ? AND target_type = 1 AND state = 1 AND (expires = 0 OR expires > ?)",
-				permissionInfo.ID,
+				permissionInfo.PermissionID,
 				time.Now().Unix(),
 			).Select("target_id"),
 		).First(bindInfo).Error; e != nil {

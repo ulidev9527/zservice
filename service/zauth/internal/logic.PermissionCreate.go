@@ -35,13 +35,13 @@ func Logic_PermissionCreate(ctx *zservice.Context, in *zauth_pb.PermissionInfo) 
 		return &zauth_pb.PermissionInfo_RES{Code: e.GetCode()}
 	}
 
-	z := &ZauthPermissionTable{
-		Name:    in.Name,
-		ID:      pid,
-		Service: in.Service,
-		Action:  strings.ToLower(in.Action),
-		Path:    in.Path,
-		State:   in.State,
+	z := &PermissionTable{
+		Name:         in.Name,
+		PermissionID: pid,
+		Service:      in.Service,
+		Action:       strings.ToLower(in.Action),
+		Path:         in.Path,
+		State:        in.State,
 	}
 
 	if e := z.Save(ctx); e != nil {
@@ -50,7 +50,7 @@ func Logic_PermissionCreate(ctx *zservice.Context, in *zauth_pb.PermissionInfo) 
 	}
 
 	return &zauth_pb.PermissionInfo_RES{Code: zglobal.Code_SUCC, Info: &zauth_pb.PermissionInfo{
-		Id:      z.ID,
+		Id:      z.PermissionID,
 		Name:    z.Name,
 		Service: z.Service,
 		Action:  z.Action,
