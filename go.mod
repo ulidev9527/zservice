@@ -81,7 +81,6 @@ require (
 	github.com/nsqio/go-nsq v1.1.0
 	github.com/redis/go-redis/v9 v9.5.1
 	github.com/tidwall/gjson v1.17.1
-	github.com/wechatpay-apiv3/wechatpay-go v0.2.18
 	github.com/xuri/excelize/v2 v2.8.1
 	go.etcd.io/etcd/client/v3 v3.5.13
 	golang.org/x/sys v0.18.0 // indirect
