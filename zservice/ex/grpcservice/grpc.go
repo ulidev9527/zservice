@@ -10,5 +10,5 @@ func GetCtxEX(ctx context.Context) *zservice.Context {
 	if v != nil {
 		return zservice.NewContext(zservice.JsonMustMarshalString(v))
 	}
-	return zservice.NewEmptyContext()
+	return zservice.NewContext()
 }

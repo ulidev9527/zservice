@@ -33,7 +33,7 @@ func Logic_ServiceRegist(ctx *zservice.Context, in *zauth_pb.Default_REQ) *zauth
 		// 创建服务组
 		res := Logic_OrgCreate(ctx, &zauth_pb.OrgInfo{Name: ctx.TraceService})
 		if res.Code == zglobal.Code_SUCC {
-			orgID = res.Info.Id
+			orgID = res.Info.OrgID
 		} else {
 			return &zauth_pb.Default_RES{Code: res.Code}
 		}
@@ -54,7 +54,7 @@ func Logic_ServiceRegist(ctx *zservice.Context, in *zauth_pb.Default_REQ) *zauth
 	bindRes := Logic_PermissionBind(ctx, &zauth_pb.PermissionBind_REQ{
 		TargetType:   1,
 		TargetID:     orgID,
-		PermissionID: permissionRes.Info.Id,
+		PermissionID: permissionRes.Info.PermissionID,
 		State:        1,
 	})
 	return &zauth_pb.Default_RES{Code: bindRes.Code}

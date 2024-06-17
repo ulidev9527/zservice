@@ -59,7 +59,7 @@ func Logic_OrgCreate(ctx *zservice.Context, in *zauth_pb.OrgInfo) *zauth_pb.OrgI
 		return &zauth_pb.OrgInfo_RES{Code: e.GetCode()}
 	}
 	return &zauth_pb.OrgInfo_RES{Code: zglobal.Code_SUCC, Info: &zauth_pb.OrgInfo{
-		Id:       z.OrgID,
+		OrgID:    z.OrgID,
 		Name:     z.Name,
 		ParentID: z.ParentID,
 		RootID:   z.RootID,

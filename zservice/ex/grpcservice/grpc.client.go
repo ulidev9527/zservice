@@ -63,7 +63,7 @@ func ClientUnaryInterceptor(ctx context.Context, method string, req, reply any, 
 	// 获取 context 中的 zservice.Context
 	zctx := GetCtxEX(ctx)
 	if zctx == nil {
-		zctx = zservice.NewEmptyContext()
+		zctx = zservice.NewContext()
 	}
 
 	// 配置metadata

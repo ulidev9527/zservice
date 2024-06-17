@@ -50,11 +50,11 @@ func Logic_PermissionCreate(ctx *zservice.Context, in *zauth_pb.PermissionInfo) 
 	}
 
 	return &zauth_pb.PermissionInfo_RES{Code: zglobal.Code_SUCC, Info: &zauth_pb.PermissionInfo{
-		Id:      z.PermissionID,
-		Name:    z.Name,
-		Service: z.Service,
-		Action:  z.Action,
-		Path:    z.Path,
-		State:   z.State,
+		PermissionID: z.PermissionID,
+		Name:         z.Name,
+		Service:      z.Service,
+		Action:       z.Action,
+		Path:         z.Path,
+		State:        z.State,
 	}}
 }

@@ -29,12 +29,11 @@ const (
 	RK_AssetToken                  = "asset:token:%s"                     // 资产信息 %s:token val:AssetTable
 	RK_AssetMd5                    = "asset:md5:%s"                       // 资产信息 %s:md5 val:1
 
-	NSQ_Config_serviceFileConfigChange = "ConfigSercice_%s_FileConfigChange" // 文件配置变更通知
-
 	EV_Config_ServiceFileConfigChange = "ConfigService_%s_FileConfigChange" // 服务文件配置变更通知
+	EV_Config_ZZZZStringChange        = "ZZZZStringChange"                  // ZZZZ 字符串变更
 
 	FI_ServiceConfigFile = "static/fileConfig/%s/%s" // 服务配置文件路径
 	FI_ServiceEnvFile    = "static/envConfig/%s.env" // 服务环境文件路径
 	FI_UploadDir         = "static/upload/%s"        // 上传文件路径
-
+	FI_ZZZZStringFile    = "static/zzzzString.txt"   // zzzz 字符串
 )

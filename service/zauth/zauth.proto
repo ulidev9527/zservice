@@ -37,12 +37,12 @@ message HasUID_REQ{
 
 // 权限相关
 message PermissionInfo{
-    uint32 id      = 1;  // 权限ID
-    string name    = 2;  // 权限名称
-    string service = 3;  // 权限所属服务
-    string action  = 4;  // 动作名称
-    string path    = 5;  // 权限路径
-    uint32 state   = 6;  // 权限状态 0禁用 1公开访问 2授权访问 3继承父级
+    uint32 permissionID = 1;  // 权限ID
+    string name         = 2;  // 权限名称
+    string service      = 3;  // 权限所属服务
+    string action       = 4;  // 动作名称
+    string path         = 5;  // 权限路径
+    uint32 state        = 6;  // 权限状态 0禁用 1公开访问 2授权访问 3继承父级
 }
 message PermissionInfo_RES{
     uint32         code = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
@@ -67,7 +67,7 @@ message PermissionBind_REQ{
 
 // 组织相关
 message OrgInfo{
-    uint32 id       = 1;  // 组织ID
+    uint32 OrgID    = 1;  // 组织ID
     string name     = 2;  // 组织名称
     uint32 rootID   = 3;  // 根组织ID
     uint32 parentID = 4;  // 父组织ID

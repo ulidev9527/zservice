@@ -114,7 +114,7 @@ func LoadRemoteEnv(addr string) *Error {
 		return NewError("no remote env addr")
 	}
 
-	body, e := Get(NewEmptyContext(), addr, nil, nil)
+	body, e := Get(NewContext(), addr, nil, nil)
 	if e != nil {
 		return e
 	}

@@ -3,6 +3,7 @@ package internal
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
 	"zservice/zservice/zglobal"
@@ -13,11 +14,26 @@ func Logic_AddAsset(ctx *zservice.Context, in *zauth_pb.AddAsset_REQ) *zauth_pb.
 	md5Str := zservice.Md5Bytes(in.FileBytes)
 
 	savePath := fmt.Sprintf(FI_UploadDir, md5Str)
+	saveDir := filepath.Dir(savePath)
+
+	// 检查文件是否存在
+	if _, e := os.Stat(saveDir); e != nil {
+		if os.IsNotExist(e) {
+			if e := os.MkdirAll(saveDir, 0750); e != nil {
+				ctx.LogError(e)
+				return &zauth_pb.AssetInfo_RES{Code: zglobal.Code_ErrorBreakoff}
+			}
+		} else {
+			ctx.LogError(e)
+			return &zauth_pb.AssetInfo_RES{Code: zglobal.Code_Reject}
+		}
+	}
 
 	// 存储文件
 	if _, e := os.Stat(savePath); e != nil {
 		if os.IsNotExist(e) {
-			if e := os.WriteFile(savePath, in.FileBytes, 0666); e != nil {
+
+			if e := os.WriteFile(savePath, in.FileBytes, 0750); e != nil {
 				ctx.LogError(e)
 				return &zauth_pb.AssetInfo_RES{Code: zglobal.Code_ErrorBreakoff}
 			}

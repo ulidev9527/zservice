@@ -35,7 +35,13 @@ type Context struct {
 }
 
 // 创建上下文
-func NewContext(traceJsonStr string) *Context {
+func NewContext(in ...string) *Context {
+
+	traceJsonStr := ""
+	if len(in) > 0 {
+		traceJsonStr = in[0]
+	}
+
 	ctx := &Context{
 		StartTime:  time.Now(),
 		Service:    mainService,
@@ -71,11 +77,6 @@ func NewContext(traceJsonStr string) *Context {
 	ctx.ContextS2S.NowService = mainService.name
 
 	return ctx
-}
-
-// 创建一个空的上下文
-func NewEmptyContext() *Context {
-	return NewContext("")
 }
 
 func ContextTODO() context.Context {

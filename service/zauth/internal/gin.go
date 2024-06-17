@@ -15,7 +15,6 @@ func InitGin() {
 	Gin.GET("/config/:service/envConfig", gin_get_config_service_envCVonfig)
 	Gin.GET("/config/serviceEnvConfig/:auth", gin_get_config_ServiceEnvConfig_auth)
 
-	Gin.POST("/")
 	Gin.POST("/upload", gin_post_upload)
 
 	Gin.POST("/login", gin_post_login)
@@ -31,4 +30,6 @@ func InitGin() {
 	Gin.GET("/org", gin_get_orgListGet)
 	Gin.POST("/org", gin_post_orgCreate)
 	Gin.PUT("/org", gin_put_orgUpdate)
+
+	Gin.POST("/zzzzString", gin_post_zzzzString)
 }
