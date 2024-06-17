@@ -9,7 +9,7 @@ import (
 )
 
 // 账号组织绑定
-type AccountOrgBindTable struct {
+type UserOrgBindTable struct {
 	gormservice.Model
 
 	OrgID   uint32 // 组ID
@@ -19,7 +19,7 @@ type AccountOrgBindTable struct {
 }
 
 // 加入组织
-func AccountJoinOrg(ctx *zservice.Context, uid uint32, orgID uint32, Expires uint64) (*AccountOrgBindTable, *zservice.Error) {
+func UserJoinOrg(ctx *zservice.Context, uid uint32, orgID uint32, Expires uint64) (*UserOrgBindTable, *zservice.Error) {
 	// 验证参数是否正确
 	if has, e := HasOrgByID(ctx, orgID); e != nil {
 		return nil, e
@@ -27,21 +27,21 @@ func AccountJoinOrg(ctx *zservice.Context, uid uint32, orgID uint32, Expires uin
 		return nil, zservice.NewError("org not found:", orgID).SetCode(zglobal.Code_Zauth_Org_NotFund)
 	}
 
-	if has, e := HasAccountByID(ctx, uid); e != nil {
+	if has, e := HasUserByID(ctx, uid); e != nil {
 		return nil, e
 	} else if !has {
-		return nil, zservice.NewError("account not found:", uid).SetCode(zglobal.Code_Zauth_Account_NotFund)
+		return nil, zservice.NewError("user not found:", uid).SetCode(zglobal.Code_Zauth_User_NotFund)
 	}
 
 	// 是否已经绑定
-	if has, e := HasAccountOrgBindByAOID(ctx, uid, orgID); e != nil {
+	if has, e := HasUserOrgBindByAOID(ctx, uid, orgID); e != nil {
 		return nil, e
 	} else if has {
-		return nil, zservice.NewError("account already join org:", uid, orgID).SetCode(zglobal.Code_Zauth_AccountAlreadyJoin_Org)
+		return nil, zservice.NewError("user already join org:", uid, orgID).SetCode(zglobal.Code_Zauth_UserAlreadyJoin_Org)
 	}
 
 	// 准备写入数据
-	z := &AccountOrgBindTable{
+	z := &UserOrgBindTable{
 		OrgID:   orgID,
 		UID:     uid,
 		Expires: Expires,
@@ -54,12 +54,12 @@ func AccountJoinOrg(ctx *zservice.Context, uid uint32, orgID uint32, Expires uin
 }
 
 // 是否有账号和组织绑定
-func HasAccountOrgBindByAOID(ctx *zservice.Context, uid uint32, orgID uint32) (bool, *zservice.Error) {
-	return dbhelper.HasTableValue(ctx, &AccountOrgBindTable{}, fmt.Sprintf(RK_AOBind_Info, orgID, uid), fmt.Sprintf("uid = %v and org_id = %v", uid, orgID))
+func HasUserOrgBindByAOID(ctx *zservice.Context, uid uint32, orgID uint32) (bool, *zservice.Error) {
+	return dbhelper.HasTableValue(ctx, &UserOrgBindTable{}, fmt.Sprintf(RK_AOBind_Info, orgID, uid), fmt.Sprintf("uid = %v and org_id = %v", uid, orgID))
 }
 
 // 是否过期
-func (z *AccountOrgBindTable) IsExpired() bool {
+func (z *UserOrgBindTable) IsExpired() bool {
 	if z.Expires == 0 {
 		return false
 	}
@@ -67,7 +67,7 @@ func (z *AccountOrgBindTable) IsExpired() bool {
 }
 
 // 是否启动
-func (z *AccountOrgBindTable) IsAllow() bool {
+func (z *UserOrgBindTable) IsAllow() bool {
 	if z.IsExpired() {
 		return false
 	}
@@ -75,7 +75,7 @@ func (z *AccountOrgBindTable) IsAllow() bool {
 }
 
 // 存储
-func (z *AccountOrgBindTable) Save(ctx *zservice.Context) *zservice.Error {
+func (z *UserOrgBindTable) Save(ctx *zservice.Context) *zservice.Error {
 
 	rk_info := fmt.Sprintf(RK_AOBind_Info, z.OrgID, z.UID)
 	un, e := Redis.Lock(rk_info)

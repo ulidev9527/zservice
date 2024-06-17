@@ -6,8 +6,8 @@ import (
 	"zservice/zservice/zglobal"
 )
 
-func Logic_HasAccountID(ctx *zservice.Context, in *zauth_pb.HasAccountID_REQ) *zauth_pb.Default_RES {
-	has, e := HasAccountByID(ctx, in.AccountID)
+func Logic_HasUID(ctx *zservice.Context, in *zauth_pb.HasUID_REQ) *zauth_pb.Default_RES {
+	has, e := HasUserByID(ctx, in.Uid)
 
 	if e != nil {
 		return &zauth_pb.Default_RES{Code: e.GetCode()}
@@ -15,6 +15,6 @@ func Logic_HasAccountID(ctx *zservice.Context, in *zauth_pb.HasAccountID_REQ) *z
 	if has {
 		return &zauth_pb.Default_RES{Code: zglobal.Code_SUCC}
 	} else {
-		return &zauth_pb.Default_RES{Code: zglobal.Code_Zauth_Account_NotFund}
+		return &zauth_pb.Default_RES{Code: zglobal.Code_Zauth_User_NotFund}
 	}
 }

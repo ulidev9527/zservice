@@ -15,6 +15,7 @@ const (
 	Code_ZZZZ          = 10 // 字符串不合格
 	Code_CountErr      = 11 // 数量不合格
 	Code_RepetitionErr = 12 // 数据重复
+	Code_Reject        = 13 // 拒绝
 
 	Code_OpenFileErr         = 101 // 打开文件错误
 	Code_WiteFileErr         = 102 // 写入文件错误
@@ -50,10 +51,10 @@ const (
 	Code_Zauth_Org_NotFund      = 1306 // 组织不存在
 	Code_Zauth_Org_AlreadyExist = 1307 // 组织已经存在
 
-	// Code_Zauth_AccountGenIDCountMaxErr       = 1401 // 生成账号ID错误次数超上限
-	Code_Zauth_AccountAlreadyJoin_Org        = 1402 // 账号已经加入组织
-	Code_Zauth_AccountAlreadyExist_LoginName = 1403 // 账号已经存在
-	Code_Zauth_Account_NotFund               = 1404 // 账号不存在
+	// Code_Zauth_UserGenIDCountMaxErr       = 1401 // 生成账号ID错误次数超上限
+	Code_Zauth_UserAlreadyJoin_Org        = 1402 // 账号已经加入组织
+	Code_Zauth_UserAlreadyExist_LoginName = 1403 // 账号已经存在
+	Code_Zauth_User_NotFund               = 1404 // 账号不存在
 
 	// Code_Zauth_PermissionGenIDCountMaxErr     = 1501 // 生成权限ID错误次数超上限
 	Code_Zauth_PermissionBind_TargetTypeErr   = 1502 // 权限绑定目标类型错误
@@ -64,8 +65,8 @@ const (
 	Code_Zauth_Permission_ConfigErr           = 1507 // 权限配置错误
 	Code_Zauth_Permission_Alerady_Exist       = 1508 // 权限已经存在
 
-	Code_Zauth_Login_Account_NotFund = 1601 // 账号不存在
-	Code_Zauth_Login_Pass_Err        = 1602 // 密码错误
+	Code_Zauth_Login_User_NotFund = 1601 // 账号不存在
+	Code_Zauth_Login_Pass_Err     = 1602 // 密码错误
 
 	Code_Zauth_config_ParamsErr        = 2001 // 参数错误
 	Code_Zauth_config_ParserNotExist   = 2002 // 没有这个解析器

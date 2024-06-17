@@ -89,7 +89,7 @@ func (l *AuthToken) Save() *zservice.Error {
 
 	if l.UID != 0 { // 登录 token 存储
 		// 更新 service
-		if e := Redis.SetEX(fmt.Sprintf(RK_AccountLoginService, l.UID, l.LoginService), l.Token, time.Until(l.Expires)).Err(); e != nil {
+		if e := Redis.SetEX(fmt.Sprintf(RK_UserLoginService, l.UID, l.LoginService), l.Token, time.Until(l.Expires)).Err(); e != nil {
 			return zservice.NewError(e).SetCode(zglobal.Code_Zauth_TokenSaveFail)
 		}
 	}
@@ -106,7 +106,7 @@ func (l *AuthToken) Del(ctx *zservice.Context) {
 	rk := fmt.Sprintf(RK_TokenInfo, l.Token)
 
 	// 删除登陆 service
-	if e := Redis.Del(fmt.Sprintf(RK_AccountLoginService, l.UID, l.LoginService)).Err(); e != nil {
+	if e := Redis.Del(fmt.Sprintf(RK_UserLoginService, l.UID, l.LoginService)).Err(); e != nil {
 		ctx.LogError(e)
 	}
 

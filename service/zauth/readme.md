@@ -1,6 +1,6 @@
 # zauth
 权限系统/认证系统  
-`protoc zauth.proto --go_out=. --go-grpc_out=.`  
+`protoc --go_out=. --go-grpc_out=. zauth.proto`
 
 
 ## DB

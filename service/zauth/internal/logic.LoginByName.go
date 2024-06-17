@@ -6,10 +6,10 @@ import (
 	"zservice/zservice/zglobal"
 )
 
-func Logic_LoginByAccount(ctx *zservice.Context, in *zauth_pb.LoginByAccount_REQ) *zauth_pb.Login_RES {
+func Logic_LoginByName(ctx *zservice.Context, in *zauth_pb.LoginByUser_REQ) *zauth_pb.Login_RES {
 
 	// 验证参数
-	if in.Account == "" || in.Password == "" {
+	if in.User == "" || in.Password == "" {
 		return &zauth_pb.Login_RES{Code: zglobal.Code_ParamsErr}
 	}
 
@@ -29,15 +29,15 @@ func Logic_LoginByAccount(ctx *zservice.Context, in *zauth_pb.LoginByAccount_REQ
 	}
 
 	// 验证账号
-	if has, e := HasAccountByLoginName(ctx, in.Account); e != nil {
+	if has, e := HasUserByLoginName(ctx, in.User); e != nil {
 		ctx.LogError(e)
 		return &zauth_pb.Login_RES{Code: e.GetCode()}
 	} else if !has {
-		return &zauth_pb.Login_RES{Code: zglobal.Code_Zauth_Login_Account_NotFund}
+		return &zauth_pb.Login_RES{Code: zglobal.Code_Zauth_Login_User_NotFund}
 	}
 
 	// 获取账号信息
-	acc, e := GetAccountByLoginName(ctx, in.Account)
+	acc, e := GetUserByLoginName(ctx, in.User)
 	if e != nil {
 		ctx.LogError(e)
 		return &zauth_pb.Login_RES{Code: e.GetCode()}

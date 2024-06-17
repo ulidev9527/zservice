@@ -53,3 +53,10 @@ func Md5File(path string) (string, *Error) {
 
 	return hash, nil
 }
+
+// 字节流 md5 编码
+func Md5Bytes(data []byte) string {
+	hash := md5.New()
+	hash.Write(data)
+	return fmt.Sprintf("%x", hash.Sum(nil))
+}

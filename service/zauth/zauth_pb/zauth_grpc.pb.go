@@ -21,9 +21,9 @@ const _ = grpc.SupportPackageIsVersion7
 const (
 	Zauth_Logout_FullMethodName                      = "/zauth_pb.zauth/Logout"
 	Zauth_LoginByPhone_FullMethodName                = "/zauth_pb.zauth/LoginByPhone"
-	Zauth_LoginByAccount_FullMethodName              = "/zauth_pb.zauth/LoginByAccount"
+	Zauth_LoginByUser_FullMethodName                 = "/zauth_pb.zauth/LoginByUser"
 	Zauth_LoginCheck_FullMethodName                  = "/zauth_pb.zauth/LoginCheck"
-	Zauth_HasAccountID_FullMethodName                = "/zauth_pb.zauth/HasAccountID"
+	Zauth_HasUID_FullMethodName                      = "/zauth_pb.zauth/HasUID"
 	Zauth_PermissionCreate_FullMethodName            = "/zauth_pb.zauth/PermissionCreate"
 	Zauth_PermissionListGet_FullMethodName           = "/zauth_pb.zauth/PermissionListGet"
 	Zauth_PermissionUpdate_FullMethodName            = "/zauth_pb.zauth/PermissionUpdate"
@@ -34,13 +34,14 @@ const (
 	Zauth_SMSVerifyCodeSend_FullMethodName           = "/zauth_pb.zauth/SMSVerifyCodeSend"
 	Zauth_SMSVerifyCodeVerify_FullMethodName         = "/zauth_pb.zauth/SMSVerifyCodeVerify"
 	Zauth_CheckAuth_FullMethodName                   = "/zauth_pb.zauth/CheckAuth"
-	Zauth_HasZZZZString_FullMethodName             = "/zauth_pb.zauth/HasZZZZString"
+	Zauth_HasZZZZString_FullMethodName               = "/zauth_pb.zauth/HasZZZZString"
 	Zauth_ConfigGetFileConfig_FullMethodName         = "/zauth_pb.zauth/ConfigGetFileConfig"
 	Zauth_ConfigSyncServiceFileConfig_FullMethodName = "/zauth_pb.zauth/ConfigSyncServiceFileConfig"
 	Zauth_ConfigSyncServiceEnvConfig_FullMethodName  = "/zauth_pb.zauth/ConfigSyncServiceEnvConfig"
 	Zauth_ConfigGetServiceEnvConfig_FullMethodName   = "/zauth_pb.zauth/ConfigGetServiceEnvConfig"
 	Zauth_ConfigGetEnvConfig_FullMethodName          = "/zauth_pb.zauth/ConfigGetEnvConfig"
 	Zauth_ServiceRegist_FullMethodName               = "/zauth_pb.zauth/ServiceRegist"
+	Zauth_AddAsset_FullMethodName                    = "/zauth_pb.zauth/AddAsset"
 )
 
 // ZauthClient is the client API for Zauth service.
@@ -49,9 +50,9 @@ const (
 type ZauthClient interface {
 	Logout(ctx context.Context, in *Default_REQ, opts ...grpc.CallOption) (*Default_RES, error)
 	LoginByPhone(ctx context.Context, in *LoginByPhone_REQ, opts ...grpc.CallOption) (*Login_RES, error)
-	LoginByAccount(ctx context.Context, in *LoginByAccount_REQ, opts ...grpc.CallOption) (*Login_RES, error)
+	LoginByUser(ctx context.Context, in *LoginByUser_REQ, opts ...grpc.CallOption) (*Login_RES, error)
 	LoginCheck(ctx context.Context, in *Default_REQ, opts ...grpc.CallOption) (*Default_RES, error)
-	HasAccountID(ctx context.Context, in *HasAccountID_REQ, opts ...grpc.CallOption) (*Default_RES, error)
+	HasUID(ctx context.Context, in *HasUID_REQ, opts ...grpc.CallOption) (*Default_RES, error)
 	PermissionCreate(ctx context.Context, in *PermissionInfo, opts ...grpc.CallOption) (*PermissionInfo_RES, error)
 	PermissionListGet(ctx context.Context, in *PermissionListGet_REQ, opts ...grpc.CallOption) (*PermissionInfoList_RES, error)
 	PermissionUpdate(ctx context.Context, in *PermissionInfo, opts ...grpc.CallOption) (*PermissionInfo_RES, error)
@@ -69,6 +70,7 @@ type ZauthClient interface {
 	ConfigGetServiceEnvConfig(ctx context.Context, in *ConfigGetServiceEnvConfig_REQ, opts ...grpc.CallOption) (*ConfigGetServiceEnvConfig_RES, error)
 	ConfigGetEnvConfig(ctx context.Context, in *ConfigGetEnvConfig_REQ, opts ...grpc.CallOption) (*ConfigGetServiceEnvConfig_RES, error)
 	ServiceRegist(ctx context.Context, in *Default_REQ, opts ...grpc.CallOption) (*Default_RES, error)
+	AddAsset(ctx context.Context, in *AddAsset_REQ, opts ...grpc.CallOption) (*AssetInfo_RES, error)
 }
 
 type zauthClient struct {
@@ -97,9 +99,9 @@ func (c *zauthClient) LoginByPhone(ctx context.Context, in *LoginByPhone_REQ, op
 	return out, nil
 }
 
-func (c *zauthClient) LoginByAccount(ctx context.Context, in *LoginByAccount_REQ, opts ...grpc.CallOption) (*Login_RES, error) {
+func (c *zauthClient) LoginByUser(ctx context.Context, in *LoginByUser_REQ, opts ...grpc.CallOption) (*Login_RES, error) {
 	out := new(Login_RES)
-	err := c.cc.Invoke(ctx, Zauth_LoginByAccount_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, Zauth_LoginByUser_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -115,9 +117,9 @@ func (c *zauthClient) LoginCheck(ctx context.Context, in *Default_REQ, opts ...g
 	return out, nil
 }
 
-func (c *zauthClient) HasAccountID(ctx context.Context, in *HasAccountID_REQ, opts ...grpc.CallOption) (*Default_RES, error) {
+func (c *zauthClient) HasUID(ctx context.Context, in *HasUID_REQ, opts ...grpc.CallOption) (*Default_RES, error) {
 	out := new(Default_RES)
-	err := c.cc.Invoke(ctx, Zauth_HasAccountID_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, Zauth_HasUID_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -277,15 +279,24 @@ func (c *zauthClient) ServiceRegist(ctx context.Context, in *Default_REQ, opts .
 	return out, nil
 }
 
+func (c *zauthClient) AddAsset(ctx context.Context, in *AddAsset_REQ, opts ...grpc.CallOption) (*AssetInfo_RES, error) {
+	out := new(AssetInfo_RES)
+	err := c.cc.Invoke(ctx, Zauth_AddAsset_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ZauthServer is the server API for Zauth service.
 // All implementations must embed UnimplementedZauthServer
 // for forward compatibility
 type ZauthServer interface {
 	Logout(context.Context, *Default_REQ) (*Default_RES, error)
 	LoginByPhone(context.Context, *LoginByPhone_REQ) (*Login_RES, error)
-	LoginByAccount(context.Context, *LoginByAccount_REQ) (*Login_RES, error)
+	LoginByUser(context.Context, *LoginByUser_REQ) (*Login_RES, error)
 	LoginCheck(context.Context, *Default_REQ) (*Default_RES, error)
-	HasAccountID(context.Context, *HasAccountID_REQ) (*Default_RES, error)
+	HasUID(context.Context, *HasUID_REQ) (*Default_RES, error)
 	PermissionCreate(context.Context, *PermissionInfo) (*PermissionInfo_RES, error)
 	PermissionListGet(context.Context, *PermissionListGet_REQ) (*PermissionInfoList_RES, error)
 	PermissionUpdate(context.Context, *PermissionInfo) (*PermissionInfo_RES, error)
@@ -303,6 +314,7 @@ type ZauthServer interface {
 	ConfigGetServiceEnvConfig(context.Context, *ConfigGetServiceEnvConfig_REQ) (*ConfigGetServiceEnvConfig_RES, error)
 	ConfigGetEnvConfig(context.Context, *ConfigGetEnvConfig_REQ) (*ConfigGetServiceEnvConfig_RES, error)
 	ServiceRegist(context.Context, *Default_REQ) (*Default_RES, error)
+	AddAsset(context.Context, *AddAsset_REQ) (*AssetInfo_RES, error)
 	mustEmbedUnimplementedZauthServer()
 }
 
@@ -316,14 +328,14 @@ func (UnimplementedZauthServer) Logout(context.Context, *Default_REQ) (*Default_
 func (UnimplementedZauthServer) LoginByPhone(context.Context, *LoginByPhone_REQ) (*Login_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LoginByPhone not implemented")
 }
-func (UnimplementedZauthServer) LoginByAccount(context.Context, *LoginByAccount_REQ) (*Login_RES, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LoginByAccount not implemented")
+func (UnimplementedZauthServer) LoginByUser(context.Context, *LoginByUser_REQ) (*Login_RES, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LoginByUser not implemented")
 }
 func (UnimplementedZauthServer) LoginCheck(context.Context, *Default_REQ) (*Default_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LoginCheck not implemented")
 }
-func (UnimplementedZauthServer) HasAccountID(context.Context, *HasAccountID_REQ) (*Default_RES, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method HasAccountID not implemented")
+func (UnimplementedZauthServer) HasUID(context.Context, *HasUID_REQ) (*Default_RES, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HasUID not implemented")
 }
 func (UnimplementedZauthServer) PermissionCreate(context.Context, *PermissionInfo) (*PermissionInfo_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PermissionCreate not implemented")
@@ -376,6 +388,9 @@ func (UnimplementedZauthServer) ConfigGetEnvConfig(context.Context, *ConfigGetEn
 func (UnimplementedZauthServer) ServiceRegist(context.Context, *Default_REQ) (*Default_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ServiceRegist not implemented")
 }
+func (UnimplementedZauthServer) AddAsset(context.Context, *AddAsset_REQ) (*AssetInfo_RES, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddAsset not implemented")
+}
 func (UnimplementedZauthServer) mustEmbedUnimplementedZauthServer() {}
 
 // UnsafeZauthServer may be embedded to opt out of forward compatibility for this service.
@@ -425,20 +440,20 @@ func _Zauth_LoginByPhone_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Zauth_LoginByAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LoginByAccount_REQ)
+func _Zauth_LoginByUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LoginByUser_REQ)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ZauthServer).LoginByAccount(ctx, in)
+		return srv.(ZauthServer).LoginByUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Zauth_LoginByAccount_FullMethodName,
+		FullMethod: Zauth_LoginByUser_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ZauthServer).LoginByAccount(ctx, req.(*LoginByAccount_REQ))
+		return srv.(ZauthServer).LoginByUser(ctx, req.(*LoginByUser_REQ))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -461,20 +476,20 @@ func _Zauth_LoginCheck_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Zauth_HasAccountID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(HasAccountID_REQ)
+func _Zauth_HasUID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HasUID_REQ)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ZauthServer).HasAccountID(ctx, in)
+		return srv.(ZauthServer).HasUID(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Zauth_HasAccountID_FullMethodName,
+		FullMethod: Zauth_HasUID_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ZauthServer).HasAccountID(ctx, req.(*HasAccountID_REQ))
+		return srv.(ZauthServer).HasUID(ctx, req.(*HasUID_REQ))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -785,6 +800,24 @@ func _Zauth_ServiceRegist_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Zauth_AddAsset_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddAsset_REQ)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ZauthServer).AddAsset(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Zauth_AddAsset_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ZauthServer).AddAsset(ctx, req.(*AddAsset_REQ))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Zauth_ServiceDesc is the grpc.ServiceDesc for Zauth service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -801,16 +834,16 @@ var Zauth_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Zauth_LoginByPhone_Handler,
 		},
 		{
-			MethodName: "LoginByAccount",
-			Handler:    _Zauth_LoginByAccount_Handler,
+			MethodName: "LoginByUser",
+			Handler:    _Zauth_LoginByUser_Handler,
 		},
 		{
 			MethodName: "LoginCheck",
 			Handler:    _Zauth_LoginCheck_Handler,
 		},
 		{
-			MethodName: "HasAccountID",
-			Handler:    _Zauth_HasAccountID_Handler,
+			MethodName: "HasUID",
+			Handler:    _Zauth_HasUID_Handler,
 		},
 		{
 			MethodName: "PermissionCreate",
@@ -879,6 +912,10 @@ var Zauth_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ServiceRegist",
 			Handler:    _Zauth_ServiceRegist_Handler,
+		},
+		{
+			MethodName: "AddAsset",
+			Handler:    _Zauth_AddAsset_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

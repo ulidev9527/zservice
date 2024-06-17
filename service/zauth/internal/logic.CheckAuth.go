@@ -119,7 +119,7 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 	}
 
 	// 服务登陆和token验证
-	if s, e := Redis.Get(fmt.Sprintf(RK_AccountLoginService, at.UID, authService)).Result(); e != nil {
+	if s, e := Redis.Get(fmt.Sprintf(RK_UserLoginService, at.UID, authService)).Result(); e != nil {
 		ctx.LogError(e)
 		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_Zauth_Fail, IsTokenRefresh: isRefreshToken, Token: at.Token, Uid: at.UID}
 	} else if s != at.Token { // token 不正确, 需要重新登陆
@@ -135,9 +135,9 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 			return tab.State == 1, nil
 		}
 
-		bindInfo := &AccountOrgBindTable{}
+		bindInfo := &UserOrgBindTable{}
 
-		if e := Mysql.Model(&AccountOrgBindTable{}).Where( // 查找组中是否有当前账号的绑定信息
+		if e := Mysql.Model(&UserOrgBindTable{}).Where( // 查找组中是否有当前账号的绑定信息
 			"uid = ? AND org_id IN (?)",
 			at.UID,
 			Mysql.Model(&PermissionBindTable{}).Where( // 查找所有分配权限的组

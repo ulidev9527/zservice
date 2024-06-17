@@ -88,7 +88,10 @@ func main() {
 
 	zservice.Start().WaitStart()
 
-	internal.ZZZZString.Reload(zservice.NewEmptyContext(), zservice.Getenv("zzzzString_file_path"))
+	// 加载 zzzz 字符串
+	if e := internal.ZZZZString.Reload(zservice.NewEmptyContext(), zservice.Getenv("zzzzString_file_path")); e != nil {
+		zservice.LogError(e)
+	}
 
 	zservice.WaitStop()
 }

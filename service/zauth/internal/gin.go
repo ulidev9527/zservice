@@ -15,6 +15,9 @@ func InitGin() {
 	Gin.GET("/config/:service/envConfig", gin_get_config_service_envCVonfig)
 	Gin.GET("/config/serviceEnvConfig/:auth", gin_get_config_ServiceEnvConfig_auth)
 
+	Gin.POST("/")
+	Gin.POST("/upload", gin_post_upload)
+
 	Gin.POST("/login", gin_post_login)
 
 	Gin.POST("/sms/verifyCodeSend", gin_post_SMS_VerifyCodeSend)

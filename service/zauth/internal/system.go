@@ -21,7 +21,7 @@ func ZauthDBInit() {
 	ctx := zservice.NewEmptyContext()
 	// 检查账号表是否为空，为空表示未初始化
 	count := int64(0)
-	if e := Mysql.Model(&AccountTable{}).Count(&count).Error; e != nil {
+	if e := Mysql.Model(&UserTable{}).Count(&count).Error; e != nil {
 		ctx.LogPanic(e)
 	}
 
@@ -32,7 +32,7 @@ func ZauthDBInit() {
 	ctx.LogInfo("DB init start")
 
 	// 添加管理员账号
-	admAcc, e := CreateAccount(ctx)
+	admAcc, e := CreateUser(ctx)
 	if e != nil {
 		ctx.LogPanic(e)
 	} else {
@@ -40,9 +40,9 @@ func ZauthDBInit() {
 		adminPass := zservice.RandomString(16)
 		adminPassMd5 := zservice.MD5String(adminPass)
 
-		ctx.LogInfo("Create admin account --------------------")
+		ctx.LogInfo("Create admin user --------------------")
 		ctx.LogWarnf("AdminName: %s, AdminPass: %s PassMD5: %s", adminName, adminPass, adminPassMd5)
-		ctx.LogInfo("Create admin account --------------------")
+		ctx.LogInfo("Create admin user --------------------")
 		if e := admAcc.AddLoginNameAndPassword(ctx, adminName, zservice.MD5String(adminPass)); e != nil {
 			ctx.LogPanic(e)
 		}
@@ -63,11 +63,11 @@ func ZauthDBInit() {
 	}
 
 	// 账号和组绑定
-	_, e = AccountJoinOrg(ctx, admAcc.UID, sysOrg.Info.Id, 0) // 加入系统组
+	_, e = UserJoinOrg(ctx, admAcc.UID, sysOrg.Info.Id, 0) // 加入系统组
 	if e != nil {
 		ctx.LogPanic(e)
 	}
-	_, e = AccountJoinOrg(ctx, admAcc.UID, adminOrg.Info.Id, 0) // 加入超级管理员组
+	_, e = UserJoinOrg(ctx, admAcc.UID, adminOrg.Info.Id, 0) // 加入超级管理员组
 	if e != nil {
 		ctx.LogPanic(e)
 	}

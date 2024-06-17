@@ -18,10 +18,10 @@ var (
 
 func InitMysql() {
 
-	Mysql.AutoMigrate(&AccountTable{})
+	Mysql.AutoMigrate(&UserTable{})
 	Mysql.AutoMigrate(&OrgTable{})
 	Mysql.AutoMigrate(&PermissionTable{})
-	Mysql.AutoMigrate(&AccountOrgBindTable{})
+	Mysql.AutoMigrate(&UserOrgBindTable{})
 	Mysql.AutoMigrate(&PermissionBindTable{})
 	Mysql.AutoMigrate(&SmsBanTable{})
 
@@ -31,9 +31,9 @@ func InitRedis() {
 
 	// if e := Mysql.Raw(`
 	// WITH RECURSIVE cte(id) AS (
-	// 	SELECT g_id FROM account_group_bind_tables WHERE uid=?
+	// 	SELECT g_id FROM user_group_bind_tables WHERE uid=?
 	// 	UNION ALL SELECT
-	// 	agt.g_id FROM cte JOIN account_group_tables agt ON cte.id = agt.id
+	// 	agt.g_id FROM cte JOIN user_group_tables agt ON cte.id = agt.id
 	// ) SELECT DISTINCT id FROM cte WHERE id > 0;
 	// `, 1001).Find(&[]struct{}{}).Error; e != nil {
 	// 	zservice.LogError(e)

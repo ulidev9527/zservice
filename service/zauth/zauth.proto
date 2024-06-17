@@ -13,8 +13,8 @@ message LoginByPhone_REQ {
     uint32 expires    = 2;  // 过期时间 没有传入 (单位: 秒)，最小 30s，过期时间到了后需要重新授权
     string verifyCode = 3;  // 验证码
 }
-message LoginByAccount_REQ {
-    string account      = 1;   // 账号
+message LoginByUser_REQ {
+    string user      = 1;   // 账号
     string password     = 2;   // 密码
     uint32 expires      = 3;   // 过期时间 没有传入 (单位: 秒)，最小 30s，过期时间到了后需要重新授权
 }
@@ -31,8 +31,8 @@ message CheckAuth_RES{
     string token          = 3;  // 新的令牌， IsTokenRefresh 和 Token 为固定格式，不受错误码影响
     uint32 uid            = 4;  // 用户ID
 }
-message HasAccountID_REQ{
-    uint32 accountID = 1;  // 账号ID
+message HasUID_REQ{
+    uint32 uid = 1;  // 账号ID
 }
 
 // 权限相关
@@ -143,13 +143,34 @@ message ConfigGetEnvConfig_REQ{
     string service = 1;  // 服务名
 }
 
+// 资源
+message AssetInfo {
+    string name   = 1;  // 文件名
+    string md5    = 2;  // 文件md5
+    string token  = 3;  // 资源访问标识, 使用标识可以进行资源的访问
+    int64  expire = 4;  // 过期时间
+    uint64 size   = 5;  // 文件大小
+    bytes  data   = 6;  // 文件数据
+}
+
+message AddAsset_REQ { // 添加资源
+    string name      = 1;  // 文件全名, 文件全名 包括后缀
+    int64  expire    = 2;  // 过期时间
+    bytes  fileBytes = 3;  // 文件数据
+}
+
+message AssetInfo_RES { // 资源信息
+    uint32    code = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
+    AssetInfo info = 2;  // 资源信息
+}
+
 service zauth{
 
     rpc Logout(Default_REQ) returns(Default_RES);               // 登出
     rpc LoginByPhone(LoginByPhone_REQ) returns(Login_RES);      // 手机号登陆
-    rpc LoginByAccount(LoginByAccount_REQ) returns(Login_RES);  // 账户登陆
+    rpc LoginByUser(LoginByUser_REQ) returns(Login_RES);  // 账户登陆
     rpc LoginCheck(Default_REQ) returns(Default_RES);           // 登陆检查
-    rpc HasAccountID(HasAccountID_REQ) returns(Default_RES);    // 检查账户是否存在
+    rpc HasUID(HasUID_REQ) returns(Default_RES);    // 检查账户是否存在
     
     rpc PermissionCreate(PermissionInfo) returns(PermissionInfo_RES);              // 创建权限
     rpc PermissionListGet(PermissionListGet_REQ) returns(PermissionInfoList_RES);  // 获取权限列表权限列表
@@ -174,4 +195,6 @@ service zauth{
     rpc ConfigGetEnvConfig(ConfigGetEnvConfig_REQ) returns(ConfigGetServiceEnvConfig_RES);                   // 获取环境变量
 
     rpc ServiceRegist(Default_REQ)returns(Default_RES);  // 服务注册, 创建服务组/服务权限
+
+    rpc AddAsset(AddAsset_REQ) returns(AssetInfo_RES);  // 添加资源
 }

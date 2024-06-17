@@ -23,7 +23,7 @@ func Logic_PermissionBind(ctx *zservice.Context, in *zauth_pb.PermissionBind_REQ
 		}
 	case 2:
 		// 账号验证
-		if has, e := HasAccountByID(ctx, in.TargetID); e != nil {
+		if has, e := HasUserByID(ctx, in.TargetID); e != nil {
 			ctx.LogError(e)
 			return &zauth_pb.Default_RES{Code: e.GetCode()}
 		} else if !has {

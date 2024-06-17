@@ -21,13 +21,13 @@ func (s *ZauthServer) LoginByPhone(ctx context.Context, in *zauth_pb.LoginByPhon
 }
 
 // 账号密码登陆
-func (s *ZauthServer) LoginByAccount(ctx context.Context, in *zauth_pb.LoginByAccount_REQ) (*zauth_pb.Login_RES, error) {
-	return Logic_LoginByAccount(grpcservice.GetCtxEX(ctx), in), nil
+func (s *ZauthServer) LoginByUser(ctx context.Context, in *zauth_pb.LoginByUser_REQ) (*zauth_pb.Login_RES, error) {
+	return Logic_LoginByName(grpcservice.GetCtxEX(ctx), in), nil
 }
 
 // 是否有账号
-func (s *ZauthServer) HasAccountID(ctx context.Context, in *zauth_pb.HasAccountID_REQ) (*zauth_pb.Default_RES, error) {
-	return Logic_HasAccountID(grpcservice.GetCtxEX(ctx), in), nil
+func (s *ZauthServer) HasUID(ctx context.Context, in *zauth_pb.HasUID_REQ) (*zauth_pb.Default_RES, error) {
+	return Logic_HasUID(grpcservice.GetCtxEX(ctx), in), nil
 }
 
 // 登陆检查

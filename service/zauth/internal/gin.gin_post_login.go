@@ -44,8 +44,8 @@ func gin_post_login(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{"code": res.Code})
 		return
 	case 2: // 账号登陆
-		res := Logic_LoginByAccount(zctx, &zauth_pb.LoginByAccount_REQ{
-			Account:  req.LoginName,
+		res := Logic_LoginByName(zctx, &zauth_pb.LoginByUser_REQ{
+			User:     req.LoginName,
 			Password: req.LoginPass,
 			Expires:  uint32(zglobal.Time_10Day.Seconds()),
 		})

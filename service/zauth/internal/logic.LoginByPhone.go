@@ -37,13 +37,13 @@ func Logic_LoginByPhone(ctx *zservice.Context, in *zauth_pb.LoginByPhone_REQ) *z
 	}
 
 	// 获取账号信息
-	acc, e := GetAccountByPhone(ctx, in.Phone)
+	acc, e := GetUserByPhone(ctx, in.Phone)
 	if e != nil {
-		if e.GetCode() != zglobal.Code_Zauth_Account_NotFund { // 其他错误
+		if e.GetCode() != zglobal.Code_Zauth_User_NotFund { // 其他错误
 			ctx.LogError(e)
 			return &zauth_pb.Login_RES{Code: e.GetCode()}
 		} else { // 未找到账号, 进行创建
-			acc, e = CreateAccount(ctx)
+			acc, e = CreateUser(ctx)
 			if e != nil {
 				ctx.LogError(e)
 				return &zauth_pb.Login_RES{Code: e.GetCode()}
