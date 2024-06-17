@@ -72,14 +72,29 @@ func NewGrpcService(c *GrpcServiceConfig) *GrpcService {
 					s.LogPanic(e)
 				}
 
-				endpointKey := fmt.Sprintf("%s/%s", mgrTarget, c.ListenAddr)
-				s.LogInfo("grcp endpointKey:", endpointKey)
-				// 添加注册节点到 etcd 中，并且携带上租约 id
-				// 以 serverName/serverAddr 为 key，serverAddr 为 value
-				// serverName/serverAddr 中的 serverAddr 可以自定义，只要能够区分同一个 grpc 服务器功能的不同机器即可
-				e = mgr.AddEndpoint(c.EtcdServer.Ctx(), endpointKey, endpoints.Endpoint{Addr: c.ListenAddr}, clientv3.WithLease(lease.ID))
-				if e != nil {
+				if ips, e := zservice.GetIp(); e != nil {
 					s.LogPanic(e)
+				} else {
+
+					port := ""
+					if strings.Contains(c.ListenAddr, ":") {
+						port = strings.Split(c.ListenAddr, ":")[1]
+						port = ":" + port
+					}
+					for _, ipaddr := range ips {
+
+						listener := ipaddr + port
+						endpointKey := fmt.Sprintf("%s/%s", mgrTarget, listener)
+						s.LogInfo("grcp endpointKey:", endpointKey)
+						// 添加注册节点到 etcd 中，并且携带上租约 id
+						// 以 serverName/serverAddr 为 key，serverAddr 为 value
+						// serverName/serverAddr 中的 serverAddr 可以自定义，只要能够区分同一个 grpc 服务器功能的不同机器即可
+
+						e := mgr.AddEndpoint(c.EtcdServer.Ctx(), endpointKey, endpoints.Endpoint{Addr: listener}, clientv3.WithLease(lease.ID))
+						if e != nil {
+							s.LogPanic(e)
+						}
+					}
 				}
 
 				// 处理租约续期，如果续租失败或者租约过期则退出
@@ -104,9 +119,9 @@ func NewGrpcService(c *GrpcServiceConfig) *GrpcService {
 
 				reConnCount++
 				if reConnCount > 10 {
-					s.LogPanic("GRPC connect failed!", endpointKey)
+					s.LogPanic("GRPC connect failed!")
 				} else {
-					s.LogWarn("GRPC Reconnecting...", endpointKey)
+					s.LogWarn("GRPC Reconnecting...")
 				}
 			}
 		}()

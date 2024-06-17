@@ -1,7 +1,8 @@
 package main
 
 import (
-	"encoding/json"
+	"fmt"
+	"net"
 	"os"
 	"zservice/zservice"
 )
@@ -18,37 +19,22 @@ type TT struct {
 }
 
 func main() {
-	bt, e := os.ReadFile("main.go")
-	if e != nil {
-		zservice.LogError(e)
-		return
+	addrs, err := net.InterfaceAddrs()
+
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
 
-	fi, e := os.Stat("main.go1")
-	if e != nil {
-		os.IsNotExist(e)
-		zservice.LogError(e)
-	} else {
-		zservice.LogInfo(fi.Name())
+	for _, address := range addrs {
+
+		// 检查ip地址判断是否回环地址
+		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				fmt.Println(ipnet.IP.String())
+			}
+
+		}
 	}
-
-	zservice.LogInfo(zservice.MD5String(string(bt)))
-	zservice.LogInfo(zservice.Md5File("main.go"))
-	zservice.LogInfo(zservice.Md5Bytes(bt))
-
-	t := TT{
-		ID:       "1",
-		Name:     "2",
-		NickName: "3",
-		BT:       bt,
-	}
-
-	s := string(zservice.JsonMustMarshal(t))
-
-	zservice.LogInfo(s)
-
-	a := TT{}
-	json.Unmarshal([]byte(s), &a)
-	zservice.LogInfo(a)
 
 }

@@ -25,7 +25,7 @@ func NewGrpcClient(c *GrpcClientConfig) (*grpc.ClientConn, error) {
 	// etcd 和 addr 二选一
 	// 直连
 	if c.EtcdServer == nil {
-		return grpc.Dial("0.0.0.0:3002", grpc.WithTransportCredentials(insecure.NewCredentials()))
+		return grpc.Dial(c.Addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	}
 
 	// etcd

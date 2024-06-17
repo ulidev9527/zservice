@@ -50,12 +50,12 @@ func NewContext(in ...string) *Context {
 	}
 	// 链路记录
 	if traceJsonStr != "" {
-		if len(traceJsonStr) > 200 {
-			traceJsonStr = traceJsonStr[:200]
+		if len(traceJsonStr) > 1024 {
+			traceJsonStr = traceJsonStr[:1024]
 		}
 		e := json.Unmarshal([]byte(traceJsonStr), &ctx.ContextS2S)
 		if e != nil {
-			mainService.LogError(e, "[zservice.NewContext] => fail, traceJsonStr: %v", traceJsonStr)
+			mainService.LogError(e, "[zservice.NewContext] => fail, traceJsonStr: ", traceJsonStr)
 		}
 	}
 
