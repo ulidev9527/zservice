@@ -1,5 +1,5 @@
 # ------------------- 打包
-FROM golang:latest AS build-step
+FROM golang:1.22.3 AS build-step
 
 # 工作目录
 WORKDIR /app
