@@ -12,7 +12,7 @@ import (
 func HasZZZZString(ctx *zservice.Context, str string) bool {
 	if res, e := func() (*zauth_pb.Default_RES, error) {
 		in := &zauth_pb.HasZZZZString_REQ{Str: str}
-		if zauthInitConfig.ZauthServiceName == zservice.GetServiceName() {
+		if zauthInitConfig.ServiceName == zservice.GetServiceName() {
 			return internal.Logic_HasZZZZString(ctx, in), nil
 		}
 		return grpcClient.HasZZZZString(context.WithValue(context.Background(), grpcservice.GRPC_contextEX_Middleware_Key, ctx.ContextS2S), in)

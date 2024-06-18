@@ -15,8 +15,7 @@ type EtcdService struct {
 }
 
 type EtcdServiceConfig struct {
-	Name    string                 // 服务名
-	Addr    string                 // 服务地址
+	Addr    string                 // ETCD 服务地址
 	OnStart func(*clientv3.Client) // 启动的回调
 }
 
@@ -27,11 +26,7 @@ func NewEtcdService(c *EtcdServiceConfig) *EtcdService {
 		return nil
 	}
 
-	name := "EtcdService"
-
-	if c.Name != "" {
-		name = fmt.Sprint(name, "-", c.Name)
-	}
+	name := fmt.Sprint("EtcdService-", c.Addr)
 
 	es := &EtcdService{}
 	es.ZService = zservice.NewService(name, func(s *zservice.ZService) {

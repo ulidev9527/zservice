@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"os"
 	"runtime"
 	"strings"
 	"time"
@@ -22,10 +23,9 @@ type GrpcService struct {
 }
 
 type GrpcServiceConfig struct {
-	Name       string // 服务名
-	ListenAddr string // 监听地址
-	EtcdServer *clientv3.Client
-	OnStart    func(*grpc.Server) // 启 动的回调
+	ListenPort string // 监听端口
+	EtcdClient *clientv3.Client
+	OnStart    func(*grpc.Server) // 启动的回调
 }
 
 func NewGrpcService(c *GrpcServiceConfig) *GrpcService {
@@ -37,16 +37,12 @@ func NewGrpcService(c *GrpcServiceConfig) *GrpcService {
 
 	name := "GrpcService"
 
-	if c.Name != "" {
-		name = fmt.Sprint(name, "-", c.Name)
-	}
-
 	gs := &GrpcService{}
 	gs.ZService = zservice.NewService(name, func(s *zservice.ZService) {
 
 		// https://ayang.ink/分布式_grpc-基于-etcd-的服务发现/#grpc-服务端
 
-		lis, e := net.Listen("tcp", c.ListenAddr)
+		lis, e := net.Listen("tcp", fmt.Sprint(":", c.ListenPort))
 		if e != nil {
 			s.LogPanic(e)
 		}
@@ -58,7 +54,7 @@ func NewGrpcService(c *GrpcServiceConfig) *GrpcService {
 
 		// 创建 etcd 客户端
 		mgrTarget := fmt.Sprintf(S_ServiceName, zservice.GetServiceName())
-		mgr, e := endpoints.NewManager(c.EtcdServer, mgrTarget)
+		mgr, e := endpoints.NewManager(c.EtcdClient, mgrTarget)
 		if e != nil {
 			s.LogPanic(e)
 		}
@@ -67,34 +63,26 @@ func NewGrpcService(c *GrpcServiceConfig) *GrpcService {
 			reConnCount := 0 // 重连次数
 			for {
 				// 创建一个租约，每隔 10s 需要向 etcd 汇报一次心跳，证明当前节点仍然存活
-				lease, e := c.EtcdServer.Grant(c.EtcdServer.Ctx(), 10)
+				lease, e := c.EtcdClient.Grant(c.EtcdClient.Ctx(), 10)
 				if e != nil {
 					s.LogPanic(e)
 				}
 
-				if ips, e := zservice.GetIp(); e != nil {
+				hostName, e := os.Hostname()
+				if e != nil {
 					s.LogPanic(e)
-				} else {
+				}
 
-					port := ""
-					if strings.Contains(c.ListenAddr, ":") {
-						port = strings.Split(c.ListenAddr, ":")[1]
-						port = ":" + port
-					}
-					for _, ipaddr := range ips {
+				listener := fmt.Sprint(hostName, ":", c.ListenPort)
+				endpointKey := fmt.Sprintf("%s/%s", mgrTarget, listener)
+				s.LogInfo("grcp endpointKey:", endpointKey)
+				// 添加注册节点到 etcd 中，并且携带上租约 id
+				// 以 serverName/serverAddr 为 key，serverAddr 为 value
+				// serverName/serverAddr 中的 serverAddr 可以自定义，只要能够区分同一个 grpc 服务器功能的不同机器即可
 
-						listener := ipaddr + port
-						endpointKey := fmt.Sprintf("%s/%s", mgrTarget, listener)
-						s.LogInfo("grcp endpointKey:", endpointKey)
-						// 添加注册节点到 etcd 中，并且携带上租约 id
-						// 以 serverName/serverAddr 为 key，serverAddr 为 value
-						// serverName/serverAddr 中的 serverAddr 可以自定义，只要能够区分同一个 grpc 服务器功能的不同机器即可
-
-						e := mgr.AddEndpoint(c.EtcdServer.Ctx(), endpointKey, endpoints.Endpoint{Addr: listener}, clientv3.WithLease(lease.ID))
-						if e != nil {
-							s.LogPanic(e)
-						}
-					}
+				e = mgr.AddEndpoint(c.EtcdClient.Ctx(), endpointKey, endpoints.Endpoint{Addr: listener}, clientv3.WithLease(lease.ID))
+				if e != nil {
+					s.LogPanic(e)
 				}
 
 				// 处理租约续期，如果续租失败或者租约过期则退出
@@ -103,19 +91,19 @@ func NewGrpcService(c *GrpcServiceConfig) *GrpcService {
 					select {
 					case <-time.After(5 * time.Second):
 						// 租约
-						_, err := c.EtcdServer.KeepAliveOnce(context.Background(), lease.ID)
+						_, err := c.EtcdClient.KeepAliveOnce(context.Background(), lease.ID)
 						if err != nil {
 							fmt.Printf("Failed to keep lease alive: %s\n", err.Error())
 							isTimeout = true
 						}
-					case <-c.EtcdServer.Ctx().Done():
-						s.LogPanic(c.EtcdServer.Ctx().Err())
+					case <-c.EtcdClient.Ctx().Done():
+						s.LogPanic(c.EtcdClient.Ctx().Err())
 					}
 					if isTimeout { // 超时重连
 						break
 					}
 				}
-				time.Sleep(1 * time.Second) // 等待1秒重连
+				time.Sleep(time.Second) // 等待1秒重连
 
 				reConnCount++
 				if reConnCount > 10 {
@@ -127,8 +115,8 @@ func NewGrpcService(c *GrpcServiceConfig) *GrpcService {
 		}()
 
 		// 启动 grpc 服务
+		s.LogInfof("grpcService listen on :%v", c.ListenPort)
 		go func() {
-			s.LogInfof("grpcService listen on %v", c.ListenAddr)
 			e := gs.Server.Serve(lis)
 			if e != nil {
 				s.LogPanic(e)

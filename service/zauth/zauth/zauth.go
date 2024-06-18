@@ -5,7 +5,6 @@ import (
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
 	"zservice/zservice/ex/grpcservice"
-	"zservice/zservice/ex/redisservice"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
@@ -14,19 +13,24 @@ var grpcClient zauth_pb.ZauthClient
 var zauthInitConfig *ZAuthInitConfig
 
 type ZAuthInitConfig struct {
-	ZauthServiceName string // 权限服务名称
-	Etcd             *clientv3.Client
-	Redis            *redisservice.GoRedisEX
-	NsqConsumerAddrs string // nsq consumer addr
-	IsNsqdAddr       bool
+	ServiceName     string // 权限服务名称
+	Etcd            *clientv3.Client
+	NsqConsumerAddr string // nsq consumer addr
+	UseNsqEtcd      bool   // 是否使用 nsq + etcd
 }
 
 func Init(c *ZAuthInitConfig) {
+	if c == nil {
+		zservice.LogPanic("ZAuthInitConfig is nil")
+		return
+	}
 	zauthInitConfig = c
 	func() {
 		conn, e := grpcservice.NewGrpcClient(&grpcservice.GrpcClientConfig{
-			ZauthServiceName: c.ZauthServiceName,
-			EtcdServer:       c.Etcd,
+			ServiceName: c.ServiceName,
+			EtcdClient:  c.Etcd,
+			Addr:        c.NsqConsumerAddr,
+			UseEtcd:     c.UseNsqEtcd,
 		})
 		if e != nil {
 			zservice.LogPanic(e)
@@ -36,7 +40,7 @@ func Init(c *ZAuthInitConfig) {
 		grpcClient = zauth_pb.NewZauthClient(conn)
 	}()
 
-	if c.ZauthServiceName == "" {
+	if c.ServiceName == "" {
 		zservice.LogPanic("ZauthServiceName is nil")
 	}
 

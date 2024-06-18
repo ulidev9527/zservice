@@ -30,14 +30,15 @@ func main() {
 	grpcClient := zservice.NewService("zauth.grpc", func(z *zservice.ZService) {
 
 		zauth.Init(&zauth.ZAuthInitConfig{
-			ZauthServiceName: "zauth",
-			Etcd:             etcdS.Etcd,
+			ServiceName: zservice.Getenv("ZAUTH_SERVICE_NAME"),
+			Etcd:        etcdS.Etcd,
+			UseNsqEtcd:  zservice.GetenvBool("ZAUTH_USE_NSQ_ETCD"),
 		})
 		z.StartDone()
 	})
 
 	ginS := ginservice.NewGinService(&ginservice.GinServiceConfig{
-		ListenAddr: zservice.Getenv("GIN_ADDR"),
+		ListenPort: zservice.Getenv("GIN_PORT"),
 		OnStart: func(engine *gin.Engine) {
 			engine.GET("/", func(ctx *gin.Context) {
 				zctx := ginservice.GetCtxEX(ctx)

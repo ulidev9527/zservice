@@ -17,7 +17,7 @@ type ___ZZZZString struct {
 
 var ZZZZString = &___ZZZZString{}
 
-func init() {
+func InitZZZZ() {
 
 	ZZZZString.RuneMap = make(map[rune]int)
 	ZZZZString.Trie = trie.New()

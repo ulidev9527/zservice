@@ -17,7 +17,7 @@ func LoginCheck(ctx *zservice.Context) bool {
 
 	if res, e := func() (*zauth_pb.Default_RES, error) {
 		in := &zauth_pb.Default_REQ{}
-		if zauthInitConfig.ZauthServiceName == zservice.GetServiceName() {
+		if zauthInitConfig.ServiceName == zservice.GetServiceName() {
 			return internal.Logic_LoginCheck(ctx, in), nil
 		} else {
 			return grpcClient.LoginCheck(context.WithValue(context.Background(), grpcservice.GRPC_contextEX_Middleware_Key, ctx.ContextS2S), in)

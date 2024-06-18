@@ -27,7 +27,7 @@ func GetFileConfig(ctx *zservice.Context, fileName string, v any, keys ...string
 		}
 
 		res, e := func() (*zauth_pb.ConfigGetFileConfig_RES, error) {
-			if zauthInitConfig.ZauthServiceName == zservice.GetServiceName() {
+			if zauthInitConfig.ServiceName == zservice.GetServiceName() {
 				return internal.Logic_ConfigGetFileConfig(ctx, req), nil
 			}
 			return grpcClient.ConfigGetFileConfig(ctx, req)

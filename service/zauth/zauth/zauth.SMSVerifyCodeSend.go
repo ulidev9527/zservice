@@ -16,7 +16,7 @@ func SMSVerifyCodeSend(ctx *zservice.Context, in *zauth_pb.SMSVerifyCodeSend_REQ
 	}
 
 	if res, e := func() (*zauth_pb.SMSSendVerifyCode_RES, error) {
-		if zauthInitConfig.ZauthServiceName == zservice.GetServiceName() {
+		if zauthInitConfig.ServiceName == zservice.GetServiceName() {
 			return internal.Logic_SMSVerifyCodeSend(ctx, in), nil
 		}
 		return grpcClient.SMSVerifyCodeSend(context.WithValue(context.Background(), grpcservice.GRPC_contextEX_Middleware_Key, ctx.ContextS2S), in)

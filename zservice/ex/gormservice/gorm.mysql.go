@@ -35,7 +35,6 @@ type GormMysqlService struct {
 	Mysql *gorm.DB
 }
 type GormMysqlServiceConfig struct {
-	Name    string         // 服务名称
 	DBName  string         // 数据库名称
 	Addr    string         // 数据库地址
 	User    string         // 数据库用户名
@@ -49,10 +48,7 @@ func NewGormMysqlService(c *GormMysqlServiceConfig) *GormMysqlService {
 		zservice.LogPanic("GormMysqlServiceConfig is nil")
 		return nil
 	}
-	name := "GormMysqlService"
-	if c.Name != "" {
-		name = fmt.Sprint(name, "-", c.Name)
-	}
+	name := fmt.Sprint("GormMysqlService-", c.Addr, "-", c.DBName)
 
 	gs := &GormMysqlService{}
 	zs := zservice.NewService(name, func(s *zservice.ZService) {

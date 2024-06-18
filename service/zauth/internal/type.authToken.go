@@ -21,7 +21,7 @@ type AuthToken struct {
 // 创建一个 token
 func CreateToken(ctx *zservice.Context) (*AuthToken, *zservice.Error) {
 	// 最小过期时间
-	minExpiresSeconds := zservice.GetenvUInt32("TOKEN_MIN_EXPIRES")
+	minExpiresSeconds := 60 * 10 // 10分钟
 
 	// 创建 token
 	tk := &AuthToken{

@@ -38,7 +38,7 @@ func main() {
 	})
 
 	internal.GinService = ginservice.NewGinService(&ginservice.GinServiceConfig{
-		ListenAddr: zservice.Getenv("GIN_LISTEN_ADDR"),
+		ListenPort: zservice.Getenv("GIN_LISTEN_ADDR"),
 		OnStart: func(engine *gin.Engine) {
 			internal.Gin = engine
 			internal.InitGin()

@@ -55,8 +55,8 @@ func main() {
 	})
 
 	internal.GrpcService = grpcservice.NewGrpcService(&grpcservice.GrpcServiceConfig{
-		ListenAddr: zservice.Getenv("GRPC_LISTEN_ADDR"),
-		EtcdServer: internal.EtcdService.Etcd,
+		ListenPort: zservice.Getenv("grpc_listen_port"),
+		EtcdClient: internal.EtcdService.Etcd,
 		OnStart: func(grpc *grpc.Server) {
 			internal.Grpc = grpc
 			internal.InitGrpc()
@@ -64,7 +64,7 @@ func main() {
 	})
 
 	internal.GinService = ginservice.NewGinService(&ginservice.GinServiceConfig{
-		ListenAddr: zservice.Getenv("GIN_LISTEN_ADDR"),
+		ListenPort: zservice.Getenv("gin_listen_port"),
 		OnStart: func(engine *gin.Engine) {
 			engine.Use(internal.GinMiddlewareCheckAuth(internal.GinService.ZService))
 			internal.Gin = engine
@@ -87,6 +87,6 @@ func main() {
 	internal.GinService.AddDependService(internal.GrpcService.ZService)
 
 	zservice.Start().WaitStart()
-
+	internal.InitZZZZ()
 	zservice.WaitStop()
 }
