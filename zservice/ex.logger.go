@@ -64,3 +64,11 @@ func LogPanicCaller(caller int, v ...any) { logger.Panic().Caller(caller).Msg(Sp
 func LogPanicCallerf(caller int, format string, v ...any) {
 	LogPanicCaller(caller+1, fmt.Sprintf(format, v...))
 }
+
+// debug
+func LogDebug(v ...any)                   { LogDebugCaller(2, v...) }
+func LogDebugf(format string, v ...any)   { LogDebugCallerf(2, format, v...) }
+func LogDebugCaller(caller int, v ...any) { logger.Debug().Caller(caller).Msg(SprintQuote(v...)) }
+func LogDebugCallerf(caller int, format string, v ...any) {
+	LogDebugCaller(caller+1, fmt.Sprintf(format, v...))
+}

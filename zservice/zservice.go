@@ -5,6 +5,7 @@ import (
 )
 
 var Version = "0.1.0"
+var ISDebug = false
 
 // 服务
 var mainService *ZService
@@ -14,8 +15,10 @@ func Init(serviceName, serviceVersion string) {
 	mainService = createService(serviceName, nil)
 
 	// 配置初始化环境变量
-	SetEnv(ENV_ZSERVICE_NAME, serviceName)
-	SetEnv(ENV_ZSERVICE_VERSION, serviceVersion)
+	if Getenv("ZSERVICE_NAME") == "" {
+		SetEnv("ZSERVICE_NAME", serviceName)
+	}
+	SetEnv("ZSERVICE_VERSION", serviceVersion)
 
 	// 加载 .env 文件环境变量
 	if _, err := os.Stat(".env"); !os.IsNotExist(err) {
@@ -27,7 +30,7 @@ func Init(serviceName, serviceVersion string) {
 
 	// 自定义其它文件配置
 	func() {
-		arr := GetenvStringSplit(ENV_ZSERVICE_FILES_ENV)
+		arr := GetenvStringSplit("ZSERVICE_FILES_ENV")
 		if len(arr) > 0 { // load other env files
 			for _, v := range arr {
 				e := LoadFileEnv(v)
@@ -39,27 +42,29 @@ func Init(serviceName, serviceVersion string) {
 	}()
 
 	// 加载远程环境变量
-	if Getenv(ENV_ZSERVICE_REMOTE_ENV_ADDR) != "" {
-		e := LoadRemoteEnv(Getenv(ENV_ZSERVICE_REMOTE_ENV_ADDR))
+	if Getenv("ZSERVICE_REMOTE_ENV_ADDR") != "" {
+		e := LoadRemoteEnv(Getenv("ZSERVICE_REMOTE_ENV_ADDR"))
 		if e != nil {
 			LogError(e)
 		}
 	}
 
-	LogInfof("run service at:   zservice v%s", Version)
+	LogInfof("run service at:    zservice v%s", Version)
 
-	if Getenv(ENV_ZSERVICE_NAME) == "" {
+	if Getenv("ZSERVICE_NAME") == "" {
 		LogPanic("zservice name is empty, you need run zservice.Init first")
 	}
-	if Getenv(ENV_ZSERVICE_VERSION) == "" {
+	if Getenv("ZSERVICE_VERSION") == "" {
 		LogPanic("zservice version is empty, you need run zservice.Init first")
 	}
 
-	LogInfof("run service up:   %s v%s", serviceName, Getenv(ENV_ZSERVICE_VERSION))
-	LogInfof("reg service name: %s", Getenv(ENV_ZSERVICE_NAME))
+	LogInfof("run service up:    %s v%s", serviceName, Getenv("ZSERVICE_VERSION"))
+	LogInfof("run service name:  %s", Getenv("ZSERVICE_NAME"))
 
-	mainService.name = Getenv(ENV_ZSERVICE_NAME)
+	mainService.name = Getenv("ZSERVICE_NAME")
 	mainService.tranceName = mainService.name
+	ISDebug = GetenvBool("ZSERVICE_DEBUG")
+	LogInfo("run service debug:", BoolToString(ISDebug))
 }
 
 // 获取服务名称

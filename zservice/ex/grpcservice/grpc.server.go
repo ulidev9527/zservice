@@ -42,11 +42,6 @@ func NewGrpcService(c *GrpcServiceConfig) *GrpcService {
 
 		// https://ayang.ink/分布式_grpc-基于-etcd-的服务发现/#grpc-服务端
 
-		lis, e := net.Listen("tcp", fmt.Sprint(":", c.ListenPort))
-		if e != nil {
-			s.LogPanic(e)
-		}
-
 		gs.Server = grpc.NewServer(
 			grpc.ChainUnaryInterceptor(ServerUnaryInterceptor),
 			grpc.ChainStreamInterceptor(ServerStreamInterceptor),
@@ -59,8 +54,10 @@ func NewGrpcService(c *GrpcServiceConfig) *GrpcService {
 			s.LogPanic(e)
 		}
 
+		chanConn := make(chan any)
 		go func() {
 			reConnCount := 0 // 重连次数
+			isCloseChanconn := false
 			for {
 				// 创建一个租约，每隔 10s 需要向 etcd 汇报一次心跳，证明当前节点仍然存活
 				lease, e := c.EtcdClient.Grant(c.EtcdClient.Ctx(), 10)
@@ -85,6 +82,10 @@ func NewGrpcService(c *GrpcServiceConfig) *GrpcService {
 					s.LogPanic(e)
 				}
 
+				if !isCloseChanconn {
+					close(chanConn)
+				}
+
 				// 处理租约续期，如果续租失败或者租约过期则退出
 				for {
 					isTimeout := false
@@ -93,7 +94,7 @@ func NewGrpcService(c *GrpcServiceConfig) *GrpcService {
 						// 租约
 						_, err := c.EtcdClient.KeepAliveOnce(context.Background(), lease.ID)
 						if err != nil {
-							fmt.Printf("Failed to keep lease alive: %s\n", err.Error())
+							s.LogErrorf("Failed to keep lease alive: %s\n", err.Error())
 							isTimeout = true
 						}
 					case <-c.EtcdClient.Ctx().Done():
@@ -117,13 +118,20 @@ func NewGrpcService(c *GrpcServiceConfig) *GrpcService {
 		// 启动 grpc 服务
 		s.LogInfof("grpcService listen on :%v", c.ListenPort)
 		go func() {
-			e := gs.Server.Serve(lis)
+			<-chanConn
+
+			lis, e := net.Listen("tcp", fmt.Sprint(":", c.ListenPort))
 			if e != nil {
+				s.LogPanic(e)
+			}
+
+			if e := gs.Server.Serve(lis); e != nil {
 				s.LogPanic(e)
 			}
 		}()
 
 		go func() {
+			<-chanConn
 			s.StartDone()
 		}()
 
@@ -144,7 +152,19 @@ func ServerUnaryInterceptor(ctx context.Context, req any, info *grpc.UnaryServer
 
 	// 获取 zservice.Context 和 Trace数据
 	md, _ := metadata.FromIncomingContext(ctx)
-	zctx := zservice.NewContext(md.Get(zservice.S_S2S)[0])
+
+	zctx := func() *zservice.Context {
+		S2SArr := md.Get(zservice.S_S2S)
+		if len(S2SArr) > 0 {
+			if zservice.ISDebug {
+				zservice.LogDebug(zservice.S_C2S, S2SArr[0])
+			}
+			return zservice.NewContext(S2SArr[0])
+		} else {
+			return zservice.NewContext()
+		}
+
+	}()
 	zctx.ContextS2S.RequestIP = ipaddr
 	ctx = context.WithValue(ctx, GRPC_contextEX_Middleware_Key, zctx)
 

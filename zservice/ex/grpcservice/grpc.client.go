@@ -27,10 +27,15 @@ func NewGrpcClient(c *GrpcClientConfig) (*grpc.ClientConn, error) {
 		return nil, zservice.NewError("GrpcClientConfig is nil")
 	}
 
+	grpcOpts := []grpc.DialOption{
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithUnaryInterceptor(ClientUnaryInterceptor),
+	}
+
 	// etcd 和 addr 二选一
 	// 直连
 	if !c.UseEtcd {
-		return grpc.Dial(c.Addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		return grpc.Dial(c.Addr, grpcOpts...)
 	}
 
 	// etcd
@@ -45,18 +50,17 @@ func NewGrpcClient(c *GrpcClientConfig) (*grpc.ClientConn, error) {
 		return nil, e
 	}
 
-	// 创建 grpc 连接代理
-	conn, e := grpc.Dial(
-		// 服务名称
-		fmt.Sprintf("etcd:///%s", serviceName),
+	// etcd 需要的内容
+	grpcOpts = append(grpcOpts,
 		// 注入 etcd resolver
 		grpc.WithResolvers(builder),
 		// 声明使用的负载均衡策略为 roundrobin，轮询。（测试 target 时去除该注释）
 		// grpc.WithDefaultServiceConfig(fmt.Sprintf(`{"LoadBalancingPolicy": "%s"}`, roundrobin.Name)),
 		grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy":"round_robin"}`),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithUnaryInterceptor(ClientUnaryInterceptor),
 	)
+
+	// 创建 grpc 连接代理
+	conn, e := grpc.Dial(fmt.Sprintf("etcd:///%s", serviceName), grpcOpts...)
 	if e != nil {
 		return nil, e
 	}
@@ -77,6 +81,11 @@ func ClientUnaryInterceptor(ctx context.Context, method string, req, reply any, 
 
 	// 配置metadata
 	ctx = metadata.AppendToOutgoingContext(ctx, zservice.S_S2S, zservice.JsonMustMarshalString(zctx.ContextS2S))
+	if zservice.ISDebug {
+		if zservice.ISDebug {
+			zservice.LogDebug(zservice.S_C2S, zservice.JsonMustMarshalString(zctx.ContextS2S))
+		}
+	}
 
 	// panic
 	defer func() {

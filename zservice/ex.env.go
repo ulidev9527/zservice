@@ -53,7 +53,7 @@ func Getenv(key string) string {
 
 func SetEnv(key string, value string) {
 	key = strings.ToUpper(key)
-	if key == ENV_ZSERVICE_VERSION && Getenv(key) != "" {
+	if key == "ZSERVICE_VERSION" && Getenv(key) != "" {
 		return
 	}
 	envCacheMap.Store(key, value)

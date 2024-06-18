@@ -5,7 +5,7 @@ import (
 )
 
 // bool 转换字符串
-func Convert_BoolToString(b bool) string {
+func BoolToString(b bool) string {
 	return strconv.FormatBool(b)
 }
 
