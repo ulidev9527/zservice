@@ -17,7 +17,7 @@ func gin_post_permissionBind(ctx *gin.Context) {
 	req := &zauth_pb.PermissionBind_REQ{}
 	if e := ctx.ShouldBindJSON(req); e != nil {
 		zctx.LogError(e)
-		ctx.JSON(http.StatusOK, gin.H{"code": zglobal.Code_ErrorBreakoff})
+		ctx.JSON(http.StatusOK, gin.H{"code": zglobal.Code_Fail})
 		return
 	}
 

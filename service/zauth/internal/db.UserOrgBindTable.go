@@ -85,7 +85,7 @@ func (z *UserOrgBindTable) Save(ctx *zservice.Context) *zservice.Error {
 	defer un()
 
 	if e := Mysql.Save(&z).Error; e != nil {
-		return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+		return zservice.NewError(e)
 	}
 
 	// 删缓存

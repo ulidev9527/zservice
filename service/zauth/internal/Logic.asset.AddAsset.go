@@ -21,7 +21,7 @@ func Logic_AddAsset(ctx *zservice.Context, in *zauth_pb.AddAsset_REQ) *zauth_pb.
 		if os.IsNotExist(e) {
 			if e := os.MkdirAll(saveDir, 0750); e != nil {
 				ctx.LogError(e)
-				return &zauth_pb.AssetInfo_RES{Code: zglobal.Code_ErrorBreakoff}
+				return &zauth_pb.AssetInfo_RES{Code: zglobal.Code_Fail}
 			}
 		} else {
 			ctx.LogError(e)
@@ -35,12 +35,12 @@ func Logic_AddAsset(ctx *zservice.Context, in *zauth_pb.AddAsset_REQ) *zauth_pb.
 
 			if e := os.WriteFile(savePath, in.FileBytes, 0750); e != nil {
 				ctx.LogError(e)
-				return &zauth_pb.AssetInfo_RES{Code: zglobal.Code_ErrorBreakoff}
+				return &zauth_pb.AssetInfo_RES{Code: zglobal.Code_Fail}
 			}
 
 		} else {
 			ctx.LogError(e)
-			return &zauth_pb.AssetInfo_RES{Code: zglobal.Code_ErrorBreakoff}
+			return &zauth_pb.AssetInfo_RES{Code: zglobal.Code_Fail}
 		}
 	}
 

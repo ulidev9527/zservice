@@ -22,6 +22,11 @@ func IntToString(i int) string {
 	return strconv.Itoa(i)
 }
 
+// int to uint32
+func IntToUint32(i int) uint32 {
+	return uint32(i)
+}
+
 // uint to string
 func UintToString(u uint) string {
 	return fmt.Sprintf("%d", u)

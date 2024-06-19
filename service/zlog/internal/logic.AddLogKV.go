@@ -12,8 +12,9 @@ func Logic_AddLogKV(ctx *zservice.Context, in *zlog_pb.LogKV_REQ) *zlog_pb.Defau
 		Key:      in.Key,
 		Value:    in.Value,
 		SaveTime: in.SaveTime,
+		TraceID:  ctx.TraceID,
 	}
-	if e := Mysql.Save(tab).Error; e != nil {
+	if e := Mysql.Create(tab).Error; e != nil {
 		zservice.LogError(e)
 		return &zlog_pb.Default_RES{Code: zglobal.Code_DB_SaveFail}
 	}

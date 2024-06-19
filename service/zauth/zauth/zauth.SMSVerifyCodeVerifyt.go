@@ -29,7 +29,7 @@ func SMSVerifyCodeVerifyt(ctx *zservice.Context, phone string, verifyCode string
 		}
 		return grpcClient.SMSVerifyCodeVerify(context.WithValue(context.Background(), grpcservice.GRPC_contextEX_Middleware_Key, ctx.ContextS2S), req)
 	}(); e != nil {
-		return zservice.NewError("verify code fail").SetCode(zglobal.Code_ErrorBreakoff)
+		return zservice.NewError("verify code fail")
 	} else if res.Code == zglobal.Code_SUCC {
 		return nil
 	} else {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"zservice/zservice"
 	"zservice/zservice/ex/gormservice"
+	"zservice/zservice/ex/redisservice"
 	"zservice/zservice/zglobal"
 )
 
@@ -11,10 +12,10 @@ import (
 type UserTable struct {
 	gormservice.Model
 	UID            uint32 `gorm:"unique"` // 用户唯一ID
-	LoginName      string `gorm:"unique"` // 登陆账号
+	LoginName      string // 登陆账号
 	LoginPass      string // 登陆密码
 	LoginPassToken string // 密码令牌
-	Phone          string `gorm:"unique"`    // 手机号 含区号 +86******
+	Phone          string // 手机号 含区号 +86******
 	State          uint32 `gorm:"default:1"` // 账号状态 0 禁用 1 启用
 }
 
@@ -54,7 +55,7 @@ func UserGenPassSign(z *UserTable, password string) string {
 }
 
 // 获取账号
-func GetUserByID(ctx *zservice.Context, id uint) (*UserTable, *zservice.Error) {
+func GetUserByUID(ctx *zservice.Context, id uint32) (*UserTable, *zservice.Error) {
 	tab := UserTable{}
 
 	if e := dbhelper.GetTableValue(ctx, &tab, fmt.Sprintf(RK_UserInfo, id), fmt.Sprintf("uid = %v", id)); e != nil {
@@ -68,12 +69,12 @@ func GetUserByLoginName(ctx *zservice.Context, loginName string) (*UserTable, *z
 
 	rk := fmt.Sprintf(RK_UserLoginName, loginName)
 	if has, e := Redis.Exists(rk).Result(); e != nil { // 是否有缓存
-		return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+		return nil, zservice.NewError(e)
 	} else if has > 0 {
 		if s, e := Redis.Get(rk).Result(); e != nil { // 是否有数据
-			return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+			return nil, zservice.NewError(e)
 		} else {
-			if tab, e := GetUserByID(ctx, zservice.StringToUint(s)); e != nil {
+			if tab, e := GetUserByUID(ctx, zservice.StringToUint32(s)); e != nil {
 				return nil, e
 			} else {
 				return tab, nil
@@ -89,7 +90,7 @@ func GetUserByLoginName(ctx *zservice.Context, loginName string) (*UserTable, *z
 		if gormservice.IsNotFound(e) {
 			return nil, zservice.NewError(e).SetCode(zglobal.Code_NotFound)
 		}
-		return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+		return nil, zservice.NewError(e)
 	}
 
 	// 更新缓存
@@ -106,17 +107,14 @@ func GetUserByLoginName(ctx *zservice.Context, loginName string) (*UserTable, *z
 // 根据手机号获取账号
 func GetUserByPhone(ctx *zservice.Context, phone string) (*UserTable, *zservice.Error) {
 	rk := fmt.Sprintf(RK_UserLoginPhone, phone)
-	if has, e := Redis.Exists(rk).Result(); e != nil { // 是否有缓存
-		return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
-	} else if has >= 0 {
-		if s, e := Redis.Get(rk).Result(); e != nil { // 是否有数据
-			return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
-		} else {
-			if tab, e := GetUserByID(ctx, zservice.StringToUint(s)); e != nil {
-				return nil, e
-			} else {
-				return tab, nil
-			}
+
+	if s, e := Redis.Get(rk).Result(); e != nil {
+		if !redisservice.IsNilErr(e) {
+			return nil, zservice.NewError(e)
+		}
+	} else {
+		if zservice.IsInteger(s) {
+			return GetUserByUID(ctx, zservice.StringToUint32(s))
 		}
 	}
 
@@ -125,7 +123,10 @@ func GetUserByPhone(ctx *zservice.Context, phone string) (*UserTable, *zservice.
 
 	// 验证数据库中是否存在
 	if e := Mysql.Model(&tab).Where(fmt.Sprintf("phone = '%v'", phone)).First(&tab).Error; e != nil {
-		return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+		if gormservice.IsNotFound(e) {
+			return nil, zservice.NewError(e).SetCode(zglobal.Code_NotFound)
+		}
+		return nil, zservice.NewError(e)
 	}
 
 	// 更新缓存
@@ -182,7 +183,7 @@ func (z *UserTable) Save(ctx *zservice.Context) *zservice.Error {
 	defer un()
 
 	if e := Mysql.Save(z).Error; e != nil {
-		return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+		return zservice.NewError(e)
 	}
 
 	// 删缓存

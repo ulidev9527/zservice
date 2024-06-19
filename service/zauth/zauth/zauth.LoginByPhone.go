@@ -22,7 +22,7 @@ func LoginByPhone(ctx *zservice.Context, in *zauth_pb.LoginByPhone_REQ) *zauth_p
 		}
 		return grpcClient.LoginByPhone(context.WithValue(context.Background(), grpcservice.GRPC_contextEX_Middleware_Key, ctx.ContextS2S), in)
 	}(); e != nil {
-		return &zauth_pb.Login_RES{Code: zglobal.Code_ErrorBreakoff}
+		return &zauth_pb.Login_RES{Code: zglobal.Code_Fail}
 	} else {
 		return res
 	}

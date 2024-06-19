@@ -3,7 +3,6 @@ package internal
 import (
 	"fmt"
 	"zservice/zservice"
-	"zservice/zservice/zglobal"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
@@ -13,7 +12,7 @@ func EV_Send_Config_serviceFileConfigChange(ctx *zservice.Context, etcd *clientv
 	ev := fmt.Sprintf(EV_Config_ServiceFileConfigChange, service)
 
 	if _, e := etcd.Put(ctx, ev, fileName); e != nil {
-		return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+		return zservice.NewError(e)
 	}
 	return nil
 }

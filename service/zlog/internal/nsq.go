@@ -12,10 +12,10 @@ func NsqInit() {
 
 	// kv 日志
 	go nsqservice.NewNsqConsumer(&nsqservice.NsqConsumerConfig{
-		Addrs:      zservice.Getenv("NSQ_ADDR"),
-		IsNsqdAddr: zservice.GetenvBool("IS_NSQD_ADDR"),
-		Topic:      zglobal.NSQ_Topic_zlog_AddKV,
-		Channel:    zservice.GetServiceName(),
+		Addrs:         zservice.Getenv("NSQ_ADDRS"),
+		UseNsqlookupd: zservice.GetenvBool("USE_NSQLOOKUPD"),
+		Topic:         zglobal.NSQ_Topic_zlog_AddKV,
+		Channel:       zservice.GetServiceName(),
 		OnMessage: func(ctx *zservice.Context, body []byte) {
 
 			bd := &zlog_pb.LogKV_REQ{}

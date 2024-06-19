@@ -6,7 +6,6 @@ import (
 	"time"
 	"zservice/zservice"
 	"zservice/zservice/ex/gormservice"
-	"zservice/zservice/zglobal"
 
 	"gorm.io/gorm"
 )
@@ -32,7 +31,7 @@ func IsSmsBan(ctx *zservice.Context, phone string) (bool, *zservice.Error) {
 	rk_phoneBan := fmt.Sprintf(RK_Sms_PhoneBan, phone)
 	has, e := Redis.Exists(rk_phoneBan).Result()
 	if e != nil {
-		return true, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+		return true, zservice.NewError(e)
 	}
 	if has > 0 {
 		return true, nil
@@ -44,7 +43,7 @@ func IsSmsBan(ctx *zservice.Context, phone string) (bool, *zservice.Error) {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
 			return false, nil
 		} else {
-			return false, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+			return false, zservice.NewError(e)
 		}
 	} else {
 		// 更新缓存

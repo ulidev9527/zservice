@@ -48,7 +48,7 @@ func GetOrgByID(ctx *zservice.Context, id uint32) (*OrgTable, *zservice.Error) {
 
 	if s, e := Redis.Get(rk_info).Result(); e != nil {
 		if !redisservice.IsNilErr(e) {
-			return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+			return nil, zservice.NewError(e)
 		}
 	} else if e := json.Unmarshal([]byte(s), tab); e != nil { // 无法转换为json
 		ctx.LogError(e)
@@ -61,7 +61,7 @@ func GetOrgByID(ctx *zservice.Context, id uint32) (*OrgTable, *zservice.Error) {
 		if gormservice.IsNotFound(e) {
 			return nil, zservice.NewError(e).SetCode(zglobal.Code_NotFound)
 		}
-		return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+		return nil, zservice.NewError(e)
 	}
 
 	// 设置缓存
@@ -80,7 +80,7 @@ func GetRootOrgByName(ctx *zservice.Context, name string) (*OrgTable, *zservice.
 
 	if s, e := Redis.Get(rk_rootName).Result(); e != nil {
 		if !redisservice.IsNilErr(e) {
-			return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+			return nil, zservice.NewError(e)
 		}
 	} else {
 		if tab, e := GetOrgByID(ctx, zservice.StringToUint32(s)); e != nil {
@@ -93,7 +93,7 @@ func GetRootOrgByName(ctx *zservice.Context, name string) (*OrgTable, *zservice.
 	// 未找到 查表
 	if e := Mysql.Model(&OrgTable{}).Where("name = ? AND root_id = 0", name).First(tab).Error; e != nil {
 		if !errors.Is(e, gorm.ErrRecordNotFound) {
-			return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+			return nil, zservice.NewError(e)
 		}
 	}
 
@@ -122,7 +122,7 @@ func (z *OrgTable) Save(ctx *zservice.Context) *zservice.Error {
 	defer un()
 
 	if e := Mysql.Save(&z).Error; e != nil {
-		return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+		return zservice.NewError(e)
 	}
 
 	// 删缓存

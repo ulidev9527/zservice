@@ -11,16 +11,16 @@ import (
 
 // 上下文内部交互信息
 type ContextS2S struct {
-	TraceTime    time.Time `json:"tt"`  // 链路初始化时间
-	TraceID      string    `json:"ti"`  // 链路ID
-	TraceSpanID  int       `json:"tsi"` // 链路 , 自增处理
-	TraceService string    `json:"ts"`  // 链路服务, 之前的服务
-	RequestIP    string    `json:"ip"`  // 请求IP
-	NowService   string    `json:"ns"`  // 当前服务
-	AuthID       uint32    `json:"ai"`  // 授权ID/uid/uid
-	AuthToken    string    `json:"at"`  // token
-	AuthSign     string    `json:"as"`  // 授权的签名
-	ClientSign   string    `json:"cs"`  // 客户端签名
+	TraceTime    time.Time `json:"tt,omitempty"`  // 链路初始化时间
+	TraceID      string    `json:"ti,omitempty"`  // 链路ID
+	TraceSpanID  int       `json:"tsi,omitempty"` // 链路 , 自增处理
+	TraceService string    `json:"ts,omitempty"`  // 链路服务, 之前的服务
+	RequestIP    string    `json:"ip,omitempty"`  // 请求IP
+	NowService   string    `json:"ns,omitempty"`  // 当前服务
+	AuthID       uint32    `json:"ai,omitempty"`  // 授权ID/uid/uid
+	AuthToken    string    `json:"at,omitempty"`  // token
+	AuthSign     string    `json:"as,omitempty"`  // 授权的签名
+	ClientSign   string    `json:"cs,omitempty"`  // 客户端签名
 }
 
 // 集成链路、日志、错误功能
@@ -86,7 +86,7 @@ func ContextTODO() context.Context {
 // -------- 打印消息
 // 获取日志的打印信息
 func (ctx *Context) logCtxStr() string {
-	return fmt.Sprintf("[%v %v-%v %v]", ctx.Service.tranceName, ctx.TraceID, ctx.TraceSpanID, ctx.SinceTrace())
+	return fmt.Sprintf("[%v %v-%v %v]", ctx.Service.tranceName, ctx.TraceID, ctx.TraceSpanID, ctx.Since())
 }
 func (ctx *Context) LogInfo(v ...any) {
 	LogInfoCaller(2, ctx.logCtxStr(), Sprint(v...))
@@ -154,4 +154,9 @@ func (ctx *Context) Err() error {
 func (ctx *Context) Value(key any) any {
 	v, _ := ctx.CTX_values.Load(key)
 	return v
+}
+
+// 获取链路信息
+func (ctx *Context) GetS2S() string {
+	return JsonMustMarshalString(ctx.ContextS2S)
 }

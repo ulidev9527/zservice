@@ -21,7 +21,7 @@ func SMSVerifyCodeSend(ctx *zservice.Context, in *zauth_pb.SMSVerifyCodeSend_REQ
 		}
 		return grpcClient.SMSVerifyCodeSend(context.WithValue(context.Background(), grpcservice.GRPC_contextEX_Middleware_Key, ctx.ContextS2S), in)
 	}(); e != nil {
-		return zservice.NewError("send verify code fail").SetCode(zglobal.Code_ErrorBreakoff)
+		return zservice.NewError("send verify code fail")
 	} else if res.Code == zglobal.Code_SUCC {
 		return nil
 	} else {

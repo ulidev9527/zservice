@@ -8,10 +8,11 @@ message Default_RES {
 }
 
 message LogKV_REQ{
+    
     uint32 uid      = 1;
     string key      = 2;
     string value    = 3;
-    int64 saveTime = 4;
+    int64  saveTime = 4;
 }
 
 service zlog{

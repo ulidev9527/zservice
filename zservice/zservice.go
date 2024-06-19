@@ -12,7 +12,7 @@ var mainService *ZService
 
 // zservice 初始化
 func Init(serviceName, serviceVersion string) {
-	mainService = createService(serviceName, nil)
+	LogInfo("zservice init start")
 
 	// 配置初始化环境变量
 	if Getenv("ZSERVICE_NAME") == "" {
@@ -24,9 +24,11 @@ func Init(serviceName, serviceVersion string) {
 	if _, err := os.Stat(".env"); !os.IsNotExist(err) {
 		e := LoadFileEnv(".env") // load .env file
 		if e != nil {
-			LogError("load .env fail:", e)
+			LogPanic("load .env fail:", e)
 		}
 	}
+
+	mainService = createService(Getenv("ZSERVICE_NAME"), nil)
 
 	// 自定义其它文件配置
 	func() {
@@ -35,7 +37,7 @@ func Init(serviceName, serviceVersion string) {
 			for _, v := range arr {
 				e := LoadFileEnv(v)
 				if e != nil {
-					LogError("load env files fail:", e)
+					LogPanic("load env files fail:", e)
 				}
 			}
 		}
@@ -43,9 +45,10 @@ func Init(serviceName, serviceVersion string) {
 
 	// 加载远程环境变量
 	if Getenv("ZSERVICE_REMOTE_ENV_ADDR") != "" {
+		LogInfo("load remote addr", Getenv("ZSERVICE_REMOTE_ENV_ADDR"))
 		e := LoadRemoteEnv(Getenv("ZSERVICE_REMOTE_ENV_ADDR"))
 		if e != nil {
-			LogError(e)
+			LogPanic(e)
 		}
 	}
 

@@ -53,7 +53,7 @@ func AssetGetByToken(ctx *zservice.Context, token string) (*AssetTable, *zservic
 	// 读取缓存
 	if s, e := Redis.Get(rk_token).Result(); e != nil {
 		if !redisservice.IsNilErr(e) {
-			return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+			return nil, zservice.NewError(e)
 		}
 	} else {
 		if e := json.Unmarshal([]byte(s), tab); e != nil {
@@ -68,7 +68,7 @@ func AssetGetByToken(ctx *zservice.Context, token string) (*AssetTable, *zservic
 		if gormservice.IsNotFound(e) {
 			return nil, zservice.NewError(e).SetCode(zglobal.Code_NotFound)
 		}
-		return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+		return nil, zservice.NewError(e)
 	}
 	return tab, nil
 }
@@ -89,7 +89,7 @@ func (tab *AssetTable) Save(ctx *zservice.Context) *zservice.Error {
 	defer un()
 
 	if e := Mysql.Save(tab).Error; e != nil {
-		return zservice.NewError("save asset error:", e.Error()).SetCode(zglobal.Code_ErrorBreakoff)
+		return zservice.NewError("save asset error:", e.Error())
 	}
 
 	// 缓存

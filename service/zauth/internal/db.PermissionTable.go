@@ -55,13 +55,13 @@ func GetPermissionBySAP(ctx *zservice.Context, service, action, path string) (*P
 	rk_sap := fmt.Sprintf(RK_PermissionSAP, service, action, path)
 	if s, e := Redis.Get(rk_sap).Result(); e != nil {
 		if !redisservice.IsNilErr(e) {
-			return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+			return nil, zservice.NewError(e)
 		}
 
 	} else {
 		if tab, e := GetPermissionByID(ctx, zservice.StringToUint(s)); e != nil {
 			if e.GetCode() != zglobal.Code_NotFound {
-				return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+				return nil, zservice.NewError(e)
 
 			}
 		} else {
@@ -75,7 +75,7 @@ func GetPermissionBySAP(ctx *zservice.Context, service, action, path string) (*P
 	tab := &PermissionTable{}
 	if e := Mysql.Model(&PermissionTable{}).Where("service = ? AND action = ? AND path = ?", service, action, path).First(tab).Error; e != nil {
 		if !errors.Is(e, gorm.ErrRecordNotFound) {
-			return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+			return nil, zservice.NewError(e)
 		}
 	}
 
@@ -106,7 +106,7 @@ func (z *PermissionTable) Save(ctx *zservice.Context) *zservice.Error {
 	defer un()
 
 	if e := Mysql.Save(z).Error; e != nil {
-		return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+		return zservice.NewError(e)
 	}
 
 	// 删除缓存

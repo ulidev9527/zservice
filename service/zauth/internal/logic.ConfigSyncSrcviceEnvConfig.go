@@ -34,7 +34,7 @@ func Logic_ConfigSyncServiceEnvConfig(ctx *zservice.Context, in *zauth_pb.Config
 	if e := Redis.Set(rk_auth, authKey).Err(); e != nil {
 		if !redisservice.IsNilErr(e) {
 			ctx.LogError(e)
-			return &zauth_pb.ConfigSyncServiceEnvConfig_RES{Code: zglobal.Code_ErrorBreakoff}
+			return &zauth_pb.ConfigSyncServiceEnvConfig_RES{Code: zglobal.Code_Fail}
 		}
 	}
 

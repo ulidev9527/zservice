@@ -17,7 +17,6 @@ func Logic_SMSVerifyCodeSend(ctx *zservice.Context, in *zauth_pb.SMSVerifyCodeSe
 	}
 
 	// 封禁检查
-
 	if isBan, e := IsSmsBan(ctx, in.Phone); e != nil {
 		ctx.LogError(e)
 		return &zauth_pb.SMSSendVerifyCode_RES{Code: e.GetCode()}
@@ -31,7 +30,7 @@ func Logic_SMSVerifyCodeSend(ctx *zservice.Context, in *zauth_pb.SMSVerifyCodeSe
 
 	if has, e := Redis.Exists(rKeyCD).Result(); e != nil {
 		ctx.LogError(e)
-		return &zauth_pb.SMSSendVerifyCode_RES{Code: zglobal.Code_ErrorBreakoff}
+		return &zauth_pb.SMSSendVerifyCode_RES{Code: zglobal.Code_Fail}
 	} else if has > 0 {
 		ctx.LogError(zservice.NewError("phone cd", in.Phone))
 		return &zauth_pb.SMSSendVerifyCode_RES{Code: zglobal.Code_Zauth_Sms_Phone_CD}
@@ -49,19 +48,18 @@ func Logic_SMSVerifyCodeSend(ctx *zservice.Context, in *zauth_pb.SMSVerifyCodeSe
 		ctx.LogError(e)
 		return &zauth_pb.SMSSendVerifyCode_RES{Code: e.GetCode()}
 	}
+	ctx.LogInfo("verify code:", in.Phone, verifyCode)
 
+	// 缓存
 	// CD
-	e := Redis.SetEX(rKeyCD, time.Now().Format(time.RFC3339), time.Duration(zservice.GetenvInt("SMS_CD_DEF"))*time.Second).Err()
-	if e != nil {
-		ctx.LogError(e) // 已发送，缓存验证码
+	if e := Redis.SetEX(rKeyCD, " ", time.Minute).Err(); e != nil {
+		ctx.LogError(e)
 	}
 
 	// 验证码
-	e = Redis.SetEX(fmt.Sprintf(RK_Sms_PhoneCode, in.Phone), verifyCode, time.Duration(zservice.GetenvInt("SMS_CODE_CACHE"))*time.Second).Err()
-	if e != nil {
+	if e := Redis.SetEX(fmt.Sprintf(RK_Sms_PhoneCode, in.Phone, verifyCode), " ", 5*time.Minute).Err(); e != nil {
 		ctx.LogError(e)
-		return &zauth_pb.SMSSendVerifyCode_RES{Code: zglobal.Code_ErrorBreakoff}
+		return &zauth_pb.SMSSendVerifyCode_RES{Code: zglobal.Code_Fail}
 	}
-	ctx.LogInfo("verify code:", verifyCode)
-	return &zauth_pb.SMSSendVerifyCode_RES{Code: zglobal.Code_SUCC, VerifyCode: verifyCode}
+	return &zauth_pb.SMSSendVerifyCode_RES{Code: zglobal.Code_SUCC, VerifyCode: fmt.Sprint("****", verifyCode[4:])}
 }

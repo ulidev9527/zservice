@@ -33,6 +33,7 @@ func GinMiddlewareCheckAuth(zs *zservice.ZService) gin.HandlerFunc {
 
 		if res.IsTokenRefresh {
 			zctx.AuthToken = res.Token
+			ginservice.SyncHeader(ctx)
 		}
 
 		ctx.Next()

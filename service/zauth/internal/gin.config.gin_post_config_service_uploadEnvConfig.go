@@ -15,7 +15,7 @@ func gin_post_config_service_uploadEnvConfig(ctx *gin.Context) {
 	file, e := ctx.FormFile("file")
 	if e != nil {
 		zctx.LogError(e)
-		ctx.JSON(http.StatusOK, gin.H{"code": zglobal.Code_ErrorBreakoff})
+		ctx.JSON(http.StatusOK, gin.H{"code": zglobal.Code_Fail})
 		return
 	}
 	serviceName := ctx.Param("service")

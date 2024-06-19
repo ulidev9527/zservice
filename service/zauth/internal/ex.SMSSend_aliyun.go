@@ -47,7 +47,7 @@ func SMSSend_aliyun(ctx *zservice.Context, c *SMSSend_aliyunConfig) *zservice.Er
 	}()
 
 	if e != nil {
-		return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+		return zservice.NewError(e)
 	}
 
 	sendSmsRequest := &dysmsapi20170525.SendSmsRequest{
@@ -77,7 +77,7 @@ func SMSSend_aliyun(ctx *zservice.Context, c *SMSSend_aliyunConfig) *zservice.Er
 	}()
 
 	if tryErr != nil {
-		return zservice.NewError(tryErr).SetCode(zglobal.Code_ErrorBreakoff)
+		return zservice.NewError(tryErr)
 	}
 	return nil
 }

@@ -53,21 +53,21 @@ func GetToken(tkStr string) (*AuthToken, *zservice.Error) {
 
 	rk := fmt.Sprintf(RK_TokenInfo, tkStr)
 	if has, e := Redis.Exists(rk).Result(); e != nil {
-		return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+		return nil, zservice.NewError(e)
 	} else if has == 0 {
 		return nil, zservice.NewError("no token:", tkStr).SetCode(zglobal.Code_Zauth_TokenIsNil)
 	}
 
 	if res, e := Redis.Get(rk).Result(); e != nil {
-		return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+		return nil, zservice.NewError(e)
 	} else {
 		tk := &AuthToken{}
 		if e := json.Unmarshal([]byte(res), &tk); e != nil {
 			de := Redis.Del(rk).Err()
 			if de != nil {
-				return nil, zservice.NewError("convert token fail and del token fail:", res, e, de).SetCode(zglobal.Code_ErrorBreakoff)
+				return nil, zservice.NewError("convert token fail and del token fail:", res, e, de)
 			} else {
-				return nil, zservice.NewError("convert token fail:", res, e).SetCode(zglobal.Code_ErrorBreakoff)
+				return nil, zservice.NewError("convert token fail:", res, e)
 			}
 		}
 		return tk, nil

@@ -17,6 +17,10 @@ func Logic_OrgListGet(ctx *zservice.Context, in *zauth_pb.OrgListGet_REQ) *zauth
 		in.Size = 100
 	}
 
+	if in.Page == 0 {
+		in.Page = 1
+	}
+
 	// 查询字符串长度限制在64个字符
 	if len(in.Search) > 32 {
 		in.Search = in.Search[:32]
@@ -27,13 +31,13 @@ func Logic_OrgListGet(ctx *zservice.Context, in *zauth_pb.OrgListGet_REQ) *zauth
 	searchStr := fmt.Sprint("%", in.Search, "%")
 	if e := Mysql.Model(&OrgTable{}).Where("name like ? OR id like ? OR root_id like ? OR parent_id like ?", searchStr, searchStr, searchStr, searchStr).Order("created_at DESC").Offset(int((in.Page - 1) * in.Size)).Limit(int(in.Size)).Find(&tabs).Error; e != nil {
 		ctx.LogError(e)
-		return &zauth_pb.OrgInfoList_RES{Code: zglobal.Code_ErrorBreakoff}
+		return &zauth_pb.OrgInfoList_RES{Code: zglobal.Code_Fail}
 	}
 
 	infos := []*zauth_pb.OrgInfo{}
 	if e := json.Unmarshal(zservice.JsonMustMarshal(tabs), &infos); e != nil {
 		ctx.LogError(e)
-		return &zauth_pb.OrgInfoList_RES{Code: zglobal.Code_ErrorBreakoff}
+		return &zauth_pb.OrgInfoList_RES{Code: zglobal.Code_Fail}
 	}
 
 	if len(infos) == 0 {

@@ -20,7 +20,7 @@ func Logic_ConfigGetServiceEnvConfig(ctx *zservice.Context, in *zauth_pb.ConfigG
 	if str, e := Redis.Get(rk_auth).Result(); e != nil {
 		if !redisservice.IsNilErr(e) {
 			ctx.LogError(e)
-			return &zauth_pb.ConfigGetServiceEnvConfig_RES{Code: zglobal.Code_ErrorBreakoff}
+			return &zauth_pb.ConfigGetServiceEnvConfig_RES{Code: zglobal.Code_Fail}
 		}
 	} else if str != in.Auth {
 		return &zauth_pb.ConfigGetServiceEnvConfig_RES{Code: zglobal.Code_NotFound}

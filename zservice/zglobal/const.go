@@ -3,9 +3,10 @@ package zglobal
 import "time"
 
 const (
-	Code_SUCC          = 1  // 成功
-	Code_Fail          = 2  // 失败
-	Code_ErrorBreakoff = 3  // 中断
+	Code_Fail = 0 // 失败
+	Code_SUCC = 1 // 成功
+	// Code_Fail          = 2    // 失败
+	// Code_Error         = 3    // 出错
 	Code_Zauth_Fail    = 4  // 鉴权失败
 	Code_NotImplement  = 5  // 未实现
 	Code_ParamsErr     = 6  // 参数错误
@@ -29,14 +30,10 @@ const (
 	Code_DB_SaveFail   = 201 // 数据存储失败
 	Code_Redis_DelFail = 202 // redis 删除失败
 
-	Code_Zauth_Sms_Phone_NULL                = 1001 // 手机号为空
-	Code_Zauth_Sms_Phone_VerifyFail          = 1002 // 手机号验证失败
-	Code_Zauth_Sms_Phone_Ban                 = 1003 // 手机号被封禁
-	Code_Zauth_Sms_Phone_CD                  = 1004 // 手机号验证码CD中
-	Code_Zauth_Sms_Phone_VerifyCodeCacheNull = 1005 // 手机号验证码不存在, 没有缓存
-	Code_Zauth_Sms_Phone_CodeNull            = 1006 // 手机号验证码为空
-	Code_Zauth_Sms_Phone_VerifyCodeLenErr    = 1007 // 手机号验证码长度错误
-	Code_Zauth_Sms_Phone_VerifyCodeErr       = 1008 // 手机号验证码错误
+	Code_Zauth_Sms_Phone_NULL       = 1001 // 手机号为空
+	Code_Zauth_Sms_Phone_VerifyFail = 1002 // 手机号验证失败
+	Code_Zauth_Sms_Phone_Ban        = 1003 // 手机号被封禁
+	Code_Zauth_Sms_Phone_CD         = 1004 // 手机号验证码CD中
 
 	Code_Zauth_TokenSaveFail = 1201 // token 存储失败
 	Code_Zauth_TokenIsNil    = 1202 // token 为空

@@ -29,7 +29,7 @@ func (db *DBHelper) SyncTableCache(ctx *zservice.Context, tabArr any, getRK func
 	for {
 		// 查数据库
 		if e := db.Mysql.Limit(limitCount).Order("created_at ASC").Offset(startCount).Find(&tabArr).Error; e != nil {
-			return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+			return zservice.NewError(e)
 		}
 
 		arr := tabArr.([]any)
@@ -75,7 +75,7 @@ func (db *DBHelper) SyncTableCache(ctx *zservice.Context, tabArr any, getRK func
 func (db *DBHelper) HasTableValue(ctx *zservice.Context, tab any, rk string, sqlWhere string) (bool, *zservice.Error) {
 
 	if has, e := db.Redis.Exists(rk).Result(); e != nil {
-		return false, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+		return false, zservice.NewError(e)
 	} else if has > 0 {
 		return true, nil
 	}
@@ -83,7 +83,7 @@ func (db *DBHelper) HasTableValue(ctx *zservice.Context, tab any, rk string, sql
 	// 验证数据库中是否存在
 	count := int64(0)
 	if e := db.Mysql.Model(&tab).Where(sqlWhere).Count(&count).Error; e != nil {
-		return false, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+		return false, zservice.NewError(e)
 	}
 
 	return count > 0, nil
@@ -122,10 +122,10 @@ func (db *DBHelper) GetNewTableID(
 func (db *DBHelper) GetTableValue(ctx *zservice.Context, tab any, rk string, sqlWhere string, expire ...time.Duration) *zservice.Error {
 	// 读缓存
 	if has, e := db.Redis.Exists(rk).Result(); e != nil {
-		return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+		return zservice.NewError(e)
 	} else if has > 0 {
 		if e := db.Redis.GetScan(rk, &tab); e != nil {
-			return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+			return zservice.NewError(e)
 		}
 		return nil
 	}
@@ -134,7 +134,7 @@ func (db *DBHelper) GetTableValue(ctx *zservice.Context, tab any, rk string, sql
 		if errors.Is(e, gorm.ErrRecordNotFound) {
 			return zservice.NewError(e).SetCode(zglobal.Code_NotFound)
 		} else {
-			return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+			return zservice.NewError(e)
 		}
 	}
 

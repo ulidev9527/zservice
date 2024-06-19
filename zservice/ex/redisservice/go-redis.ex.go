@@ -60,7 +60,7 @@ func (r *GoRedisEX) LockCtx(ctx context.Context, key string, timeout ...time.Dur
 
 	ok, e := r.SetNX(lockKey, "1", timeout[0]).Result()
 	if e != nil {
-		return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+		return nil, zservice.NewError(e)
 	}
 	if !ok {
 		return nil, zservice.NewErrorf("lock %s fail", lockKey).SetCode(zglobal.Code_Already_Lock)

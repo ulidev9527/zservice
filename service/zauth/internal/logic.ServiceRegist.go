@@ -18,7 +18,7 @@ func Logic_ServiceRegist(ctx *zservice.Context, in *zauth_pb.Default_REQ) *zauth
 	un, e := Redis.Lock(rk_regist)
 	if e != nil {
 		ctx.LogError(e)
-		return &zauth_pb.Default_RES{Code: zglobal.Code_ErrorBreakoff}
+		return &zauth_pb.Default_RES{Code: zglobal.Code_Fail}
 	}
 	defer un()
 

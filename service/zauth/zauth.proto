@@ -14,9 +14,9 @@ message LoginByPhone_REQ {
     string verifyCode = 3;  // 验证码
 }
 message LoginByUser_REQ {
-    string user      = 1;   // 账号
-    string password     = 2;   // 密码
-    uint32 expires      = 3;   // 过期时间 没有传入 (单位: 秒)，最小 30s，过期时间到了后需要重新授权
+    string user     = 1;  // 账号
+    string password = 2;  // 密码
+    uint32 expires  = 3;  // 过期时间 没有传入 (单位: 秒)，最小 30s，过期时间到了后需要重新授权
 }
 message Login_RES{
     uint32 code           = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
@@ -96,7 +96,7 @@ message SMSVerifyCodeSend_REQ { // 发送验证码 请求
 }
 message SMSSendVerifyCode_RES {
     uint32 code       = 1;  // 状态
-    string verifyCode = 2;  // 验证码
+    string verifyCode = 2;  // 验证码, 返回 6 位字符串，前 4 位会标星
 
 }
 message SMSVerifyCodeVerify_REQ { // 发送验证码 请求
@@ -166,11 +166,11 @@ message AssetInfo_RES { // 资源信息
 
 service zauth{
 
-    rpc Logout(Default_REQ) returns(Default_RES);               // 登出
-    rpc LoginByPhone(LoginByPhone_REQ) returns(Login_RES);      // 手机号登陆
-    rpc LoginByUser(LoginByUser_REQ) returns(Login_RES);  // 账户登陆
-    rpc LoginCheck(Default_REQ) returns(Default_RES);           // 登陆检查
-    rpc HasUID(HasUID_REQ) returns(Default_RES);    // 检查账户是否存在
+    rpc Logout(Default_REQ) returns(Default_RES);           // 登出
+    rpc LoginByPhone(LoginByPhone_REQ) returns(Login_RES);  // 手机号登陆
+    rpc LoginByUser(LoginByUser_REQ) returns(Login_RES);    // 账户登陆
+    rpc LoginCheck(Default_REQ) returns(Default_RES);       // 登陆检查
+    rpc HasUID(HasUID_REQ) returns(Default_RES);            // 检查账户是否存在
     
     rpc PermissionCreate(PermissionInfo) returns(PermissionInfo_RES);              // 创建权限
     rpc PermissionListGet(PermissionListGet_REQ) returns(PermissionInfoList_RES);  // 获取权限列表权限列表

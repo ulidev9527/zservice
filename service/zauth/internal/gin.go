@@ -18,6 +18,7 @@ func InitGin() {
 	Gin.POST("/upload", gin_post_upload)
 
 	Gin.POST("/login", gin_post_login)
+	Gin.POST("/logout", gin_post_loginout)
 
 	Gin.POST("/sms/verifyCodeSend", gin_post_SMS_VerifyCodeSend)
 	Gin.POST("/sms/verifyCodeVerify", gin_post_SMS_VerifyCodeVerify)

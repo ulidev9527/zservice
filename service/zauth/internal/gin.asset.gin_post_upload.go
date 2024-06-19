@@ -18,7 +18,7 @@ func gin_post_upload(ctx *gin.Context) {
 
 	if e != nil {
 		zctx.LogError(e)
-		ctx.JSON(http.StatusOK, gin.H{"code": zglobal.Code_ErrorBreakoff})
+		ctx.JSON(http.StatusOK, gin.H{"code": zglobal.Code_Fail})
 		return
 	}
 
@@ -32,14 +32,14 @@ func gin_post_upload(ctx *gin.Context) {
 
 	if e := ctx.SaveUploadedFile(file, filePath); e != nil {
 		zctx.LogError(e)
-		ctx.JSON(http.StatusOK, gin.H{"code": zglobal.Code_ErrorBreakoff})
+		ctx.JSON(http.StatusOK, gin.H{"code": zglobal.Code_Fail})
 		return
 	}
 	defer os.Remove(filePath)
 
 	if bt, e := os.ReadFile(filePath); e != nil {
 		zctx.LogError(e)
-		ctx.JSON(http.StatusOK, gin.H{"code": zglobal.Code_ErrorBreakoff})
+		ctx.JSON(http.StatusOK, gin.H{"code": zglobal.Code_Fail})
 		return
 	} else {
 		ctx.JSON(http.StatusOK, Logic_AddAsset(zctx, &zauth_pb.AddAsset_REQ{

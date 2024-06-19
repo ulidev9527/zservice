@@ -57,12 +57,12 @@ func (z *PermissionBindTable) Save(ctx *zservice.Context) *zservice.Error {
 	// 上锁
 	un, e := Redis.Lock(rk_info)
 	if e != nil {
-		return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+		return zservice.NewError(e)
 	}
 	defer un()
 
 	if e := Mysql.Save(&z).Error; e != nil {
-		return zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+		return zservice.NewError(e)
 	}
 
 	// 删缓存

@@ -33,7 +33,7 @@ func InitZZZZ() {
 func (s *___ZZZZString) Reload(ctx *zservice.Context) *zservice.Error {
 
 	if file, e := os.Open(FI_ZZZZStringFile); e != nil {
-		return zservice.NewError("error open "+FI_ZZZZStringFile, e).SetCode(zglobal.Code_ErrorBreakoff)
+		return zservice.NewError("error open "+FI_ZZZZStringFile, e)
 	} else {
 		defer file.Close()
 		scanner := bufio.NewScanner(file)

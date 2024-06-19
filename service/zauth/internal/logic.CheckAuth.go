@@ -83,7 +83,7 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 		tabs := []PermissionTable{}
 		if e := Mysql.Model(&PermissionTable{}).Where("(service, action, path) IN ?", inArr).Order("LENGTH(action) DESC, LENGTH(path) DESC").Find(&tabs).Error; e != nil {
 			if !errors.Is(e, gorm.ErrRecordNotFound) {
-				return nil, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+				return nil, zservice.NewError(e)
 			}
 		}
 
@@ -147,7 +147,7 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 			).Select("target_id"),
 		).First(bindInfo).Error; e != nil {
 			if !errors.Is(e, gorm.ErrRecordNotFound) {
-				return false, zservice.NewError(e).SetCode(zglobal.Code_ErrorBreakoff)
+				return false, zservice.NewError(e)
 			}
 		}
 		return bindInfo.ID > 0, nil

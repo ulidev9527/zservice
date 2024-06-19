@@ -37,9 +37,7 @@ func gin_post_login(ctx *gin.Context) {
 			VerifyCode: req.SMSVerifyCode,
 		})
 
-		if res.Code == zglobal.Code_SUCC {
-			ginservice.SyncHeader(ctx)
-		}
+		ginservice.SyncHeader(ctx)
 
 		ctx.JSON(http.StatusOK, gin.H{"code": res.Code})
 		return
@@ -50,9 +48,7 @@ func gin_post_login(ctx *gin.Context) {
 			Expires:  uint32(zglobal.Time_10Day.Seconds()),
 		})
 
-		if res.Code == zglobal.Code_SUCC {
-			ginservice.SyncHeader(ctx)
-		}
+		ginservice.SyncHeader(ctx)
 
 		ctx.JSON(http.StatusOK, gin.H{"code": res.Code})
 		return

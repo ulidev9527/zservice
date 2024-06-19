@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 	"zservice/service/zauth/zauth_pb"
+	"zservice/zservice/zglobal"
 
 	"github.com/joho/godotenv"
 )
@@ -118,13 +119,16 @@ func LoadRemoteEnv(addr string) *Error {
 	if e != nil {
 		return e
 	}
-
 	res := zauth_pb.ConfigGetServiceEnvConfig_RES{}
 	if e := json.Unmarshal(body, &res); e != nil {
 		return NewError(e)
 	}
 
-	return LoadStringEnv(res.Value)
+	if res.Code != zglobal.Code_SUCC {
+		return NewError("load env fail", string(body))
+	} else {
+		return LoadStringEnv(res.Value)
+	}
 }
 
 // 加载字符串中的环境变量

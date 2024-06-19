@@ -98,6 +98,15 @@ func StringToInt64(str string) int64 {
 	return i
 }
 
+// string to uint64
+func StringToUint64(str string) uint64 {
+	i, err := strconv.ParseUint(str, 10, 64)
+	if err != nil {
+		i = 0
+	}
+	return i
+}
+
 // string to float32
 func StringToFloat(str string) float32 {
 	i, err := strconv.ParseFloat(str, 32)

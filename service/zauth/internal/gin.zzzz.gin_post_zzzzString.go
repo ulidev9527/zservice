@@ -14,13 +14,13 @@ func gin_post_zzzzString(c *gin.Context) {
 	file, e := c.FormFile("file")
 	if e != nil {
 		zctx.LogError(e)
-		c.JSON(http.StatusOK, gin.H{"code": zglobal.Code_ErrorBreakoff})
+		c.JSON(http.StatusOK, gin.H{"code": zglobal.Code_Fail})
 		return
 	}
 
 	if e := c.SaveUploadedFile(file, FI_ZZZZStringFile); e != nil {
 		zctx.LogError(e)
-		c.JSON(http.StatusOK, gin.H{"code": zglobal.Code_ErrorBreakoff})
+		c.JSON(http.StatusOK, gin.H{"code": zglobal.Code_Fail})
 		return
 	} else if e := ZZZZString.Reload(zctx); e != nil {
 		zctx.LogError(e)

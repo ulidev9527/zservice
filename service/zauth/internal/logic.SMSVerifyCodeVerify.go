@@ -24,26 +24,17 @@ func Logic_SMSVerifyCodeVerify(ctx *zservice.Context, in *zauth_pb.SMSVerifyCode
 	}
 
 	// 验证
-	rk := fmt.Sprintf(RK_Sms_PhoneCode, in.Phone)
+	rk := fmt.Sprintf(RK_Sms_PhoneCode, in.Phone, in.VerifyCode)
 
 	if has, e := Redis.Exists(rk).Result(); e != nil {
 		ctx.LogError(e)
-		return &zauth_pb.Default_RES{Code: zglobal.Code_ErrorBreakoff}
+		return &zauth_pb.Default_RES{Code: zglobal.Code_Fail}
 	} else if has == 0 {
-		ctx.LogError(zservice.NewError("phone code not found", in.Phone))
-		return &zauth_pb.Default_RES{Code: zglobal.Code_Zauth_Sms_Phone_VerifyCodeCacheNull}
+		return &zauth_pb.Default_RES{Code: zglobal.Code_Zauth_Sms_Phone_VerifyFail}
 	}
 
-	if codeStr, e := Redis.Get(rk).Result(); e != nil {
+	if e := Redis.Del(rk).Err(); e != nil {
 		ctx.LogError(e)
-		return &zauth_pb.Default_RES{Code: zglobal.Code_ErrorBreakoff}
-	} else if codeStr != in.VerifyCode {
-		return &zauth_pb.Default_RES{Code: zglobal.Code_Zauth_Sms_Phone_VerifyCodeErr}
-	} else {
-		// 清除
-		if e := Redis.Del(rk).Err(); e != nil {
-			ctx.LogError(e)
-		}
-		return nil
 	}
+	return &zauth_pb.Default_RES{Code: zglobal.Code_SUCC}
 }

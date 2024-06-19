@@ -1,7 +1,6 @@
 package nsqservice
 
 import (
-	"fmt"
 	"runtime"
 	"zservice/zservice"
 
@@ -14,7 +13,6 @@ type NsqProducerService struct {
 }
 
 type NsqProducerServiceConfig struct {
-	Name string // 服务名
 	Addr string // nsq地址
 
 	OnStart func(*nsq.Producer) // 启动的回调
@@ -27,9 +25,6 @@ func NewNsqProducerService(c *NsqProducerServiceConfig) *NsqProducerService {
 		return nil
 	}
 	name := "NsqProducerService"
-	if c.Name != "" {
-		name = fmt.Sprint(name, "-", zservice.GetServiceName())
-	}
 
 	if c.Addr == "" {
 		zservice.LogPanic("NsqProducerServiceConfig.Addr is nil")
@@ -64,7 +59,7 @@ func NewNsqProducerService(c *NsqProducerServiceConfig) *NsqProducerService {
 
 func (nps *NsqProducerService) Publish(ctx *zservice.Context, topic string, body []byte) *zservice.Error {
 	bex := zservice.JsonMustMarshal(&BodyEx{
-		S2S:  zservice.JsonMustMarshalString(ctx.ContextS2S),
+		S2S:  ctx.GetS2S(),
 		Body: body,
 	})
 
@@ -72,15 +67,15 @@ func (nps *NsqProducerService) Publish(ctx *zservice.Context, topic string, body
 		if e := recover(); e != nil {
 			buf := make([]byte, 1<<12)
 			stackSize := runtime.Stack(buf, true)
-			nps.LogPanicf("NSQ SE :T %s :Q %s :E %s :ST %s", topic, string(bex), e, string(buf[:stackSize]))
+			ctx.LogErrorf("NSQ SEND :T %s :E %s :ST %s", topic, e, string(buf[:stackSize]))
 		}
 	}()
 
 	if e := nps.Producer.Publish(topic, bex); e != nil {
-		nps.LogErrorf("NSQ SE :T %s :Q %s :E %s", topic, string(bex), e)
+		ctx.LogErrorf("NSQ SEND :T %s :E %s", topic, e)
 		return zservice.NewError(e)
 	}
-	nps.LogErrorf("NSQ SE :T %s :Q %s", topic, string(bex))
+	ctx.LogInfof("NSQ SEND :T %s :Q %s", topic, string(body))
 	return nil
 }
 

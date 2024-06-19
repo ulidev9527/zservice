@@ -56,18 +56,23 @@ func NewGrpcService(c *GrpcServiceConfig) *GrpcService {
 
 		chanConn := make(chan any)
 		go func() {
-			reConnCount := 0 // 重连次数
+
 			isCloseChanconn := false
+
 			for {
 				// 创建一个租约，每隔 10s 需要向 etcd 汇报一次心跳，证明当前节点仍然存活
 				lease, e := c.EtcdClient.Grant(c.EtcdClient.Ctx(), 10)
 				if e != nil {
-					s.LogPanic(e)
+					s.LogError(e)
+					time.Sleep(time.Second) // 等待1秒重连
+					continue
 				}
 
 				hostName, e := os.Hostname()
 				if e != nil {
-					s.LogPanic(e)
+					s.LogError(e)
+					time.Sleep(time.Second) // 等待1秒重连
+					continue
 				}
 
 				listener := fmt.Sprint(hostName, ":", c.ListenPort)
@@ -79,10 +84,13 @@ func NewGrpcService(c *GrpcServiceConfig) *GrpcService {
 
 				e = mgr.AddEndpoint(c.EtcdClient.Ctx(), endpointKey, endpoints.Endpoint{Addr: listener}, clientv3.WithLease(lease.ID))
 				if e != nil {
-					s.LogPanic(e)
+					s.LogError(e)
+					time.Sleep(time.Second) // 等待1秒重连
+					continue
 				}
 
-				if !isCloseChanconn {
+				if !isCloseChanconn { // 控制顺序
+					isCloseChanconn = true
 					close(chanConn)
 				}
 
@@ -98,20 +106,14 @@ func NewGrpcService(c *GrpcServiceConfig) *GrpcService {
 							isTimeout = true
 						}
 					case <-c.EtcdClient.Ctx().Done():
-						s.LogPanic(c.EtcdClient.Ctx().Err())
+						s.LogError(c.EtcdClient.Ctx().Err())
+						isTimeout = true
 					}
-					if isTimeout { // 超时重连
+					if isTimeout { // 重连
 						break
 					}
 				}
-				time.Sleep(time.Second) // 等待1秒重连
-
-				reConnCount++
-				if reConnCount > 10 {
-					s.LogPanic("GRPC connect failed!")
-				} else {
-					s.LogWarn("GRPC Reconnecting...")
-				}
+				s.LogWarn("GRPC Reconnecting...")
 			}
 		}()
 

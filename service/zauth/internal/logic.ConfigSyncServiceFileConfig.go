@@ -37,7 +37,7 @@ func Logic_ConfigSyncServiceFileConfig(ctx *zservice.Context, in *zauth_pb.Confi
 	if s, e := Redis.Get(rk_md5).Result(); e != nil {
 		if !redisservice.IsNilErr(e) {
 			ctx.LogError(e)
-			return &zauth_pb.Default_RES{Code: zglobal.Code_ErrorBreakoff}
+			return &zauth_pb.Default_RES{Code: zglobal.Code_Fail}
 		}
 	} else if s == md5Str {
 		return &zauth_pb.Default_RES{Code: zglobal.Code_Zauth_config_FileMd5NotChange}
@@ -55,7 +55,7 @@ func Logic_ConfigSyncServiceFileConfig(ctx *zservice.Context, in *zauth_pb.Confi
 		return &zauth_pb.Default_RES{Code: zglobal.Code_Zauth_config_ParserFail}
 	} else if e := Redis.HSet(fmt.Sprintf(RK_Config_ServiceFileConfig, in.Service, fileName), maps).Err(); e != nil { // 存储 redis
 		ctx.LogError(e)
-		return &zauth_pb.Default_RES{Code: zglobal.Code_ErrorBreakoff}
+		return &zauth_pb.Default_RES{Code: zglobal.Code_Fail}
 	} else {
 
 		// 存储 md5 信息
