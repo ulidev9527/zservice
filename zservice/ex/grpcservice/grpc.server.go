@@ -35,7 +35,7 @@ func NewGrpcService(c *GrpcServiceConfig) *GrpcService {
 		return nil
 	}
 
-	name := "GrpcService"
+	name := fmt.Sprint("GrpcService-", c.ListenPort)
 
 	gs := &GrpcService{}
 	gs.ZService = zservice.NewService(name, func(s *zservice.ZService) {
@@ -159,7 +159,7 @@ func ServerUnaryInterceptor(ctx context.Context, req any, info *grpc.UnaryServer
 		S2SArr := md.Get(zservice.S_S2S)
 		if len(S2SArr) > 0 {
 			if zservice.ISDebug {
-				zservice.LogDebug(zservice.S_C2S, S2SArr[0])
+				zservice.LogDebug(zservice.S_S2S, S2SArr[0])
 			}
 			return zservice.NewContext(S2SArr[0])
 		} else {
@@ -168,7 +168,6 @@ func ServerUnaryInterceptor(ctx context.Context, req any, info *grpc.UnaryServer
 
 	}()
 	zctx.ContextS2S.RequestIP = ipaddr
-	ctx = context.WithValue(ctx, GRPC_contextEX_Middleware_Key, zctx)
 
 	// 异常捕获
 	defer func() {
@@ -180,7 +179,7 @@ func ServerUnaryInterceptor(ctx context.Context, req any, info *grpc.UnaryServer
 		}
 	}()
 
-	resp, e := handler(ctx, req)
+	resp, e := handler(zctx, req)
 
 	// 打印日志
 	if e != nil {

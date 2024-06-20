@@ -54,7 +54,7 @@ func NewGinService(c *GinServiceConfig) *GinService {
 		zservice.LogPanic("GinServiceConfig is nil")
 		return nil
 	}
-	name := fmt.Sprint("GinService-:", c.ListenPort)
+	name := fmt.Sprint("GinService-", c.ListenPort)
 	gs := &GinService{}
 	gs.Ginengine = gin.New()
 
@@ -65,16 +65,15 @@ func NewGinService(c *GinServiceConfig) *GinService {
 			c.OnStart(gs.Ginengine)
 		}
 
-		gs.LogInfof("ginService listen on :%v", c.ListenPort)
 		go func() {
 			e := gs.Ginengine.Run(fmt.Sprint(":", c.ListenPort))
 			if e != nil {
 				s.LogPanic(e)
 			}
 		}()
-		go func() {
-			s.StartDone()
-		}()
+
+		gs.LogInfof("ginService listen on :%v", c.ListenPort)
+		s.StartDone()
 
 	})
 

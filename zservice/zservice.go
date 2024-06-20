@@ -1,6 +1,7 @@
 package zservice
 
 import (
+	"fmt"
 	"os"
 )
 
@@ -12,23 +13,24 @@ var mainService *ZService
 
 // zservice 初始化
 func Init(serviceName, serviceVersion string) {
-	LogInfo("zservice init start")
+	fmt.Println("zservice init start")
+
+	initLogger()
+	initEnv()
 
 	// 配置初始化环境变量
 	if Getenv("ZSERVICE_NAME") == "" {
-		SetEnv("ZSERVICE_NAME", serviceName)
+		Setenv("ZSERVICE_NAME", serviceName)
 	}
-	SetEnv("ZSERVICE_VERSION", serviceVersion)
+	Setenv("ZSERVICE_VERSION", serviceVersion)
 
 	// 加载 .env 文件环境变量
 	if _, err := os.Stat(".env"); !os.IsNotExist(err) {
 		e := LoadFileEnv(".env") // load .env file
 		if e != nil {
-			LogPanic("load .env fail:", e)
+			LogError("load .env fail:", e)
 		}
 	}
-
-	mainService = createService(Getenv("ZSERVICE_NAME"), nil)
 
 	// 自定义其它文件配置
 	func() {
@@ -37,7 +39,7 @@ func Init(serviceName, serviceVersion string) {
 			for _, v := range arr {
 				e := LoadFileEnv(v)
 				if e != nil {
-					LogPanic("load env files fail:", e)
+					LogError("load env files fail:", e)
 				}
 			}
 		}
@@ -48,9 +50,11 @@ func Init(serviceName, serviceVersion string) {
 		LogInfo("load remote addr", Getenv("ZSERVICE_REMOTE_ENV_ADDR"))
 		e := LoadRemoteEnv(Getenv("ZSERVICE_REMOTE_ENV_ADDR"))
 		if e != nil {
-			LogPanic(e)
+			LogError(e)
 		}
 	}
+
+	mainService = createService(Getenv("ZSERVICE_NAME"), nil)
 
 	LogInfof("run service at:    zservice v%s", Version)
 

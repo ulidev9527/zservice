@@ -100,11 +100,13 @@ func GetRootOrgByName(ctx *zservice.Context, name string) (*OrgTable, *zservice.
 	if tab.OrgID == 0 {
 		return nil, nil
 	}
-	// 更新缓存
-	if e := Redis.Set(rk_rootName, zservice.Uint32ToString(tab.OrgID)).Err(); e != nil {
-		ctx.LogError(e)
-	}
+	zservice.Go(func() {
+		// 更新缓存
+		if e := Redis.Set(rk_rootName, zservice.Uint32ToString(tab.OrgID)).Err(); e != nil {
+			ctx.LogError(e)
+		}
 
+	})
 	return tab, nil
 }
 

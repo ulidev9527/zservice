@@ -1,11 +1,9 @@
 package zauth
 
 import (
-	"context"
 	"zservice/service/zauth/internal"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
-	"zservice/zservice/ex/grpcservice"
 	"zservice/zservice/zglobal"
 )
 
@@ -15,7 +13,7 @@ func CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zservice.Erro
 		if zauthInitConfig.ServiceName == zservice.GetServiceName() {
 			return internal.Logic_CheckAuth(ctx, in), nil
 		}
-		return grpcClient.CheckAuth(context.WithValue(context.Background(), grpcservice.GRPC_contextEX_Middleware_Key, ctx.ContextS2S), in)
+		return grpcClient.CheckAuth(ctx, in)
 	}(); e != nil {
 		return zservice.NewError(e)
 	} else if res.Code != zglobal.Code_SUCC {

@@ -13,10 +13,10 @@ var grpcClient zauth_pb.ZauthClient
 var zauthInitConfig *ZAuthInitConfig
 
 type ZAuthInitConfig struct {
-	ServiceName     string // 权限服务名称
-	Etcd            *clientv3.Client
-	NsqConsumerAddr string // nsq consumer addr
-	UseNsqEtcd      bool   // 是否使用 nsq + etcd
+	ServiceName string // 权限服务名称
+	Etcd        *clientv3.Client
+	GrpcAddr    string // rpc addr
+	UseGrpcEtcd bool   // 是否使用 rpc + etcd
 }
 
 func Init(c *ZAuthInitConfig) {
@@ -29,8 +29,8 @@ func Init(c *ZAuthInitConfig) {
 		conn, e := grpcservice.NewGrpcClient(&grpcservice.GrpcClientConfig{
 			ServiceName: c.ServiceName,
 			EtcdClient:  c.Etcd,
-			Addr:        c.NsqConsumerAddr,
-			UseEtcd:     c.UseNsqEtcd,
+			Addr:        c.GrpcAddr,
+			UseEtcd:     c.UseGrpcEtcd,
 		})
 		if e != nil {
 			zservice.LogPanic(e)

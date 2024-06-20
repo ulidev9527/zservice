@@ -77,10 +77,11 @@ func (z *ZService) start() *ZService {
 		z.onStart(z)
 		z.WaitStart()
 	}
-	z.LogInfo("start service done", time.Since(z.createTime))
 	if z == mainService {
-		z.LogInfo("all service start done", time.Since(z.createTime))
+		z.LogInfof("[[[[[[ %s start done %s]]]]]]", GetServiceName(), time.Since(z.createTime))
 		z.StartDone()
+	} else {
+		z.LogInfo("start service done", time.Since(z.createTime))
 	}
 	return z
 }
@@ -106,6 +107,9 @@ func (z *ZService) WaitStop() {
 // 添加依赖
 func (z *ZService) AddDependService(sArr ...*ZService) *ZService {
 	z.dependService = append(z.dependService, sArr...)
+	if z != mainService {
+		mainService.AddDependService(sArr...)
+	}
 	return z
 }
 

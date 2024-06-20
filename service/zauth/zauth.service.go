@@ -45,6 +45,10 @@ func main() {
 		internal.ZauthInitService = z
 		internal.ZAuthInit()
 	})
+	systemS.AddDependService(
+		internal.MysqlService.ZService,
+		internal.RedisService.ZService,
+	)
 
 	internal.EtcdService = etcdservice.NewEtcdService(&etcdservice.EtcdServiceConfig{
 		Addr: zservice.Getenv("ETCD_ADDR"),
@@ -53,6 +57,7 @@ func main() {
 			internal.InitEtcd()
 		},
 	})
+	internal.EtcdService.AddDependService(systemS)
 
 	internal.GrpcService = grpcservice.NewGrpcService(&grpcservice.GrpcServiceConfig{
 		ListenPort: zservice.Getenv("grpc_listen_port"),
@@ -62,6 +67,7 @@ func main() {
 			internal.InitGrpc()
 		},
 	})
+	internal.GrpcService.AddDependService(internal.EtcdService.ZService)
 
 	internal.GinService = ginservice.NewGinService(&ginservice.GinServiceConfig{
 		ListenPort: zservice.Getenv("gin_listen_port"),
@@ -71,22 +77,15 @@ func main() {
 			internal.InitGin()
 		},
 	})
-
-	zservice.AddDependService(
-		internal.MysqlService.ZService, internal.RedisService.ZService, systemS,
-		internal.EtcdService.ZService, internal.GrpcService.ZService,
-		internal.GinService.ZService,
-	)
-
-	systemS.AddDependService(internal.MysqlService.ZService, internal.RedisService.ZService)
-
-	internal.EtcdService.AddDependService(systemS)
-
-	internal.GrpcService.AddDependService(systemS, internal.EtcdService.ZService)
-
 	internal.GinService.AddDependService(internal.GrpcService.ZService)
 
-	zservice.Start().WaitStart()
-	internal.InitZZZZ()
-	zservice.WaitStop()
+	readyS := zservice.NewService("ready", func(z *zservice.ZService) {
+		internal.InitZZZZ()
+		z.StartDone()
+	})
+	readyS.AddDependService(internal.GinService.ZService)
+
+	zservice.AddDependService(readyS)
+
+	zservice.Start().WaitStart().WaitStop()
 }

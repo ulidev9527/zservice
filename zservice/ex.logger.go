@@ -10,7 +10,7 @@ import (
 
 var logger zerolog.Logger
 
-func init() {
+func initLogger() {
 	logCW := zerolog.ConsoleWriter{
 		Out:        os.Stdout,
 		TimeFormat: time.RFC3339,

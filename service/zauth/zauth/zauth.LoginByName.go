@@ -1,11 +1,9 @@
 package zauth
 
 import (
-	"context"
 	"zservice/service/zauth/internal"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
-	"zservice/zservice/ex/grpcservice"
 	"zservice/zservice/zglobal"
 )
 
@@ -20,7 +18,7 @@ func LoginByName(ctx *zservice.Context, in *zauth_pb.LoginByUser_REQ) *zauth_pb.
 		if zauthInitConfig.ServiceName == zservice.GetServiceName() {
 			return internal.Logic_LoginByName(ctx, in), nil
 		}
-		return grpcClient.LoginByUser(context.WithValue(context.Background(), grpcservice.GRPC_contextEX_Middleware_Key, ctx.ContextS2S), in)
+		return grpcClient.LoginByUser(ctx, in)
 	}(); e != nil {
 		return &zauth_pb.Login_RES{Code: zglobal.Code_Fail}
 	} else {

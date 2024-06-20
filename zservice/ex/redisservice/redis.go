@@ -15,13 +15,11 @@ type RedisService struct {
 
 // Redis 配置
 type RedisServiceConfig struct {
-	Name          string           // 服务名称,仅用于日志显示
-	Addr          string           // redis 连接地址
-	Pass          string           // redis 连接密码
-	KeyPrefix     string           // 前缀
-	IgnorePrefix  bool             // 是否忽略前缀 默认 false
-	KeyLockPrefix string           // 锁前缀 默认:"zservice:keylock:"
-	OnStart       func(*GoRedisEX) // 启动的回调
+	Name      string           // 服务名称,仅用于日志显示
+	Addr      string           // redis 连接地址
+	Pass      string           // redis 连接密码
+	KeyPrefix string           // 前缀
+	OnStart   func(*GoRedisEX) // 启动的回调
 }
 
 // 创建一个 redis 服务
@@ -32,10 +30,12 @@ func NewRedisService(c *RedisServiceConfig) *RedisService {
 		return nil
 	}
 
-	name := "RedisService"
-	if c.Name != "" {
-		name = fmt.Sprint(name, "-", c.Name)
+	keyPrefix := c.KeyPrefix
+	if keyPrefix == "" {
+		keyPrefix = zservice.GetServiceName()
 	}
+
+	name := fmt.Sprint("RedisService-", c.Addr, "-", keyPrefix)
 
 	rs := &RedisService{}
 
@@ -44,22 +44,8 @@ func NewRedisService(c *RedisServiceConfig) *RedisService {
 			Addr:     c.Addr,
 			Password: c.Pass,
 		}),
-		keyPrefix:       c.KeyPrefix,
-		ignoreKeyPrefix: c.IgnorePrefix,
-		keyLockPrefix:   c.KeyLockPrefix,
-	}
-
-	// key前缀处理
-	if !c.IgnorePrefix && rs.Redis.keyPrefix == "" {
-		if rs.Redis.keyPrefix == "" { // 默认使用服务名
-			rs.Redis.keyPrefix = fmt.Sprint(zservice.GetServiceName(), ":")
-		} else {
-			rs.Redis.keyPrefix = fmt.Sprint(c.KeyPrefix, ":")
-		}
-	}
-	// 锁前缀处理
-	if rs.Redis.keyLockPrefix == "" {
-		rs.Redis.keyLockPrefix = "zservice:keylock:"
+		keyPrefix:     fmt.Sprint(keyPrefix, ":"),
+		keyLockPrefix: fmt.Sprint("__zserviceKeyLock:", keyPrefix, ":"),
 	}
 
 	rs.ZService = zservice.NewService(name, func(s *zservice.ZService) {

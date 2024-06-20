@@ -15,19 +15,19 @@ import (
 // 环境变量缓存
 var envCacheMap = &sync.Map{}
 
-func init() {
+func initEnv() {
 	// 获取所有环境变量
 	strArr := os.Environ()
 	for _, v := range strArr {
 		arr := strings.Split(v, "=")
-		SetEnv(arr[0], arr[1])
+		Setenv(arr[0], arr[1])
 	}
 }
 
 // 合并环境变量
 func MergeEnv(envs map[string]string) {
 	for k, v := range envs {
-		SetEnv(k, v)
+		Setenv(k, v)
 	}
 }
 
@@ -52,7 +52,7 @@ func Getenv(key string) string {
 	return maps[key]
 }
 
-func SetEnv(key string, value string) {
+func Setenv(key string, value string) {
 	key = strings.ToUpper(key)
 	if key == "ZSERVICE_VERSION" && Getenv(key) != "" {
 		return

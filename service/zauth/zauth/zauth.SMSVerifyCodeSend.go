@@ -1,11 +1,9 @@
 package zauth
 
 import (
-	"context"
 	"zservice/service/zauth/internal"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
-	"zservice/zservice/ex/grpcservice"
 	"zservice/zservice/zglobal"
 )
 
@@ -19,7 +17,7 @@ func SMSVerifyCodeSend(ctx *zservice.Context, in *zauth_pb.SMSVerifyCodeSend_REQ
 		if zauthInitConfig.ServiceName == zservice.GetServiceName() {
 			return internal.Logic_SMSVerifyCodeSend(ctx, in), nil
 		}
-		return grpcClient.SMSVerifyCodeSend(context.WithValue(context.Background(), grpcservice.GRPC_contextEX_Middleware_Key, ctx.ContextS2S), in)
+		return grpcClient.SMSVerifyCodeSend(ctx, in)
 	}(); e != nil {
 		return zservice.NewError("send verify code fail")
 	} else if res.Code == zglobal.Code_SUCC {
