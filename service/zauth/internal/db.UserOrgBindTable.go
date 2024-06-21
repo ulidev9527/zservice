@@ -14,12 +14,12 @@ type UserOrgBindTable struct {
 
 	OrgID   uint32 // 组ID
 	UID     uint32 // 用户ID
-	Expires uint64 // 过期时间
+	Expires int64  // 过期时间
 	State   uint32 `gorm:"default:1"` // 状态 0禁用 1开启
 }
 
 // 加入组织
-func UserJoinOrg(ctx *zservice.Context, uid uint32, orgID uint32, Expires uint64) (*UserOrgBindTable, *zservice.Error) {
+func UserOrgBind(ctx *zservice.Context, uid uint32, orgID uint32, Expires int64) (*UserOrgBindTable, *zservice.Error) {
 	// 验证参数是否正确
 	if has, e := HasOrgByID(ctx, orgID); e != nil {
 		return nil, e
@@ -34,7 +34,7 @@ func UserJoinOrg(ctx *zservice.Context, uid uint32, orgID uint32, Expires uint64
 	}
 
 	// 是否已经绑定
-	if has, e := HasUserOrgBindByAOID(ctx, uid, orgID); e != nil {
+	if has, e := HasUserOrgBindByID(ctx, uid, orgID); e != nil {
 		return nil, e
 	} else if has {
 		return nil, zservice.NewError("user already join org:", uid, orgID).SetCode(zglobal.Code_Zauth_UserAlreadyJoin_Org)
@@ -54,7 +54,7 @@ func UserJoinOrg(ctx *zservice.Context, uid uint32, orgID uint32, Expires uint64
 }
 
 // 是否有账号和组织绑定
-func HasUserOrgBindByAOID(ctx *zservice.Context, uid uint32, orgID uint32) (bool, *zservice.Error) {
+func HasUserOrgBindByID(ctx *zservice.Context, uid uint32, orgID uint32) (bool, *zservice.Error) {
 	return dbhelper.HasTableValue(ctx, &UserOrgBindTable{}, fmt.Sprintf(RK_AOBind_Info, orgID, uid), fmt.Sprintf("uid = %v and org_id = %v", uid, orgID))
 }
 

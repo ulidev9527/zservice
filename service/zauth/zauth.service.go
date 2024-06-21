@@ -2,6 +2,7 @@ package main
 
 import (
 	"zservice/service/zauth/internal"
+	"zservice/service/zauth/zauth_ex"
 	"zservice/zservice"
 	"zservice/zservice/ex/etcdservice"
 	"zservice/zservice/ex/ginservice"
@@ -41,11 +42,12 @@ func main() {
 		},
 	})
 
-	systemS := zservice.NewService("system", func(z *zservice.ZService) {
-		internal.ZauthInitService = z
-		internal.ZAuthInit()
+	ServiceRegist := zservice.NewService("ServiceRegist", func(z *zservice.ZService) {
+		zauth_ex.ServiceInfo.Regist(true)
+
+		z.StartDone()
 	})
-	systemS.AddDependService(
+	ServiceRegist.AddDependService(
 		internal.MysqlService.ZService,
 		internal.RedisService.ZService,
 	)
@@ -57,7 +59,7 @@ func main() {
 			internal.InitEtcd()
 		},
 	})
-	internal.EtcdService.AddDependService(systemS)
+	internal.EtcdService.AddDependService(ServiceRegist)
 
 	internal.GrpcService = grpcservice.NewGrpcService(&grpcservice.GrpcServiceConfig{
 		ListenPort: zservice.Getenv("grpc_listen_port"),
@@ -72,7 +74,7 @@ func main() {
 	internal.GinService = ginservice.NewGinService(&ginservice.GinServiceConfig{
 		ListenPort: zservice.Getenv("gin_listen_port"),
 		OnStart: func(engine *gin.Engine) {
-			engine.Use(internal.GinMiddlewareCheckAuth(internal.GinService.ZService))
+			engine.Use(zauth_ex.GinCheckAuthMiddleware(internal.GinService.ZService, true))
 			internal.Gin = engine
 			internal.InitGin()
 		},

@@ -2,14 +2,11 @@ package internal
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"zservice/zservice"
 	"zservice/zservice/ex/gormservice"
 	"zservice/zservice/ex/redisservice"
 	"zservice/zservice/zglobal"
-
-	"gorm.io/gorm"
 )
 
 // 组织表
@@ -92,14 +89,12 @@ func GetRootOrgByName(ctx *zservice.Context, name string) (*OrgTable, *zservice.
 
 	// 未找到 查表
 	if e := Mysql.Model(&OrgTable{}).Where("name = ? AND root_id = 0", name).First(tab).Error; e != nil {
-		if !errors.Is(e, gorm.ErrRecordNotFound) {
-			return nil, zservice.NewError(e)
+		if gormservice.IsNotFound(e) {
+			return nil, zservice.NewError(e).SetCode(zglobal.Code_NotFound)
 		}
+		return nil, zservice.NewError(e)
 	}
 
-	if tab.OrgID == 0 {
-		return nil, nil
-	}
 	zservice.Go(func() {
 		// 更新缓存
 		if e := Redis.Set(rk_rootName, zservice.Uint32ToString(tab.OrgID)).Err(); e != nil {

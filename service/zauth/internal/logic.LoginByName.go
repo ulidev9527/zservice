@@ -22,7 +22,20 @@ func Logic_LoginByName(ctx *zservice.Context, in *zauth_pb.LoginByUser_REQ) *zau
 
 	if at.UID != 0 { // 已登陆的
 		if at.LoginService == ctx.TraceService {
-			return &zauth_pb.Login_RES{Code: zglobal.Code_SUCC, Uid: at.UID}
+			if tab, e := GetUserByUID(ctx, at.UID); e != nil {
+				ctx.LogError(e)
+				return &zauth_pb.Login_RES{Code: e.GetCode()}
+			} else {
+				if tab.State == 0 {
+					return &zauth_pb.Login_RES{Code: zglobal.Code_Limit}
+				}
+				return &zauth_pb.Login_RES{Code: zglobal.Code_SUCC, UserInfo: &zauth_pb.UserInfo{
+					Uid:       tab.UID,
+					LoginName: tab.LoginName,
+					Phone:     tab.Phone,
+					State:     tab.State,
+				}}
+			}
 		}
 
 		return &zauth_pb.Login_RES{Code: zglobal.Code_LoginAgain}
@@ -41,6 +54,8 @@ func Logic_LoginByName(ctx *zservice.Context, in *zauth_pb.LoginByUser_REQ) *zau
 	if e != nil {
 		ctx.LogError(e)
 		return &zauth_pb.Login_RES{Code: e.GetCode()}
+	} else if acc.State == 0 { // 限制登陆
+		return &zauth_pb.Login_RES{Code: zglobal.Code_Limit}
 	} else if !acc.VerifyPass(ctx, in.Password) { // 验证
 		return &zauth_pb.Login_RES{Code: zglobal.Code_Zauth_Login_Pass_Err}
 	}
@@ -50,10 +65,15 @@ func Logic_LoginByName(ctx *zservice.Context, in *zauth_pb.LoginByUser_REQ) *zau
 	at.UID = acc.UID
 	at.LoginService = ctx.TraceService
 
-	if e := at.Save(); e != nil {
+	if e := at.Save(ctx); e != nil {
 		ctx.LogError(e)
 		return &zauth_pb.Login_RES{Code: e.GetCode()}
 	}
 
-	return &zauth_pb.Login_RES{Code: zglobal.Code_SUCC, Uid: acc.UID}
+	return &zauth_pb.Login_RES{Code: zglobal.Code_SUCC, UserInfo: &zauth_pb.UserInfo{
+		Uid:       acc.UID,
+		LoginName: acc.LoginName,
+		Phone:     acc.Phone,
+		State:     acc.State,
+	}}
 }

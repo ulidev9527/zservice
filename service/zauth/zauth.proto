@@ -8,6 +8,12 @@ message Default_RES {
 }
 
 // 账户/登陆相关
+message UserInfo {
+    uint32 uid       = 1;
+    string loginName = 2;
+    string phone     = 3;
+    uint32 state     = 4;
+}
 message LoginByPhone_REQ {
     string phone      = 1;  // 手机号 +86****
     uint32 expires    = 2;  // 过期时间 没有传入 (单位: 秒)，最小 30s，过期时间到了后需要重新授权
@@ -19,8 +25,8 @@ message LoginByUser_REQ {
     uint32 expires  = 3;  // 过期时间 没有传入 (单位: 秒)，最小 30s，过期时间到了后需要重新授权
 }
 message Login_RES{
-    uint32 code           = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
-    uint32 uid            = 2;  // 用户ID
+    uint32   code     = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
+    UserInfo userInfo = 2;  // 用户信息
 }
 message CheckAuth_REQ{
     string Auth = 2;  // 权限, 字符串数组，[服务名, 动作, 路径]
@@ -44,6 +50,15 @@ message PermissionInfo{
     string path         = 5;  // 权限路径
     uint32 state        = 6;  // 权限状态 0禁用 1公开访问 2授权访问 3继承父级
 }
+
+message PermissionBindInfo{
+    uint32 targetType   = 1;  // 权限类型 1组织 2账号
+    uint32 targetID     = 2;  // 权限对象ID
+    uint64 expires      = 3;  // 过期时间 没有传入 (单位: 秒)，最小 30s，过期时间到了后需要重新授权
+    uint32 permissionID = 4;  // 权限ID
+    uint32 state        = 5;  // 是否允许访问 0禁止 1允许
+}
+
 message PermissionInfo_RES{
     uint32         code = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
     PermissionInfo info = 2;  // 权限
@@ -63,6 +78,10 @@ message PermissionBind_REQ{
     uint32 targetID     = 3;  // 权限对象ID
     uint64 expires      = 4;  // 过期时间
     uint32 state        = 5;  // 是否允许访问 0禁止 1允许
+}
+message PermissionBind_RES{
+    uint32             code = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
+    PermissionBindInfo info = 2;  // 权限绑定信息
 }
 
 // 组织相关
@@ -143,19 +162,32 @@ message ConfigGetEnvConfig_REQ{
     string service = 1;  // 服务名
 }
 
+// 服务注册
+message ServiceRegist_REQ{}
+message ServiceRegist_RES {
+    uint32         code           = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
+    OrgInfo        OrgInfo        = 2;  // 组织信息
+    PermissionInfo permissionInfo = 3;  // 权限信息
+}
+message AddUserToOrg_REQ{
+    uint32 uid    = 1;  // uid
+    uint32 orgID  = 2;  // orgid
+    int64  expire = 3;  // 过期时间 (S)
+}
+
 // 资源
 message AssetInfo {
     string name   = 1;  // 文件名
     string md5    = 2;  // 文件md5
     string token  = 3;  // 资源访问标识, 使用标识可以进行资源的访问
-    int64  expire = 4;  // 过期时间
+    int64  expire = 4;  // 过期时间 (S)
     uint64 size   = 5;  // 文件大小
     bytes  data   = 6;  // 文件数据
 }
 
 message AddAsset_REQ { // 添加资源
     string name      = 1;  // 文件全名, 文件全名 包括后缀
-    int64  expire    = 2;  // 过期时间
+    int64  expire    = 2;  // 过期时间 (S)
     bytes  fileBytes = 3;  // 文件数据
 }
 
@@ -175,7 +207,7 @@ service zauth{
     rpc PermissionCreate(PermissionInfo) returns(PermissionInfo_RES);              // 创建权限
     rpc PermissionListGet(PermissionListGet_REQ) returns(PermissionInfoList_RES);  // 获取权限列表权限列表
     rpc PermissionUpdate(PermissionInfo) returns(PermissionInfo_RES);              // 更新权限
-    rpc PermissionBind(PermissionBind_REQ) returns(Default_RES);                   // 权限绑定
+    rpc PermissionBind(PermissionBind_REQ) returns(PermissionBind_RES);            // 权限绑定
 
     rpc OrgCreate(OrgInfo) returns(OrgInfo_RES);              // 创建组织
     rpc OrgListGet(OrgListGet_REQ) returns(OrgInfoList_RES);  // 获取组织列表
@@ -194,7 +226,8 @@ service zauth{
     rpc ConfigGetServiceEnvConfig(ConfigGetServiceEnvConfig_REQ) returns(ConfigGetServiceEnvConfig_RES);     // 获取服务的环境变量
     rpc ConfigGetEnvConfig(ConfigGetEnvConfig_REQ) returns(ConfigGetServiceEnvConfig_RES);                   // 获取环境变量
 
-    rpc ServiceRegist(Default_REQ)returns(Default_RES);  // 服务注册, 创建服务组/服务权限
+    rpc ServiceRegist(ServiceRegist_REQ)returns(ServiceRegist_RES);  // 服务注册, 创建服务组/服务权限
+    rpc AddUserToOrg(AddUserToOrg_REQ)returns(Default_RES);          // 添加用户到服务组
 
     rpc AddAsset(AddAsset_REQ) returns(AssetInfo_RES);  // 添加资源
 }

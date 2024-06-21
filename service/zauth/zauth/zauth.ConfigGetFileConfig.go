@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"sync"
-	"zservice/service/zauth/internal"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
 	"zservice/zservice/zglobal"
@@ -17,7 +16,7 @@ var fileConfigMap = &sync.Map{} // 文件配置映射
 // 不传 key 返回所有配置数组
 // 一个 key 返回一个对象
 // 多个 key 返回数组
-func GetFileConfig(ctx *zservice.Context, fileName string, v any, keys ...string) *zservice.Error {
+func ConfigGetFileConfig(ctx *zservice.Context, fileName string, v any, keys ...string) *zservice.Error {
 	// 是否有配置，没有拉取配置
 	val, has := fileConfigMap.Load(fileName)
 
@@ -26,12 +25,7 @@ func GetFileConfig(ctx *zservice.Context, fileName string, v any, keys ...string
 			FileName: fileName,
 		}
 
-		res, e := func() (*zauth_pb.ConfigGetFileConfig_RES, error) {
-			if zauthInitConfig.ServiceName == zservice.GetServiceName() {
-				return internal.Logic_ConfigGetFileConfig(ctx, req), nil
-			}
-			return grpcClient.ConfigGetFileConfig(ctx, req)
-		}()
+		res, e := grpcClient.ConfigGetFileConfig(ctx, req)
 		if e != nil {
 			return zservice.NewError(e)
 		}

@@ -12,10 +12,6 @@ import (
 // 所有字段都会转换成小写格式处理
 type FileParserFN func(file string) (map[string]string, *zservice.Error)
 
-var fileParserMap = map[uint32]FileParserFN{
-	E_Config_FileParser_Excel: ParserExcel,
-}
-
 // 验证文件正确性
 func parserFileVerify(fullpath string) *zservice.Error {
 	fi, e := os.Stat(fullpath)

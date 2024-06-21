@@ -41,6 +41,7 @@ const (
 	Zauth_ConfigGetServiceEnvConfig_FullMethodName   = "/zauth_pb.zauth/ConfigGetServiceEnvConfig"
 	Zauth_ConfigGetEnvConfig_FullMethodName          = "/zauth_pb.zauth/ConfigGetEnvConfig"
 	Zauth_ServiceRegist_FullMethodName               = "/zauth_pb.zauth/ServiceRegist"
+	Zauth_AddUserToOrg_FullMethodName                = "/zauth_pb.zauth/AddUserToOrg"
 	Zauth_AddAsset_FullMethodName                    = "/zauth_pb.zauth/AddAsset"
 )
 
@@ -56,7 +57,7 @@ type ZauthClient interface {
 	PermissionCreate(ctx context.Context, in *PermissionInfo, opts ...grpc.CallOption) (*PermissionInfo_RES, error)
 	PermissionListGet(ctx context.Context, in *PermissionListGet_REQ, opts ...grpc.CallOption) (*PermissionInfoList_RES, error)
 	PermissionUpdate(ctx context.Context, in *PermissionInfo, opts ...grpc.CallOption) (*PermissionInfo_RES, error)
-	PermissionBind(ctx context.Context, in *PermissionBind_REQ, opts ...grpc.CallOption) (*Default_RES, error)
+	PermissionBind(ctx context.Context, in *PermissionBind_REQ, opts ...grpc.CallOption) (*PermissionBind_RES, error)
 	OrgCreate(ctx context.Context, in *OrgInfo, opts ...grpc.CallOption) (*OrgInfo_RES, error)
 	OrgListGet(ctx context.Context, in *OrgListGet_REQ, opts ...grpc.CallOption) (*OrgInfoList_RES, error)
 	OrgUpdate(ctx context.Context, in *OrgInfo, opts ...grpc.CallOption) (*OrgInfo_RES, error)
@@ -69,7 +70,8 @@ type ZauthClient interface {
 	ConfigSyncServiceEnvConfig(ctx context.Context, in *ConfigSyncServiceEnvConfig_REQ, opts ...grpc.CallOption) (*ConfigSyncServiceEnvConfig_RES, error)
 	ConfigGetServiceEnvConfig(ctx context.Context, in *ConfigGetServiceEnvConfig_REQ, opts ...grpc.CallOption) (*ConfigGetServiceEnvConfig_RES, error)
 	ConfigGetEnvConfig(ctx context.Context, in *ConfigGetEnvConfig_REQ, opts ...grpc.CallOption) (*ConfigGetServiceEnvConfig_RES, error)
-	ServiceRegist(ctx context.Context, in *Default_REQ, opts ...grpc.CallOption) (*Default_RES, error)
+	ServiceRegist(ctx context.Context, in *ServiceRegist_REQ, opts ...grpc.CallOption) (*ServiceRegist_RES, error)
+	AddUserToOrg(ctx context.Context, in *AddUserToOrg_REQ, opts ...grpc.CallOption) (*Default_RES, error)
 	AddAsset(ctx context.Context, in *AddAsset_REQ, opts ...grpc.CallOption) (*AssetInfo_RES, error)
 }
 
@@ -153,8 +155,8 @@ func (c *zauthClient) PermissionUpdate(ctx context.Context, in *PermissionInfo, 
 	return out, nil
 }
 
-func (c *zauthClient) PermissionBind(ctx context.Context, in *PermissionBind_REQ, opts ...grpc.CallOption) (*Default_RES, error) {
-	out := new(Default_RES)
+func (c *zauthClient) PermissionBind(ctx context.Context, in *PermissionBind_REQ, opts ...grpc.CallOption) (*PermissionBind_RES, error) {
+	out := new(PermissionBind_RES)
 	err := c.cc.Invoke(ctx, Zauth_PermissionBind_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -270,9 +272,18 @@ func (c *zauthClient) ConfigGetEnvConfig(ctx context.Context, in *ConfigGetEnvCo
 	return out, nil
 }
 
-func (c *zauthClient) ServiceRegist(ctx context.Context, in *Default_REQ, opts ...grpc.CallOption) (*Default_RES, error) {
-	out := new(Default_RES)
+func (c *zauthClient) ServiceRegist(ctx context.Context, in *ServiceRegist_REQ, opts ...grpc.CallOption) (*ServiceRegist_RES, error) {
+	out := new(ServiceRegist_RES)
 	err := c.cc.Invoke(ctx, Zauth_ServiceRegist_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *zauthClient) AddUserToOrg(ctx context.Context, in *AddUserToOrg_REQ, opts ...grpc.CallOption) (*Default_RES, error) {
+	out := new(Default_RES)
+	err := c.cc.Invoke(ctx, Zauth_AddUserToOrg_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -300,7 +311,7 @@ type ZauthServer interface {
 	PermissionCreate(context.Context, *PermissionInfo) (*PermissionInfo_RES, error)
 	PermissionListGet(context.Context, *PermissionListGet_REQ) (*PermissionInfoList_RES, error)
 	PermissionUpdate(context.Context, *PermissionInfo) (*PermissionInfo_RES, error)
-	PermissionBind(context.Context, *PermissionBind_REQ) (*Default_RES, error)
+	PermissionBind(context.Context, *PermissionBind_REQ) (*PermissionBind_RES, error)
 	OrgCreate(context.Context, *OrgInfo) (*OrgInfo_RES, error)
 	OrgListGet(context.Context, *OrgListGet_REQ) (*OrgInfoList_RES, error)
 	OrgUpdate(context.Context, *OrgInfo) (*OrgInfo_RES, error)
@@ -313,7 +324,8 @@ type ZauthServer interface {
 	ConfigSyncServiceEnvConfig(context.Context, *ConfigSyncServiceEnvConfig_REQ) (*ConfigSyncServiceEnvConfig_RES, error)
 	ConfigGetServiceEnvConfig(context.Context, *ConfigGetServiceEnvConfig_REQ) (*ConfigGetServiceEnvConfig_RES, error)
 	ConfigGetEnvConfig(context.Context, *ConfigGetEnvConfig_REQ) (*ConfigGetServiceEnvConfig_RES, error)
-	ServiceRegist(context.Context, *Default_REQ) (*Default_RES, error)
+	ServiceRegist(context.Context, *ServiceRegist_REQ) (*ServiceRegist_RES, error)
+	AddUserToOrg(context.Context, *AddUserToOrg_REQ) (*Default_RES, error)
 	AddAsset(context.Context, *AddAsset_REQ) (*AssetInfo_RES, error)
 	mustEmbedUnimplementedZauthServer()
 }
@@ -346,7 +358,7 @@ func (UnimplementedZauthServer) PermissionListGet(context.Context, *PermissionLi
 func (UnimplementedZauthServer) PermissionUpdate(context.Context, *PermissionInfo) (*PermissionInfo_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PermissionUpdate not implemented")
 }
-func (UnimplementedZauthServer) PermissionBind(context.Context, *PermissionBind_REQ) (*Default_RES, error) {
+func (UnimplementedZauthServer) PermissionBind(context.Context, *PermissionBind_REQ) (*PermissionBind_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PermissionBind not implemented")
 }
 func (UnimplementedZauthServer) OrgCreate(context.Context, *OrgInfo) (*OrgInfo_RES, error) {
@@ -385,8 +397,11 @@ func (UnimplementedZauthServer) ConfigGetServiceEnvConfig(context.Context, *Conf
 func (UnimplementedZauthServer) ConfigGetEnvConfig(context.Context, *ConfigGetEnvConfig_REQ) (*ConfigGetServiceEnvConfig_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ConfigGetEnvConfig not implemented")
 }
-func (UnimplementedZauthServer) ServiceRegist(context.Context, *Default_REQ) (*Default_RES, error) {
+func (UnimplementedZauthServer) ServiceRegist(context.Context, *ServiceRegist_REQ) (*ServiceRegist_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ServiceRegist not implemented")
+}
+func (UnimplementedZauthServer) AddUserToOrg(context.Context, *AddUserToOrg_REQ) (*Default_RES, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddUserToOrg not implemented")
 }
 func (UnimplementedZauthServer) AddAsset(context.Context, *AddAsset_REQ) (*AssetInfo_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddAsset not implemented")
@@ -783,7 +798,7 @@ func _Zauth_ConfigGetEnvConfig_Handler(srv interface{}, ctx context.Context, dec
 }
 
 func _Zauth_ServiceRegist_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Default_REQ)
+	in := new(ServiceRegist_REQ)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -795,7 +810,25 @@ func _Zauth_ServiceRegist_Handler(srv interface{}, ctx context.Context, dec func
 		FullMethod: Zauth_ServiceRegist_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ZauthServer).ServiceRegist(ctx, req.(*Default_REQ))
+		return srv.(ZauthServer).ServiceRegist(ctx, req.(*ServiceRegist_REQ))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Zauth_AddUserToOrg_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddUserToOrg_REQ)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ZauthServer).AddUserToOrg(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Zauth_AddUserToOrg_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ZauthServer).AddUserToOrg(ctx, req.(*AddUserToOrg_REQ))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -912,6 +945,10 @@ var Zauth_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ServiceRegist",
 			Handler:    _Zauth_ServiceRegist_Handler,
+		},
+		{
+			MethodName: "AddUserToOrg",
+			Handler:    _Zauth_AddUserToOrg_Handler,
 		},
 		{
 			MethodName: "AddAsset",

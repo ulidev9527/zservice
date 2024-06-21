@@ -20,20 +20,15 @@ type AuthToken struct {
 
 // 创建一个 token
 func CreateToken(ctx *zservice.Context) (*AuthToken, *zservice.Error) {
-	// 最小过期时间
-	minExpiresSeconds := 60 * 10 // 10分钟
-
 	// 创建 token
 	tk := &AuthToken{
-		ExpiresSecond: uint32(minExpiresSeconds),
-		Expires:       time.Now().Add(time.Second * time.Duration(minExpiresSeconds)),
-		Sign:          zservice.MD5String(ctx.AuthSign),
-		TokenKey:      zservice.RandomMD5(),
+		Sign:     zservice.MD5String(ctx.AuthSign),
+		TokenKey: zservice.RandomMD5(),
 	}
 
 	tk.Token = GenTokenSign(tk.Sign, tk.TokenKey)
 
-	if e := tk.Save(); e != nil {
+	if e := tk.Save(ctx); e != nil {
 		return nil, e
 	}
 
@@ -84,7 +79,11 @@ func (l *AuthToken) CheckToken(tk string, sign string) bool {
 }
 
 // 保存
-func (l *AuthToken) Save() *zservice.Error {
+func (l *AuthToken) Save(ctx *zservice.Context) *zservice.Error {
+
+	if l.ExpiresSecond < 600 {
+		l.ExpiresSecond = 600
+	}
 	l.Expires = time.Now().Add(time.Second * time.Duration(l.ExpiresSecond))
 
 	if l.UID != 0 { // 登录 token 存储

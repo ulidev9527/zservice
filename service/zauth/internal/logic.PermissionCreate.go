@@ -19,20 +19,13 @@ func Logic_PermissionCreate(ctx *zservice.Context, in *zauth_pb.PermissionInfo) 
 	}
 
 	// 检查权限是否存在
-	if tab, e := GetPermissionBySAP(ctx, in.Service, in.Action, in.Path); e != nil {
+	if _, e := GetPermissionBySAP(ctx, in.Service, in.Action, in.Path); e != nil {
 		if e.GetCode() != zglobal.Code_NotFound {
 			ctx.LogError(e)
 			return &zauth_pb.PermissionInfo_RES{Code: e.GetCode()}
 		}
-	} else if tab != nil {
-		return &zauth_pb.PermissionInfo_RES{Code: zglobal.Code_Zauth_Permission_Alerady_Exist, Info: &zauth_pb.PermissionInfo{
-			PermissionID: tab.PermissionID,
-			Name:         tab.Name,
-			Service:      tab.Service,
-			Action:       tab.Action,
-			Path:         tab.Path,
-			State:        tab.State,
-		}}
+	} else {
+		return &zauth_pb.PermissionInfo_RES{Code: zglobal.Code_Zauth_Permission_Alerady_Exist}
 	}
 
 	// 获取一个未使用的权限 ID

@@ -44,7 +44,7 @@ func Logic_ConfigSyncServiceFileConfig(ctx *zservice.Context, in *zauth_pb.Confi
 	}
 
 	// 解析文件
-	parser := fileParserMap[in.Parser]
+	parser := ConfigFileParserMap[in.Parser]
 	if parser == nil {
 		ctx.LogError("parser not found", in.Parser)
 		return &zauth_pb.Default_RES{Code: zglobal.Code_Zauth_config_ParserNotExist}

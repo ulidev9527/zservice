@@ -7,6 +7,7 @@ import (
 	"time"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
+	"zservice/zservice/ex/gormservice"
 	"zservice/zservice/zglobal"
 
 	"gorm.io/gorm"
@@ -68,18 +69,18 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 			lastIndex := strings.LastIndex(tmpPath, "/")
 			if lastIndex == -1 {
 				for _, v := range actionArr {
-					inArr = append(inArr, []string{service, v, ""})
+					inArr = append(inArr, []string{service, v, ""}) // 无 action
 				}
 				break // 已经到达路径根部，无需再查询
 			}
 			for _, v := range actionArr {
-				inArr = append(inArr, []string{service, v, tmpPath})
+				inArr = append(inArr, []string{service, v, tmpPath}) // action
 			}
 
 			tmpPath = tmpPath[:lastIndex] // 获取父级路径
 		}
 
-		// 未找到 查表
+		// 未找到 查表, 按权限最接近的查询
 		tabs := []PermissionTable{}
 		if e := Mysql.Model(&PermissionTable{}).Where("(service, action, path) IN ?", inArr).Order("LENGTH(action) DESC, LENGTH(path) DESC").Find(&tabs).Error; e != nil {
 			if !errors.Is(e, gorm.ErrRecordNotFound) {
@@ -89,6 +90,12 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 
 		if len(tabs) == 0 {
 			return nil, zservice.NewError("not found").SetCode(zglobal.Code_NotFound)
+		}
+
+		for _, tab := range tabs {
+			if tab.State != 3 { // 继承父级，向上查询
+				return &tab, nil
+			}
 		}
 
 		return &tabs[0], nil
@@ -102,7 +109,7 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 	// 当前权限是否公开
 	switch permissionInfo.State {
 	case 0: // 权限禁用
-	case 3: // 继承父级，父级未处理，权限配置有问题
+	case 3: // 继承父级，父级未处理，权限配置有问题，查当前服务的顶级权限是否配置正确
 		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_Zauth_Permission_ConfigErr, IsTokenRefresh: isRefreshToken, Token: at.Token, Uid: at.UID}
 	case 1: // 公开访问
 		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_SUCC, IsTokenRefresh: isRefreshToken, Token: at.Token, Uid: at.UID}
@@ -126,40 +133,40 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_LoginAgain, IsTokenRefresh: isRefreshToken, Token: at.Token, Uid: at.UID}
 	}
 
-	// 检查是否有权限
-	isAllow, e := func() (bool, *zservice.Error) {
-		// 当前账号是否有权限配置
-		if tab, e := GetPermissionBind(ctx, 2, at.UID, permissionInfo.PermissionID); e != nil && e.GetCode() != zglobal.Code_NotFound {
-			return false, e
-		} else if tab != nil && tab.IsExpired() { // 过期的检查权限表示无效，检查所在组织是否有权限
-			return tab.State == 1, nil
-		}
-
-		bindInfo := &UserOrgBindTable{}
-
-		if e := Mysql.Model(&UserOrgBindTable{}).Where( // 查找组中是否有当前账号的绑定信息
-			"uid = ? AND org_id IN (?)",
-			at.UID,
-			Mysql.Model(&PermissionBindTable{}).Where( // 查找所有分配权限的组
-				"permission_id = ? AND target_type = 1 AND state = 1 AND (expires = 0 OR expires > ?)",
-				permissionInfo.PermissionID,
-				time.Now().Unix(),
-			).Select("target_id"),
-		).First(bindInfo).Error; e != nil {
-			if !errors.Is(e, gorm.ErrRecordNotFound) {
-				return false, zservice.NewError(e)
-			}
-		}
-		return bindInfo.ID > 0, nil
-	}()
-
-	if e != nil {
+	// 检查用户和权限组的绑定
+	// 当前账号是否有权限配置
+	if tab, e := GetPermissionBind(ctx, 2, at.UID, permissionInfo.PermissionID); e != nil && e.GetCode() != zglobal.Code_NotFound {
 		ctx.LogError(e)
 		return &zauth_pb.CheckAuth_RES{Code: e.GetCode(), IsTokenRefresh: isRefreshToken, Token: at.Token, Uid: at.UID}
+	} else if tab != nil && !tab.IsExpired() { // 过期的检查权限表示无效，检查所在组织是否有权限
+		if tab.State == 1 {
+			return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_SUCC, IsTokenRefresh: isRefreshToken, Token: at.Token, Uid: at.UID}
+		} else {
+			return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_Fail, IsTokenRefresh: isRefreshToken, Token: at.Token, Uid: at.UID}
+		}
 	}
-	if isAllow { // 是否允许访问
-		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_SUCC, IsTokenRefresh: isRefreshToken, Token: at.Token, Uid: at.UID}
+
+	// 查库
+	bindCount := int64(0)
+	if e := Mysql.Model(&UserOrgBindTable{}).Where( // 查找组中是否有当前账号的绑定信息
+		"uid = ? AND org_id IN (?)",
+		at.UID,
+		Mysql.Model(&PermissionBindTable{}).Where( // 查找所有分配权限的组
+			"permission_id = ? AND target_type = 1 AND state = 1 AND (expires = 0 OR expires > ?)",
+			permissionInfo.PermissionID,
+			time.Now().Unix(),
+		).Select("target_id"),
+	).Count(&bindCount).Error; e != nil {
+		ctx.LogError(e)
+		if gormservice.IsNotFound(e) {
+			return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_NotFound, IsTokenRefresh: isRefreshToken, Token: at.Token, Uid: at.UID}
+		}
+		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_Fail, IsTokenRefresh: isRefreshToken, Token: at.Token, Uid: at.UID}
+	}
+
+	if bindCount == 0 {
+		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_NotFound, IsTokenRefresh: isRefreshToken, Token: at.Token, Uid: at.UID}
 	} else {
-		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_Zauth_Fail, IsTokenRefresh: isRefreshToken, Token: at.Token, Uid: at.UID}
+		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_SUCC, IsTokenRefresh: isRefreshToken, Token: at.Token, Uid: at.UID}
 	}
 }

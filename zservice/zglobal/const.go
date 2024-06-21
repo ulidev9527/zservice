@@ -3,9 +3,9 @@ package zglobal
 import "time"
 
 const (
-	Code_Fail = 0 // 失败
-	Code_SUCC = 1 // 成功
-	// Code_Fail          = 2    // 失败
+	Code_Fail  = 0 // 失败
+	Code_SUCC  = 1 // 成功
+	Code_Limit = 2 // 限制/上限
 	// Code_Error         = 3    // 出错
 	Code_Zauth_Fail    = 4  // 鉴权失败
 	Code_NotImplement  = 5  // 未实现
@@ -50,7 +50,7 @@ const (
 
 	// Code_Zauth_UserGenIDCountMaxErr       = 1401 // 生成账号ID错误次数超上限
 	Code_Zauth_UserAlreadyJoin_Org        = 1402 // 账号已经加入组织
-	Code_Zauth_UserAlreadyExist_LoginName = 1403 // 账号已经存在
+	Code_Zauth_UserAlreadyExist_LoginName = 1403 // 账号登录名已经存在
 	Code_Zauth_User_NotFund               = 1404 // 账号不存在
 
 	// Code_Zauth_PermissionGenIDCountMaxErr     = 1501 // 生成权限ID错误次数超上限

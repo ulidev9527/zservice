@@ -1,14 +1,11 @@
 package internal
 
 import (
-	"errors"
 	"fmt"
 	"zservice/zservice"
 	"zservice/zservice/ex/gormservice"
 	"zservice/zservice/ex/redisservice"
 	"zservice/zservice/zglobal"
-
-	"gorm.io/gorm"
 )
 
 // 权限表
@@ -74,24 +71,23 @@ func GetPermissionBySAP(ctx *zservice.Context, service, action, path string) (*P
 	// 未找到 查表
 	tab := &PermissionTable{}
 	if e := Mysql.Model(&PermissionTable{}).Where("service = ? AND action = ? AND path = ?", service, action, path).First(tab).Error; e != nil {
-		if !errors.Is(e, gorm.ErrRecordNotFound) {
-			return nil, zservice.NewError(e)
+		if gormservice.IsNotFound(e) {
+			return nil, zservice.NewError(e).SetCode(zglobal.Code_NotFound)
 		}
+		return nil, zservice.NewError(e)
 	}
 
-	if tab.PermissionID == 0 {
-		return nil, zservice.NewError("not found").SetCode(zglobal.Code_NotFound)
-	}
 	// 缓存
-	if e := Redis.Set(fmt.Sprintf(RK_PermissionInfo, tab.PermissionID), zservice.JsonMustMarshalString(tab)).Err(); e != nil {
-		ctx.LogError(e)
-	}
-	if e := Redis.Set(rk_sap, zservice.Uint32ToString(tab.PermissionID)).Err(); e != nil {
-		ctx.LogError(e)
-	}
+	zservice.Go(func() {
+		if e := Redis.Set(fmt.Sprintf(RK_PermissionInfo, tab.PermissionID), zservice.JsonMustMarshalString(tab)).Err(); e != nil {
+			ctx.LogError(e)
+		}
+		if e := Redis.Set(rk_sap, zservice.Uint32ToString(tab.PermissionID)).Err(); e != nil {
+			ctx.LogError(e)
+		}
+	})
 
 	return tab, nil
-
 }
 
 // 存储

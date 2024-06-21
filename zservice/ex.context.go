@@ -7,6 +7,8 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 // 上下文内部交互信息
@@ -28,6 +30,7 @@ type Context struct {
 	ContextS2S
 	StartTime  time.Time // 当前上下文启动时间
 	Service    *ZService // 服务
+	GinCtx     *gin.Context
 	CTX_mu     sync.Mutex
 	CTX_done   atomic.Value
 	CTX_err    error

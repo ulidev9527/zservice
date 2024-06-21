@@ -6,8 +6,6 @@ const (
 	E_PermissionAction_Open   = 3
 	E_PermissionAction_Close  = 4
 
-	E_Config_FileParser_Excel = 1 // 文件配置 excel 解析器
-
 	RK_TokenInfo                   = "token:info:%v"                      // toekn 缓存 %v:token val:AuthToken
 	RK_OrgInfo                     = "org:info:%v"                        // 组织信息缓存 %v:OrgID val:OrgTable
 	RK_OrgRootName                 = "org:rootName:%v"                    // 组织信息缓存 %v:name_MD5 val:OrgID

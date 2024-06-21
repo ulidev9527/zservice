@@ -10,7 +10,7 @@ import (
 )
 
 // 解析 Excel 文件
-func ParserExcel(fullPath string) (map[string]string, *zservice.Error) {
+func ConfigParser_Excel(fullPath string) (map[string]string, *zservice.Error) {
 	// 解析
 	valueMap := map[string]string{}
 	if e := func() *zservice.Error {

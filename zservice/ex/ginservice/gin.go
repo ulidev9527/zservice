@@ -30,7 +30,9 @@ func GetCtxEX(ctx *gin.Context) *zservice.Context {
 	if !has {
 		return nil
 	}
-	return z.(*zservice.Context)
+	zctx := z.(*zservice.Context)
+	zctx.GinCtx = ctx
+	return zctx
 }
 
 type GinService struct {

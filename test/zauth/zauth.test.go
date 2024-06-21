@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 	"zservice/service/zauth/zauth"
+	"zservice/service/zauth/zauth_ex"
 	"zservice/zservice"
 	"zservice/zservice/ex/etcdservice"
 	"zservice/zservice/ex/ginservice"
@@ -14,7 +15,7 @@ import (
 
 func init() {
 
-	zservice.Init("zauth.fileConfig", "0.1.0")
+	zservice.Init("zauth.test", "0.1.0")
 }
 
 func main() {
@@ -33,10 +34,12 @@ func main() {
 			ServiceName: zservice.Getenv("ZAUTH_SERVICE_NAME"),
 			Etcd:        etcdS.Etcd,
 			GrpcAddr:    zservice.Getenv("zauth_grpc_addr"),
-			UseGrpcEtcd: zservice.GetenvBool("ZAUTH_USE_NSQ_ETCD"),
+			UseGrpcEtcd: zservice.GetenvBool("USE_GRPC_ETCD"),
 		})
+		zauth_ex.ServiceInfo.Regist()
 		z.StartDone()
 	})
+	grpcClient.AddDependService(etcdS.ZService)
 
 	ginS := ginservice.NewGinService(&ginservice.GinServiceConfig{
 		ListenPort: zservice.Getenv("GIN_PORT"),
@@ -54,7 +57,7 @@ func main() {
 						LimitCount uint32 `json:"limit_count"`
 					}{}
 
-					e := zauth.GetFileConfig(zctx, "test.xlsx", &arr)
+					e := zauth.ConfigGetFileConfig(zctx, "test.xlsx", &arr)
 					if e != nil {
 						zctx.LogError(e)
 					}
@@ -68,7 +71,7 @@ func main() {
 						LimitCount uint32 `json:"limit_count"`
 					}{}
 
-					e := zauth.GetFileConfig(zctx, "test.xlsx", &arr, zservice.StringSplit(id, ",")...)
+					e := zauth.ConfigGetFileConfig(zctx, "test.xlsx", &arr, zservice.StringSplit(id, ",")...)
 					if e != nil {
 						zctx.LogError(e)
 					}
@@ -82,7 +85,7 @@ func main() {
 						Icon       string `json:"icon"`
 						LimitCount uint32 `json:"limit_count"`
 					}{}
-					e := zauth.GetFileConfig(zctx, "test.xlsx", &m, id)
+					e := zauth.ConfigGetFileConfig(zctx, "test.xlsx", &m, id)
 					if e != nil {
 						zctx.LogError(e)
 					}
@@ -92,15 +95,14 @@ func main() {
 		},
 	})
 
-	zservice.AddDependService(etcdS.ZService)
-	zservice.AddDependService(grpcClient)
+	ginS.ZService.AddDependService(grpcClient, zservice.NewService("init", func(z *zservice.ZService) {
+
+		z.StartDone()
+
+	}))
+
 	zservice.AddDependService(ginS.ZService)
 
-	grpcClient.AddDependService(etcdS.ZService)
-	ginS.ZService.AddDependService(etcdS.ZService)
-
-	zservice.Start()
-
-	zservice.WaitStop()
+	zservice.Start().WaitStart().WaitStop()
 
 }

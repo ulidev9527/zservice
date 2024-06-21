@@ -49,4 +49,11 @@ func Init(c *ZAuthInitConfig) {
 		fileConfigMap.Delete(s)
 		zservice.LogInfo("Update config ", s)
 	})
+
+}
+func GetGrpcClient() zauth_pb.ZauthClient {
+	return grpcClient
+}
+func GetGrpcServiceName() string {
+	return zauthInitConfig.ServiceName
 }

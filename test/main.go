@@ -1,9 +1,7 @@
 package main
 
 import (
-	"fmt"
-	"net"
-	"os"
+	"time"
 	"zservice/zservice"
 )
 
@@ -19,22 +17,13 @@ type TT struct {
 }
 
 func main() {
-	addrs, err := net.InterfaceAddrs()
 
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	a := uint32(100)
 
-	for _, address := range addrs {
+	t1 := time.Now()
 
-		// 检查ip地址判断是否回环地址
-		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-			if ipnet.IP.To4() != nil {
-				fmt.Println(ipnet.IP.String())
-			}
+	t2 := t1.Add(time.Second * time.Duration(a))
 
-		}
-	}
+	zservice.LogInfo(time.Until(t2))
 
 }

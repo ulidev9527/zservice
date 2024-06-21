@@ -1,7 +1,6 @@
 package zauth
 
 import (
-	"zservice/service/zauth/internal"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
 	"zservice/zservice/zglobal"
@@ -13,14 +12,7 @@ func LoginCheck(ctx *zservice.Context) bool {
 		return false
 	}
 
-	if res, e := func() (*zauth_pb.Default_RES, error) {
-		in := &zauth_pb.Default_REQ{}
-		if zauthInitConfig.ServiceName == zservice.GetServiceName() {
-			return internal.Logic_LoginCheck(ctx, in), nil
-		} else {
-			return grpcClient.LoginCheck(ctx, in)
-		}
-	}(); e != nil {
+	if res, e := grpcClient.LoginCheck(ctx, &zauth_pb.Default_REQ{}); e != nil {
 		ctx.LogError(e)
 		return false
 	} else if res.Code == zglobal.Code_SUCC {
