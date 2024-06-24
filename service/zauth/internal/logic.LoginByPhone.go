@@ -13,7 +13,7 @@ func Logic_LoginByPhone(ctx *zservice.Context, in *zauth_pb.LoginByPhone_REQ) *z
 	}
 
 	// 检查 token 是否登陆
-	at, e := GetToken(ctx.AuthToken)
+	at, e := GetToken(ctx, ctx.AuthToken)
 	if e != nil {
 		ctx.LogError(e)
 		return &zauth_pb.Login_RES{Code: e.GetCode()}

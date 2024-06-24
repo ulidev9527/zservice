@@ -18,7 +18,7 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 
 	// 获取和检查 token
 	// 获取 token
-	at, e := GetToken(ctx.AuthToken)
+	at, e := GetToken(ctx, ctx.AuthToken)
 	isRefreshToken := false
 	if e != nil {
 		if e.GetCode() != zglobal.Code_Zauth_TokenIsNil {

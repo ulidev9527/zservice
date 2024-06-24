@@ -3,10 +3,10 @@ package zglobal
 import "time"
 
 const (
-	Code_Fail  = 0 // 失败
-	Code_SUCC  = 1 // 成功
-	Code_Limit = 2 // 限制/上限
-	// Code_Error         = 3    // 出错
+	Code_Fail          = 0  // 失败
+	Code_SUCC          = 1  // 成功
+	Code_Limit         = 2  // 限制/上限
+	Code_NetError      = 3  // 网络出错
 	Code_Zauth_Fail    = 4  // 鉴权失败
 	Code_NotImplement  = 5  // 未实现
 	Code_ParamsErr     = 6  // 参数错误

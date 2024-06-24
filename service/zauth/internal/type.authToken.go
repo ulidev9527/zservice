@@ -41,7 +41,7 @@ func GenTokenSign(sign, key string) string {
 }
 
 // 获取 token
-func GetToken(tkStr string) (*AuthToken, *zservice.Error) {
+func GetToken(ctx *zservice.Context, tkStr string) (*AuthToken, *zservice.Error) {
 	if tkStr == "" {
 		return nil, zservice.NewError("token is empty string").SetCode(zglobal.Code_Zauth_TokenIsNil)
 	}
@@ -64,6 +64,9 @@ func GetToken(tkStr string) (*AuthToken, *zservice.Error) {
 			} else {
 				return nil, zservice.NewError("convert token fail:", res, e)
 			}
+		}
+		if e := tk.Save(ctx); e != nil {
+			ctx.LogError(e)
 		}
 		return tk, nil
 	}

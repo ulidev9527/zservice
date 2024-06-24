@@ -9,76 +9,79 @@ import (
 	"zservice/zservice/zglobal"
 )
 
-// 获取文件配置
-var fileConfigMap = &sync.Map{} // 文件配置映射
-
 // 获取指定文件的配置
 // 不传 key 返回所有配置数组
 // 一个 key 返回一个对象
 // 多个 key 返回数组
-func ConfigGetFileConfig(ctx *zservice.Context, fileName string, v any, keys ...string) *zservice.Error {
+func ConfigGetFileConfig(ctx *zservice.Context, fileName string, item any, keys ...string) *zservice.Error {
 	// 是否有配置，没有拉取配置
-	val, has := fileConfigMap.Load(fileName)
-
-	if !has { // 配置中心拉取配置
-		req := &zauth_pb.ConfigGetFileConfig_REQ{
+	configMap := &sync.Map{}
+	if c, has := fileConfigCache.Load(fileName); !has {
+		res, e := grpcClient.ConfigGetFileConfig(ctx, &zauth_pb.ConfigGetFileConfig_REQ{
 			FileName: fileName,
-		}
-
-		res, e := grpcClient.ConfigGetFileConfig(ctx, req)
+			Service:  zservice.GetServiceName(),
+		})
 		if e != nil {
 			return zservice.NewError(e)
 		}
 
-		if res.GetCode() != zglobal.Code_SUCC {
-			return zservice.NewError("get file config fail").SetCode(res.Code)
+		if res.Code != zglobal.Code_SUCC {
+			return zservice.NewError("get config fail:", fileName).SetCode(res.Code)
 		}
 
-		var maps map[string]string
-		ee := json.Unmarshal([]byte(res.Value), &maps)
-		if ee != nil {
-			return zservice.NewError(ee)
+		maps := &map[string]string{}
+		if e := json.Unmarshal([]byte(res.Value), maps); e != nil {
+			return zservice.NewError(e)
 		}
 
-		fileConfigMap.Store(fileName, maps)
+		for k, v := range *maps {
+			configMap.Store(k, v)
+		}
 
-		val = maps
+		fileConfigCache.Store(fileName, configMap)
+	} else {
+		configMap = c.(*sync.Map)
 	}
 
-	// 开始解析
-	maps := val.(map[string]string)
-	keyCount := len(keys)
+	switch len(keys) {
+	case 0:
+		str := ""
+		configMap.Range(func(key, value any) bool {
+			str += value.(string) + ","
+			return true
+		})
 
-	if keyCount == 1 { // 解析一个配置
-		str := maps[keys[0]]
-		json.Unmarshal([]byte(str), v)
+		str = str[0 : len(str)-1] // 去掉尾部逗号 `,`
+		str = fmt.Sprintf("[ %s ]", str)
+		if e := json.Unmarshal([]byte(str), item); e != nil {
+			return zservice.NewError(e).SetCode(zglobal.Code_NotFound)
+		}
+		return nil
+
+	case 1:
+		if str, has := configMap.Load(keys[0]); !has {
+			return zservice.NewError("not found").SetCode(zglobal.Code_NotFound)
+		} else {
+			if e := json.Unmarshal([]byte(str.(string)), item); e != nil {
+				return zservice.NewError(e)
+			}
+			return nil
+		}
+	default:
+		str := ""
+		for _, key := range keys {
+			s, has := configMap.Load(key)
+			if !has {
+				continue
+			}
+			str += s.(string) + ","
+		}
+
+		str = str[0 : len(str)-1] // 去掉尾部逗号 `,`
+		str = fmt.Sprintf("[ %s ]", str)
+		if e := json.Unmarshal([]byte(str), item); e != nil {
+			return zservice.NewError(e).SetCode(zglobal.Code_NotFound)
+		}
 		return nil
 	}
-
-	useMap := map[string]string{}
-
-	if keyCount == 0 {
-		useMap = maps
-	} else {
-		for _, _v := range keys {
-			str := maps[_v]
-			if str == "" {
-				return zservice.NewError("key not exist", _v).SetCode(zglobal.Code_NotFound)
-			}
-			useMap[_v] = str
-		}
-	}
-
-	// 数组模式解析
-	jStr := ""
-	for _, _v := range useMap {
-		jStr += _v + ","
-	}
-	jStr = jStr[0 : len(jStr)-1]
-	jStr = fmt.Sprintf("[ %s ]", jStr)
-	zservice.LogInfo(jStr)
-	if e := json.Unmarshal([]byte(jStr), v); e != nil {
-		return zservice.NewError(e).SetCode(zglobal.Code_NotFound)
-	}
-	return nil
 }

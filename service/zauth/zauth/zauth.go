@@ -46,7 +46,7 @@ func Init(c *ZAuthInitConfig) {
 
 	// 服务配置改变监听
 	go internal.EV_Watch_Config_ServiceFileConfigChange(c.Etcd, zservice.GetServiceName(), func(s string) {
-		fileConfigMap.Delete(s)
+		fileConfigCache.Delete(s)
 		zservice.LogInfo("Update config ", s)
 	})
 

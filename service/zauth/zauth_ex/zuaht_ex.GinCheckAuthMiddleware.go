@@ -23,6 +23,12 @@ func GinCheckAuthMiddleware(zs *zservice.ZService, isZauthSelf ...bool) gin.Hand
 	}
 
 	return func(ctx *gin.Context) {
+
+		if ctx.Request.URL.Path == "" || ctx.Request.URL.Path == "/" { // 根目录不进行权限验证
+			ctx.Next()
+			return
+		}
+
 		zctx := ginservice.GetCtxEX(ctx)
 		zctx.AuthSign = zservice.MD5String(ctx.Request.UserAgent()) // 生成签名
 
@@ -30,12 +36,14 @@ func GinCheckAuthMiddleware(zs *zservice.ZService, isZauthSelf ...bool) gin.Hand
 			Auth: string(zservice.JsonMustMarshal([]string{zservice.GetServiceName(), strings.ToLower(ctx.Request.Method), ctx.Request.URL.Path})),
 		}
 
-		if res, e := func() (*zauth_pb.CheckAuth_RES, error) {
+		res, e := func() (*zauth_pb.CheckAuth_RES, error) {
 			if isSelf {
 				return internal.Logic_CheckAuth(zctx, in), nil
 			}
 			return zauth.GetGrpcClient().CheckAuth(zctx, in)
-		}(); e != nil {
+		}()
+
+		if e != nil {
 			zctx.LogError(e)
 			ctx.JSON(http.StatusOK, &zglobal.Default_RES{
 				Code: zglobal.Code_Fail,
@@ -43,7 +51,8 @@ func GinCheckAuthMiddleware(zs *zservice.ZService, isZauthSelf ...bool) gin.Hand
 			})
 			ctx.Abort()
 			return
-		} else if res.Code != zglobal.Code_SUCC {
+		}
+		if res.Code != zglobal.Code_SUCC {
 
 			ctx.JSON(http.StatusOK, &zglobal.Default_RES{
 				Code: res.GetCode(),
@@ -51,10 +60,12 @@ func GinCheckAuthMiddleware(zs *zservice.ZService, isZauthSelf ...bool) gin.Hand
 			})
 			ctx.Abort()
 			return
-		} else if res.IsTokenRefresh {
+		}
+		if res.IsTokenRefresh {
 			zctx.AuthToken = res.Token
 			ginservice.SyncHeader(ctx)
 		}
+		zctx.UID = res.Uid
 
 		ctx.Next()
 	}

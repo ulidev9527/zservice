@@ -109,45 +109,38 @@ func ConfigParser_Excel(fullPath string) (map[string]string, *zservice.Error) {
 						vtype = "int"
 					}
 				}
+				// 去掉空格
+				vtype = strings.ToLower(strings.ReplaceAll(vtype, " ", ""))
 
 				// 类型转换
-				switch strings.ToLower(vtype) {
-				case "int":
-				case "int32":
-				case "int64":
+				switch vtype {
+				case "int", "int32", "int64":
 					data[field] = zservice.StringToInt64(value)
-					continue
-				case "float":
-				case "float32":
-				case "float64":
+				case "float", "float32", "float64":
 					data[field] = zservice.StringToFloat64(value)
-				case "int[]":
-				case "int32[]":
-				case "int64[]":
+				case "int[]", "int32[]", "int64[]":
 					arr := strings.Split(value, ",")
 					list := []int64{}
 					for i := 0; i < len(arr); i++ {
 						list = append(list, zservice.StringToInt64(arr[i]))
 					}
 					data[field] = list
-					continue
-				case "float[]":
-				case "float32[]":
-				case "float64[]":
+				case "float[]", "float32[]", "float64[]":
 					arr := strings.Split(value, ",")
 					list := []float64{}
 					for i := 0; i < len(arr); i++ {
 						list = append(list, zservice.StringToFloat64(arr[i]))
 					}
 					data[field] = list
-					continue
 
 				case "bool":
 					data[field] = zservice.StringToBoolean(value)
-					continue
+				case "string[]":
+					data[field] = zservice.StringSplit(value, ",")
 				default: // 默认 string 类型
 					data[field] = value
 				}
+				continue
 			}
 			if len(data) > 0 {
 				valueMap[fmt.Sprint(data["id"])] = string(zservice.JsonMustMarshal(data))

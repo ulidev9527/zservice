@@ -1,7 +1,6 @@
 package main
 
 import (
-	"time"
 	"zservice/zservice"
 )
 
@@ -18,12 +17,12 @@ type TT struct {
 
 func main() {
 
-	a := uint32(100)
-
-	t1 := time.Now()
-
-	t2 := t1.Add(time.Second * time.Duration(a))
-
-	zservice.LogInfo(time.Until(t2))
+	tp := "2"
+	switch tp {
+	case "1", "2":
+		zservice.LogInfo("12")
+	case "boo", "kkk":
+		zservice.LogInfo("abc")
+	}
 
 }

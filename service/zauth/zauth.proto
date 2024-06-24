@@ -131,12 +131,11 @@ message HasZZZZString_REQ{
 // 配置相关
 message ConfigGetFileConfig_REQ {
     string fileName = 1;  // 文件名
-    string keys     = 2;  // key 需要返回哪些值, 空值返回全部
-    string Service  = 3;  // 服务名
+    string Service  = 2;  // 服务名
 }
 message ConfigGetFileConfig_RES{
     uint32 code  = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
-    string value = 2;  // 返回的数据，根据情况不同返回数据不同
+    string value = 2;  // 配置内容 返回：map[string]string 结构字符串
 }
 message ConfigSyncServiceFileConfig_REQ{
     string filePath = 1;  // 文件路径
