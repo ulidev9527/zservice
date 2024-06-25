@@ -26,6 +26,9 @@ const (
 	RK_Service_Regist              = "service:regist:%s"                  // 服务注册 %s:ServiceName
 	RK_AssetToken                  = "asset:token:%s"                     // 资产信息 %s:token val:AssetTable
 	RK_AssetMd5                    = "asset:md5:%s"                       // 资产信息 %s:md5 val:1
+	RK_ServiceKVInfo               = "service:kv:%s:%s"                   // 服务键值对信息 %s:serviceName %s:key val:value
+
+	KV_SMS_VerifyCodeSend_NoSend = "sms/verifyCodeSend/NoSend" // 不发送验证码
 
 	EV_Config_ServiceFileConfigChange = "ConfigService_%s_FileConfigChange" // 服务文件配置变更通知
 	EV_Config_ZZZZStringChange        = "ZZZZStringChange"                  // ZZZZ 字符串变更

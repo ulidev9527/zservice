@@ -1,7 +1,10 @@
 package internal
 
+import "zservice/zservice/ex/gormservice"
+
 // 键值对存储
 type LogKVTable struct {
+	gormservice.Model
 	TraceID  string // 链路ID
 	Key      string // 键
 	Value    string // 值

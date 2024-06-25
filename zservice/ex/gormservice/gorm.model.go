@@ -5,8 +5,8 @@ import (
 )
 
 type Model struct {
+	ID        uint           `gorm:"primaryKey,autoIncrement"`
 	CreatedAt uint64         `gorm:"autoCreateTime:milli"`
 	UpdatedAt uint64         `gorm:"autoUpdateTime:milli"`
 	DeletedAt gorm.DeletedAt `gorm:"index"`
-	ID        uint           `gorm:"primaryKey,autoIncrement"`
 }

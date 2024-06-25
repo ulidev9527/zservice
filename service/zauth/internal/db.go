@@ -18,13 +18,14 @@ var (
 
 func InitMysql() {
 
-	Mysql.AutoMigrate(&AssetTable{})
-	Mysql.AutoMigrate(&OrgTable{})
-	Mysql.AutoMigrate(&UserTable{})
-	Mysql.AutoMigrate(&PermissionBindTable{})
-	Mysql.AutoMigrate(&PermissionTable{})
-	Mysql.AutoMigrate(&UserOrgBindTable{})
-	Mysql.AutoMigrate(&SmsBanTable{})
+	Mysql.AutoMigrate(AssetTable{})
+	Mysql.AutoMigrate(OrgTable{})
+	Mysql.AutoMigrate(PermissionBindTable{})
+	Mysql.AutoMigrate(PermissionTable{})
+	Mysql.AutoMigrate(ServiceKVTable{})
+	Mysql.AutoMigrate(SmsBanTable{})
+	Mysql.AutoMigrate(UserTable{})
+	Mysql.AutoMigrate(UserOrgBindTable{})
 
 	dbhelper = zhelper.NewDBHelper(Redis, Mysql)
 }

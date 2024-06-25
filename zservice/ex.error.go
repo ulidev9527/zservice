@@ -3,6 +3,7 @@ package zservice
 import (
 	"fmt"
 	"runtime"
+	"zservice/zservice/zglobal"
 )
 
 // ------------- Error -------------
@@ -21,7 +22,8 @@ func NewErrorCaller(skip int, str string, e error) *Error {
 		s = fmt.Sprint(s, " | ", e.Error())
 	}
 	return &Error{
-		msg: s,
+		code: zglobal.Code_Fail,
+		msg:  s,
 	}
 }
 func NewErrore(e error) *Error {

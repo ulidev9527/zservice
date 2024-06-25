@@ -5,7 +5,6 @@ import (
 	"os"
 	"time"
 	"zservice/zservice"
-	"zservice/zservice/zglobal"
 
 	"github.com/derekparker/trie"
 )
@@ -45,7 +44,7 @@ func (s *___ZZZZString) Reload(ctx *zservice.Context) *zservice.Error {
 			}
 		}
 		if e := scanner.Err(); e != nil {
-			return zservice.NewError(e).SetCode(zglobal.Code_Fail)
+			return zservice.NewError(e)
 		} else {
 			return nil
 		}

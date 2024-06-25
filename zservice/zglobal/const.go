@@ -30,7 +30,6 @@ const (
 	Code_DB_SaveFail   = 201 // 数据存储失败
 	Code_Redis_DelFail = 202 // redis 删除失败
 
-	Code_Zauth_Sms_Phone_NULL       = 1001 // 手机号为空
 	Code_Zauth_Sms_Phone_VerifyFail = 1002 // 手机号验证失败
 	Code_Zauth_Sms_Phone_Ban        = 1003 // 手机号被封禁
 	Code_Zauth_Sms_Phone_CD         = 1004 // 手机号验证码CD中

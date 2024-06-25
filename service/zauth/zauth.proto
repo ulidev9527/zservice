@@ -128,6 +128,22 @@ message HasZZZZString_REQ{
     string str = 1; // 字符串
 }
 
+// 键值对数据存储
+message SetServiceKV_REQ{
+    string key     = 1;
+    string value   = 2;
+    string service = 3;
+}
+message GetServiceKV_REQ{
+    string key     = 1;
+    string service = 2;
+}
+message GetServiceKV_RES{
+    uint32 code  = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
+    string key   = 2;
+    string value = 3;
+}
+
 // 配置相关
 message ConfigGetFileConfig_REQ {
     string fileName = 1;  // 文件名
@@ -225,6 +241,9 @@ service zauth{
     rpc ConfigGetServiceEnvConfig(ConfigGetServiceEnvConfig_REQ) returns(ConfigGetServiceEnvConfig_RES);     // 获取服务的环境变量
     rpc ConfigGetEnvConfig(ConfigGetEnvConfig_REQ) returns(ConfigGetServiceEnvConfig_RES);                   // 获取环境变量
 
+    rpc SetServiceKV(SetServiceKV_REQ) returns(Default_RES);    // 设置服务的键值对
+    rpc GetServiceKV(GetServiceKV_REQ) returns(GetServiceKV_RES);  // 获取服务的键值对
+    
     rpc ServiceRegist(ServiceRegist_REQ)returns(ServiceRegist_RES);  // 服务注册, 创建服务组/服务权限
     rpc AddUserToOrg(AddUserToOrg_REQ)returns(Default_RES);          // 添加用户到服务组
 

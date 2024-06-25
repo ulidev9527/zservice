@@ -55,6 +55,14 @@ func (s *ZauthServer) HasZZZZString(ctx context.Context, in *zauth_pb.HasZZZZStr
 	return Logic_HasZZZZString(ctx.(*zservice.Context), in), nil
 }
 
+// 服务KV获取和添加
+func (s *ZauthServer) SetServiceKV(ctx context.Context, in *zauth_pb.SetServiceKV_REQ) (*zauth_pb.Default_RES, error) {
+	return Logic_SetServiceKV(ctx.(*zservice.Context), in), nil
+}
+func (s *ZauthServer) GetServiceKV(ctx context.Context, in *zauth_pb.GetServiceKV_REQ) (*zauth_pb.GetServiceKV_RES, error) {
+	return Logic_GetServiceKV(ctx.(*zservice.Context), in), nil
+}
+
 // 注册服务
 func (s *ZauthServer) ServiceRegist(ctx context.Context, in *zauth_pb.ServiceRegist_REQ) (*zauth_pb.ServiceRegist_RES, error) {
 	return Logic_ServiceRegist(ctx.(*zservice.Context), in), nil
