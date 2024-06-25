@@ -21,7 +21,7 @@ func (s *ZauthServer) LoginByPhone(ctx context.Context, in *zauth_pb.LoginByPhon
 }
 
 // 账号密码登陆
-func (s *ZauthServer) LoginByUser(ctx context.Context, in *zauth_pb.LoginByUser_REQ) (*zauth_pb.Login_RES, error) {
+func (s *ZauthServer) LoginByName(ctx context.Context, in *zauth_pb.LoginByName_REQ) (*zauth_pb.Login_RES, error) {
 	return Logic_LoginByName(ctx.(*zservice.Context), in), nil
 }
 
@@ -31,7 +31,7 @@ func (s *ZauthServer) HasUID(ctx context.Context, in *zauth_pb.HasUID_REQ) (*zau
 }
 
 // 登陆检查
-func (s *ZauthServer) LoginCheck(ctx context.Context, in *zauth_pb.Default_REQ) (*zauth_pb.Default_RES, error) {
+func (s *ZauthServer) LoginCheck(ctx context.Context, in *zauth_pb.LogicCheck_REQ) (*zauth_pb.Default_RES, error) {
 	return Logic_LoginCheck(ctx.(*zservice.Context), in), nil
 }
 

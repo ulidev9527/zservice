@@ -34,11 +34,6 @@ const (
 	Code_Zauth_Sms_Phone_Ban        = 1003 // 手机号被封禁
 	Code_Zauth_Sms_Phone_CD         = 1004 // 手机号验证码CD中
 
-	Code_Zauth_TokenSaveFail = 1201 // token 存储失败
-	Code_Zauth_TokenIsNil    = 1202 // token 为空
-	Code_Zauth_TokenSignFail = 1203 // token 签名错误
-	Code_Zauth_TokenDelFail  = 1204 // token 删除失败
-
 	Code_Zauth_OrgCreateRootErr     = 1301 // 创建组织根错误
 	Code_Zauth_OrgCreateErr         = 1302
 	Code_Zauth_OrgCreateRootIDErr   = 1303 // 创建组织根ID错误

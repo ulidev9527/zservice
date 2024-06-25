@@ -8,7 +8,7 @@ import (
 
 // 手机登陆
 func Logic_LoginByPhone(ctx *zservice.Context, in *zauth_pb.LoginByPhone_REQ) *zauth_pb.Login_RES {
-	if in.Phone == "" || in.VerifyCode == "" || len(in.VerifyCode) != 6 || ctx.TraceService == "" {
+	if in.Phone == "" || in.VerifyCode == "" || len(in.VerifyCode) != 6 {
 		return &zauth_pb.Login_RES{Code: zglobal.Code_ParamsErr}
 	}
 
@@ -20,7 +20,7 @@ func Logic_LoginByPhone(ctx *zservice.Context, in *zauth_pb.LoginByPhone_REQ) *z
 	}
 
 	if at.UID != 0 { // 已登陆的
-		if at.LoginService == ctx.TraceService {
+		if at.HasLoginService(in.Service) {
 			if tab, e := GetUserByUID(ctx, at.UID); e != nil {
 				ctx.LogError(e)
 				return &zauth_pb.Login_RES{Code: e.GetCode()}
@@ -75,7 +75,7 @@ func Logic_LoginByPhone(ctx *zservice.Context, in *zauth_pb.LoginByPhone_REQ) *z
 	// 设置关联信息
 	at.ExpiresSecond = in.Expires
 	at.UID = acc.UID
-	at.LoginService = ctx.TraceService
+	at.AddLoginService(in.Service)
 
 	// 存储
 	if e := at.Save(ctx); e != nil {

@@ -7,12 +7,12 @@ import (
 )
 
 // 登陆检查
-func LoginCheck(ctx *zservice.Context) bool {
+func LoginCheck(ctx *zservice.Context, in *zauth_pb.LogicCheck_REQ) bool {
 	if ctx.AuthToken == "" {
 		return false
 	}
 
-	if res, e := grpcClient.LoginCheck(ctx, &zauth_pb.Default_REQ{}); e != nil {
+	if res, e := grpcClient.LoginCheck(ctx, in); e != nil {
 		ctx.LogError(e)
 		return false
 	} else if res.Code == zglobal.Code_SUCC {

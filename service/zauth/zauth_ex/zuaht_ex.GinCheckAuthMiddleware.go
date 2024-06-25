@@ -30,17 +30,21 @@ func GinCheckAuthMiddleware(zs *zservice.ZService, isZauthSelf ...bool) gin.Hand
 		}
 
 		zctx := ginservice.GetCtxEX(ctx)
-		zctx.AuthSign = zservice.MD5String(ctx.Request.UserAgent()) // 生成签名
+		zctx.AuthTokenSign = zservice.MD5String(ctx.Request.UserAgent()) // 生成签名
 
 		in := &zauth_pb.CheckAuth_REQ{
-			Auth: string(zservice.JsonMustMarshal([]string{zservice.GetServiceName(), strings.ToLower(ctx.Request.Method), ctx.Request.URL.Path})),
+			Service:   zservice.GetServiceName(),
+			Action:    strings.ToLower(ctx.Request.Method),
+			Path:      ctx.Request.URL.Path,
+			Token:     zctx.AuthToken,
+			TokenSign: zctx.AuthTokenSign,
 		}
 
 		res, e := func() (*zauth_pb.CheckAuth_RES, error) {
 			if isSelf {
 				return internal.Logic_CheckAuth(zctx, in), nil
 			}
-			return zauth.GetGrpcClient().CheckAuth(zctx, in)
+			return zauth.CheckAuth(zctx, in), nil
 		}()
 
 		if e != nil {
@@ -61,7 +65,8 @@ func GinCheckAuthMiddleware(zs *zservice.ZService, isZauthSelf ...bool) gin.Hand
 			ctx.Abort()
 			return
 		}
-		if res.IsTokenRefresh {
+
+		if zctx.AuthToken != res.Token { // 刷新 token
 			zctx.AuthToken = res.Token
 			ginservice.SyncHeader(ctx)
 		}

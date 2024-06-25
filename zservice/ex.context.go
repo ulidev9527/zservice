@@ -13,16 +13,16 @@ import (
 
 // 上下文内部交互信息
 type ContextS2S struct {
-	TraceTime    time.Time `json:"tt,omitempty"`  // 链路初始化时间
-	TraceID      string    `json:"ti,omitempty"`  // 链路ID
-	TraceSpanID  int       `json:"tsi,omitempty"` // 链路 , 自增处理
-	TraceService string    `json:"ts,omitempty"`  // 链路服务, 之前的服务
-	RequestIP    string    `json:"ip,omitempty"`  // 请求IP
-	NowService   string    `json:"ns,omitempty"`  // 当前服务
-	UID          uint32    `json:"ui,omitempty"`  // 授权ID/uid/uid
-	AuthToken    string    `json:"at,omitempty"`  // token
-	AuthSign     string    `json:"as,omitempty"`  // 授权的签名
-	ClientSign   string    `json:"cs,omitempty"`  // 客户端签名
+	TraceTime     time.Time `json:"tt,omitempty"`  // 链路初始化时间
+	TraceID       string    `json:"ti,omitempty"`  // 链路ID
+	TraceSpanID   int       `json:"tsi,omitempty"` // 链路 , 自增处理
+	TraceService  string    `json:"ts,omitempty"`  // 链路服务, 之前的服务
+	RequestIP     string    `json:"ip,omitempty"`  // 请求IP
+	NowService    string    `json:"ns,omitempty"`  // 当前服务
+	UID           uint32    `json:"ui,omitempty"`  // 授权ID/uid/uid
+	AuthToken     string    `json:"at,omitempty"`  // token
+	AuthTokenSign string    `json:"ats,omitempty"` // 授权的签名
+	ClientSign    string    `json:"cs,omitempty"`  // 客户端签名
 }
 
 // 集成链路、日志、错误功能

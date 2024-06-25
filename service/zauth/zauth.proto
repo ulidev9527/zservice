@@ -18,27 +18,37 @@ message LoginByPhone_REQ {
     string phone      = 1;  // 手机号 +86****
     uint32 expires    = 2;  // 过期时间 没有传入 (单位: 秒)，最小 30s，过期时间到了后需要重新授权
     string verifyCode = 3;  // 验证码
+    string service    = 4;  // 登陆服
 }
-message LoginByUser_REQ {
+message LoginByName_REQ {
     string user     = 1;  // 账号
     string password = 2;  // 密码
     uint32 expires  = 3;  // 过期时间 没有传入 (单位: 秒)，最小 30s，过期时间到了后需要重新授权
+    string service  = 4;  // 登陆服
 }
 message Login_RES{
     uint32   code     = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
     UserInfo userInfo = 2;  // 用户信息
 }
 message CheckAuth_REQ{
-    string Auth = 2;  // 权限, 字符串数组，[服务名, 动作, 路径]
+    string Service   = 1;  // 服务
+    string Action    = 2;  // 动作
+    string Path      = 3;  // 路径
+    string Token     = 4;  // 令牌
+    string TokenSign = 5;  // 令牌签名
 }
 message CheckAuth_RES{
     uint32 code           = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
-    bool   isTokenRefresh = 2;  // 是否需要刷新token, true 表示需要，不受错误码影响
-    string token          = 3;  // 新的令牌， IsTokenRefresh 和 Token 为固定格式，不受错误码影响
-    uint32 uid            = 4;  // 用户ID
+    string token          = 2;  // 令牌，返回时需要进行匹配，如果不匹配代表有更新
+    uint32 uid            = 3;  // 用户ID, 登陆成功后会返回uid
 }
 message HasUID_REQ{
     uint32 uid = 1;  // 账号ID
+}
+message LogicCheck_REQ{
+    string token   = 1;  // 令牌
+    string sign    = 2;  // 签名
+    string service = 3;  // 服务
 }
 
 // 权限相关
@@ -215,8 +225,8 @@ service zauth{
 
     rpc Logout(Default_REQ) returns(Default_RES);           // 登出
     rpc LoginByPhone(LoginByPhone_REQ) returns(Login_RES);  // 手机号登陆
-    rpc LoginByUser(LoginByUser_REQ) returns(Login_RES);    // 账户登陆
-    rpc LoginCheck(Default_REQ) returns(Default_RES);       // 登陆检查
+    rpc LoginByName(LoginByName_REQ) returns(Login_RES);    // 账户登陆
+    rpc LoginCheck(LogicCheck_REQ) returns(Default_RES);    // 登陆检查, 检查用户是否在指定服务登陆
     rpc HasUID(HasUID_REQ) returns(Default_RES);            // 检查账户是否存在
     
     rpc PermissionCreate(PermissionInfo) returns(PermissionInfo_RES);              // 创建权限

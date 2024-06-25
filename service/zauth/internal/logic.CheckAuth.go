@@ -7,7 +7,7 @@ import (
 	"time"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
-	"zservice/zservice/ex/gormservice"
+	"zservice/zservice/ex/redisservice"
 	"zservice/zservice/zglobal"
 
 	"gorm.io/gorm"
@@ -17,47 +17,41 @@ import (
 func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_pb.CheckAuth_RES {
 
 	// 获取和检查 token
+	resultRES := &zauth_pb.CheckAuth_RES{}
 	// 获取 token
-	at, e := GetToken(ctx, ctx.AuthToken)
-	isRefreshToken := false
-	if e != nil {
-		if e.GetCode() != zglobal.Code_Zauth_TokenIsNil {
+	authToken := &AuthToken{}
+	if at, e := GetToken(ctx, in.Token); e != nil {
+		if e.GetCode() != zglobal.Code_NotFound { // 其它错误
 			ctx.LogError(e)
-			return &zauth_pb.CheckAuth_RES{Code: e.GetCode()}
-		} else {
-
-			// 没有 token 创建
-			at, e = CreateToken(ctx)
-			if e != nil {
+			resultRES.Code = e.GetCode()
+			return resultRES
+		} else { // 未找到进行创建
+			if at, e = CreateToken(ctx, in.TokenSign); e != nil {
 				ctx.LogError(e)
-				return &zauth_pb.CheckAuth_RES{Code: e.GetCode()}
+				resultRES.Code = e.GetCode()
+				return resultRES
+			} else {
+				resultRES.Token = at.Token
+				in.Token = at.Token
+				authToken = at
 			}
-			ctx.AuthToken = at.Token
-			isRefreshToken = true
+		}
+	} else {
+		if at.TokenCheck(in.Token, in.TokenSign) { // 检查 token 是否正确
+			resultRES.Token = at.Token
+			authToken = at
+		} else {
+			ctx.LogError("token check fail", in.Token)
+			return resultRES
 		}
 	}
 
-	// 检查 token 正确性
-	if !at.CheckToken(ctx.AuthToken, ctx.AuthSign) {
-		ctx.LogError("token check fail", ctx.AuthToken)
-		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_Zauth_TokenSignFail, IsTokenRefresh: isRefreshToken, Token: at.Token, Uid: at.UID}
-	}
-
-	// 权限相关参数列表
-	authArr := zservice.JsonMustUnmarshal_StringArray([]byte(in.Auth))
-	if len(authArr) != 3 {
-		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_ParamsErr, IsTokenRefresh: isRefreshToken, Token: at.Token, Uid: at.UID}
-	}
-
-	authService := authArr[0]
-	authAction := authArr[1]
-	authPath := authArr[2]
-
 	// 获取与指定参数最接近的权限对象
-	permissionInfo, e := func() (*PermissionTable, *zservice.Error) {
-		var service = authService
-		var action = authAction
-		var path = authPath
+	permissionInfo := &PermissionTable{}
+	if pInfo, e := func() (*PermissionTable, *zservice.Error) {
+		var service = in.Service
+		var action = in.Action
+		var path = in.Path
 		actionArr := []string{action}
 		if action != "" {
 			actionArr = append(actionArr, "")
@@ -99,50 +93,60 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 		}
 
 		return &tabs[0], nil
-	}()
-
-	if e != nil {
+	}(); e != nil {
 		ctx.LogError(e)
-		return &zauth_pb.CheckAuth_RES{Code: e.GetCode(), IsTokenRefresh: isRefreshToken, Token: at.Token, Uid: at.UID}
+		resultRES.Code = e.GetCode()
+		return resultRES
+	} else {
+		permissionInfo = pInfo
 	}
 
 	// 当前权限是否公开
 	switch permissionInfo.State {
 	case 0: // 权限禁用
 	case 3: // 继承父级，父级未处理，权限配置有问题，查当前服务的顶级权限是否配置正确
-		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_Zauth_Permission_ConfigErr, IsTokenRefresh: isRefreshToken, Token: at.Token, Uid: at.UID}
+		return resultRES
 	case 1: // 公开访问
-		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_SUCC, IsTokenRefresh: isRefreshToken, Token: at.Token, Uid: at.UID}
+		resultRES.Code = zglobal.Code_SUCC
+		return resultRES
 	}
 
 	// 检查是否拥有该权限
-	if at.UID == 0 { // 未登录, 不继续接下里用户判断流程
-		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_Zauth_Fail, IsTokenRefresh: isRefreshToken, Token: at.Token, Uid: at.UID}
+	if authToken.UID == 0 { // 未登录, 不继续接下里用户判断流程
+		return resultRES
 	}
 
 	// 检查登陆服务是否正确
-	if at.LoginService != authService {
-		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_Zauth_Fail, IsTokenRefresh: isRefreshToken, Token: at.Token, Uid: at.UID}
+	if !authToken.HasLoginService(in.Service) {
+		return resultRES
 	}
 
 	// 服务登陆和token验证
-	if s, e := Redis.Get(fmt.Sprintf(RK_UserLoginService, at.UID, authService)).Result(); e != nil {
+	if s, e := Redis.Get(fmt.Sprintf(RK_UserLoginService, authToken.UID, in.Service)).Result(); e != nil {
+		// 找不到和其它错误
+		if redisservice.IsNilErr(e) {
+			resultRES.Code = zglobal.Code_NotFound
+		}
 		ctx.LogError(e)
-		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_Zauth_Fail, IsTokenRefresh: isRefreshToken, Token: at.Token, Uid: at.UID}
-	} else if s != at.Token { // token 不正确, 需要重新登陆
-		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_LoginAgain, IsTokenRefresh: isRefreshToken, Token: at.Token, Uid: at.UID}
+		return resultRES
+	} else if s != authToken.Token { // token 不正确, 需要重新登陆
+		return resultRES
 	}
 
 	// 检查用户和权限组的绑定
 	// 当前账号是否有权限配置
-	if tab, e := GetPermissionBind(ctx, 2, at.UID, permissionInfo.PermissionID); e != nil && e.GetCode() != zglobal.Code_NotFound {
-		ctx.LogError(e)
-		return &zauth_pb.CheckAuth_RES{Code: e.GetCode(), IsTokenRefresh: isRefreshToken, Token: at.Token, Uid: at.UID}
-	} else if tab != nil && !tab.IsExpired() { // 过期的检查权限表示无效，检查所在组织是否有权限
+	if tab, e := GetPermissionBind(ctx, 2, authToken.UID, permissionInfo.PermissionID); e != nil {
+		if e.GetCode() != zglobal.Code_NotFound { // 未找到进行父级查找，其它错误直接在这里返回
+			ctx.LogError(e)
+			resultRES.Code = e.GetCode()
+			return resultRES
+		}
+	} else if !tab.IsExpired() { // 过期的检查权限表示无效，检查所在组织是否有权限
 		if tab.State == 1 {
-			return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_SUCC, IsTokenRefresh: isRefreshToken, Token: at.Token, Uid: at.UID}
+			resultRES.Code = zglobal.Code_SUCC
+			return resultRES
 		} else {
-			return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_Fail, IsTokenRefresh: isRefreshToken, Token: at.Token, Uid: at.UID}
+			return resultRES
 		}
 	}
 
@@ -150,7 +154,7 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 	bindCount := int64(0)
 	if e := Mysql.Model(&UserOrgBindTable{}).Where( // 查找组中是否有当前账号的绑定信息
 		"uid = ? AND org_id IN (?)",
-		at.UID,
+		authToken.UID,
 		Mysql.Model(&PermissionBindTable{}).Where( // 查找所有分配权限的组
 			"permission_id = ? AND target_type = 1 AND state = 1 AND (expires = 0 OR expires > ?)",
 			permissionInfo.PermissionID,
@@ -158,15 +162,11 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 		).Select("target_id"),
 	).Count(&bindCount).Error; e != nil {
 		ctx.LogError(e)
-		if gormservice.IsNotFound(e) {
-			return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_NotFound, IsTokenRefresh: isRefreshToken, Token: at.Token, Uid: at.UID}
-		}
-		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_Fail, IsTokenRefresh: isRefreshToken, Token: at.Token, Uid: at.UID}
+		return resultRES
 	}
 
-	if bindCount == 0 {
-		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_NotFound, IsTokenRefresh: isRefreshToken, Token: at.Token, Uid: at.UID}
-	} else {
-		return &zauth_pb.CheckAuth_RES{Code: zglobal.Code_SUCC, IsTokenRefresh: isRefreshToken, Token: at.Token, Uid: at.UID}
+	if bindCount > 0 {
+		resultRES.Code = zglobal.Code_SUCC
 	}
+	return resultRES
 }

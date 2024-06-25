@@ -6,7 +6,7 @@ import (
 	"zservice/zservice/zglobal"
 )
 
-func Logic_LoginByName(ctx *zservice.Context, in *zauth_pb.LoginByUser_REQ) *zauth_pb.Login_RES {
+func Logic_LoginByName(ctx *zservice.Context, in *zauth_pb.LoginByName_REQ) *zauth_pb.Login_RES {
 
 	// 验证参数
 	if in.User == "" || in.Password == "" {
@@ -21,7 +21,7 @@ func Logic_LoginByName(ctx *zservice.Context, in *zauth_pb.LoginByUser_REQ) *zau
 	}
 
 	if at.UID != 0 { // 已登陆的
-		if at.LoginService == ctx.TraceService {
+		if at.HasLoginService(in.Service) {
 			if tab, e := GetUserByUID(ctx, at.UID); e != nil {
 				ctx.LogError(e)
 				return &zauth_pb.Login_RES{Code: e.GetCode()}
@@ -63,7 +63,7 @@ func Logic_LoginByName(ctx *zservice.Context, in *zauth_pb.LoginByUser_REQ) *zau
 	// 设置关联信息
 	at.ExpiresSecond = in.Expires
 	at.UID = acc.UID
-	at.LoginService = ctx.TraceService
+	at.AddLoginService(in.Service)
 
 	if e := at.Save(ctx); e != nil {
 		ctx.LogError(e)
