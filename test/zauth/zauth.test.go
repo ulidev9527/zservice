@@ -10,7 +10,6 @@ import (
 	"zservice/zservice/ex/ginservice"
 
 	"github.com/gin-gonic/gin"
-	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 func init() {
@@ -23,7 +22,7 @@ func main() {
 	etcdS := etcdservice.NewEtcdService(&etcdservice.EtcdServiceConfig{
 
 		Addr: zservice.Getenv("ETCD_ADDR"),
-		OnStart: func(etcd *clientv3.Client) {
+		OnStart: func(s *etcdservice.EtcdService) {
 			// do something
 		},
 	})
@@ -43,7 +42,8 @@ func main() {
 
 	ginS := ginservice.NewGinService(&ginservice.GinServiceConfig{
 		ListenPort: zservice.Getenv("GIN_PORT"),
-		OnStart: func(engine *gin.Engine) {
+		OnStart: func(s *ginservice.GinService) {
+			engine := s.Engine
 			engine.GET("/", func(ctx *gin.Context) {
 				zctx := ginservice.GetCtxEX(ctx)
 				id := ctx.Query("id")

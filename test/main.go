@@ -8,21 +8,19 @@ func init() {
 	zservice.Init("test", "1.0.0")
 }
 
-type TT struct {
-	ID       string `json:"id"`
-	Name     string `json:"name"`
-	NickName string `json:"nickName"`
-	BT       []byte `json:"bt"`
-}
-
 func main() {
 
-	tp := "2"
-	switch tp {
-	case "1", "2":
-		zservice.LogInfo("12")
-	case "boo", "kkk":
-		zservice.LogInfo("abc")
-	}
+	e1 := zservice.NewError("123").SetCode(100)
+
+	zservice.LogError(e1)
+
+	e2 := zservice.NewErrore(e1)
+	zservice.LogError(e2)
+
+	e2.AddCaller()
+	zservice.LogError(e2)
+	e3 := getE()
+	e3.AddCaller()
+	zservice.LogError(e3)
 
 }

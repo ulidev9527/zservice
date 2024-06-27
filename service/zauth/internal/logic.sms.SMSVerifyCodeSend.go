@@ -40,7 +40,7 @@ func Logic_SMSVerifyCodeSend(ctx *zservice.Context, in *zauth_pb.SMSVerifyCodeSe
 
 	// 检查服务是否需要发送验证码
 	isNoSend := false
-	if tab, e := GetServiceKVTable(ctx, ctx.TraceService, KV_SMS_VerifyCodeSend_NoSend); e != nil {
+	if tab, e := GetServiceKVTable(ctx, ctx.TraceService, KV_Service_SMS_VerifyCodeSend_NoSend); e != nil {
 		if e.GetCode() != zglobal.Code_NotFound {
 			return &zauth_pb.SMSSendVerifyCode_RES{Code: e.GetCode()}
 		}

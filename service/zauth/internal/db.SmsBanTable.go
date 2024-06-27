@@ -20,11 +20,8 @@ type SmsBanTable struct {
 
 // 账号是否封禁
 func IsSmsBan(ctx *zservice.Context, phone string) (bool, *zservice.Error) {
-	if phone == "" {
-		return false, nil
-	}
-	if phone[0] != '+' {
-		return false, nil
+	if phone == "" || phone[0] != '+' {
+		return true, zservice.NewError("phone error")
 	}
 
 	// 查缓存

@@ -9,6 +9,7 @@ import (
 // 组织更新
 func Logic_OrgUpdate(ctx *zservice.Context, in *zauth_pb.OrgInfo) *zauth_pb.Default_RES {
 	if in.Name == "" {
+		ctx.LogError("param error")
 		return &zauth_pb.Default_RES{Code: zglobal.Code_ParamsErr}
 	}
 

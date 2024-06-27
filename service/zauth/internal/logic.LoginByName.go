@@ -9,71 +9,56 @@ import (
 func Logic_LoginByName(ctx *zservice.Context, in *zauth_pb.LoginByName_REQ) *zauth_pb.Login_RES {
 
 	// 验证参数
-	if in.User == "" || in.Password == "" {
+	if in.User == "" || in.Password == "" || in.Service == "" || in.Toekn == "" || in.ToeknSign == "" {
+		ctx.LogError("param error", in.User, in.Password, in.Service, in.Toekn, in.ToeknSign)
 		return &zauth_pb.Login_RES{Code: zglobal.Code_ParamsErr}
 	}
 
 	// 检查 token 是否登陆
-	at, e := GetToken(ctx, ctx.AuthToken)
+	if res := Logic_LoginCheck(ctx, &zauth_pb.LoginCheck_REQ{
+		Token:     in.Toekn,
+		TokenSign: in.ToeknSign,
+		Service:   in.Service,
+	}); res.Code == zglobal.Code_SUCC {
+		return &zauth_pb.Login_RES{Code: zglobal.Code_SUCC, UserInfo: res.UserInfo}
+	}
+
+	// 获取token
+	at, e := GetToken(ctx, in.Toekn)
 	if e != nil {
 		ctx.LogError(e)
 		return &zauth_pb.Login_RES{Code: e.GetCode()}
 	}
 
-	if at.UID != 0 { // 已登陆的
-		if at.HasLoginService(in.Service) {
-			if tab, e := GetUserByUID(ctx, at.UID); e != nil {
-				ctx.LogError(e)
-				return &zauth_pb.Login_RES{Code: e.GetCode()}
-			} else {
-				if tab.State == 0 {
-					return &zauth_pb.Login_RES{Code: zglobal.Code_Limit}
-				}
-				return &zauth_pb.Login_RES{Code: zglobal.Code_SUCC, UserInfo: &zauth_pb.UserInfo{
-					Uid:       tab.UID,
-					LoginName: tab.LoginName,
-					Phone:     tab.Phone,
-					State:     tab.State,
-				}}
-			}
-		}
-
-		return &zauth_pb.Login_RES{Code: zglobal.Code_LoginAgain}
-	}
-
-	// 验证账号
-	if has, e := HasUserByLoginName(ctx, in.User); e != nil {
-		ctx.LogError(e)
-		return &zauth_pb.Login_RES{Code: e.GetCode()}
-	} else if !has {
-		return &zauth_pb.Login_RES{Code: zglobal.Code_Zauth_Login_User_NotFund}
-	}
-
-	// 获取账号信息
-	acc, e := GetUserByLoginName(ctx, in.User)
+	// 获取账号信息/验证账号状态
+	user, e := GetUserByLoginName(ctx, in.User)
 	if e != nil {
 		ctx.LogError(e)
 		return &zauth_pb.Login_RES{Code: e.GetCode()}
-	} else if acc.State == 0 { // 限制登陆
+	} else if user.State == 0 { // 限制登陆
+		ctx.LogError("login limit", user.UID)
 		return &zauth_pb.Login_RES{Code: zglobal.Code_Limit}
-	} else if !acc.VerifyPass(ctx, in.Password) { // 验证
-		return &zauth_pb.Login_RES{Code: zglobal.Code_Zauth_Login_Pass_Err}
+	} else if !user.VerifyPass(ctx, in.Password) { // 验证
+		ctx.LogError("pasword err", in.User, in.Password)
+		return &zauth_pb.Login_RES{Code: zglobal.Code_Reject}
 	}
 
-	// 设置关联信息
-	at.ExpiresSecond = in.Expires
-	at.UID = acc.UID
-	at.AddLoginService(in.Service)
-
-	if e := at.Save(ctx); e != nil {
+	// 登录
+	if e := TokenLogin(ctx, struct {
+		Service string
+		Expires uint32
+	}{
+		Service: in.Service,
+		Expires: in.Expires,
+	}, at, user); e != nil {
 		ctx.LogError(e)
 		return &zauth_pb.Login_RES{Code: e.GetCode()}
 	}
 
 	return &zauth_pb.Login_RES{Code: zglobal.Code_SUCC, UserInfo: &zauth_pb.UserInfo{
-		Uid:       acc.UID,
-		LoginName: acc.LoginName,
-		Phone:     acc.Phone,
-		State:     acc.State,
+		Uid:       user.UID,
+		LoginName: user.LoginName,
+		Phone:     user.Phone,
+		State:     user.State,
 	}}
 }

@@ -56,6 +56,13 @@ func GinCheckAuthMiddleware(zs *zservice.ZService, isZauthSelf ...bool) gin.Hand
 			ctx.Abort()
 			return
 		}
+
+		if zctx.AuthToken != res.Token { // 刷新 token
+			zctx.AuthToken = res.Token
+			ginservice.SyncHeader(ctx)
+		}
+		zctx.UID = res.Uid
+
 		if res.Code != zglobal.Code_SUCC {
 
 			ctx.JSON(http.StatusOK, &zglobal.Default_RES{
@@ -65,12 +72,6 @@ func GinCheckAuthMiddleware(zs *zservice.ZService, isZauthSelf ...bool) gin.Hand
 			ctx.Abort()
 			return
 		}
-
-		if zctx.AuthToken != res.Token { // 刷新 token
-			zctx.AuthToken = res.Token
-			ginservice.SyncHeader(ctx)
-		}
-		zctx.UID = res.Uid
 
 		ctx.Next()
 	}

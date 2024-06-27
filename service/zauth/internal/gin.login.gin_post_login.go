@@ -3,6 +3,7 @@ package internal
 import (
 	"net/http"
 	"zservice/service/zauth/zauth_pb"
+	"zservice/zservice"
 	"zservice/zservice/ex/ginservice"
 	"zservice/zservice/zglobal"
 
@@ -35,6 +36,9 @@ func gin_post_login(ctx *gin.Context) {
 			Phone:      req.Phone,
 			Expires:    uint32(zglobal.Time_10Day.Seconds()),
 			VerifyCode: req.SMSVerifyCode,
+			Service:    zservice.GetServiceName(),
+			Toekn:      zctx.AuthToken,
+			ToeknSign:  zctx.AuthTokenSign,
 		})
 
 		ginservice.SyncHeader(ctx)
@@ -43,9 +47,12 @@ func gin_post_login(ctx *gin.Context) {
 		return
 	case 2: // 账号登陆
 		res := Logic_LoginByName(zctx, &zauth_pb.LoginByName_REQ{
-			User:     req.LoginName,
-			Password: req.LoginPass,
-			Expires:  uint32(zglobal.Time_10Day.Seconds()),
+			User:      req.LoginName,
+			Password:  req.LoginPass,
+			Expires:   uint32(zglobal.Time_10Day.Seconds()),
+			Service:   zservice.GetServiceName(),
+			Toekn:     zctx.AuthToken,
+			ToeknSign: zctx.AuthTokenSign,
 		})
 
 		ginservice.SyncHeader(ctx)

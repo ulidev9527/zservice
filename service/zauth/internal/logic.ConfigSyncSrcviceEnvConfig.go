@@ -11,6 +11,7 @@ import (
 
 func Logic_ConfigSyncServiceEnvConfig(ctx *zservice.Context, in *zauth_pb.ConfigSyncServiceEnvConfig_REQ) *zauth_pb.ConfigSyncServiceEnvConfig_RES {
 	if in.Service == "" || in.FilePath == "" {
+		ctx.LogError("param error")
 		return &zauth_pb.ConfigSyncServiceEnvConfig_RES{Code: zglobal.Code_ParamsErr}
 	}
 

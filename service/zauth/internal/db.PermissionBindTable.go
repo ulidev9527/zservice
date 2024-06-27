@@ -57,7 +57,7 @@ func (z *PermissionBindTable) Save(ctx *zservice.Context) *zservice.Error {
 	// 上锁
 	un, e := Redis.Lock(rk_info)
 	if e != nil {
-		return zservice.NewError(e)
+		return e.AddCaller()
 	}
 	defer un()
 

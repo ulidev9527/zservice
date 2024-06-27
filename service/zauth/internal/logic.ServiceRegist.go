@@ -11,6 +11,7 @@ import (
 func Logic_ServiceRegist(ctx *zservice.Context, in *zauth_pb.ServiceRegist_REQ) *zauth_pb.ServiceRegist_RES {
 
 	if ctx.TraceService == "" {
+		ctx.LogError("param error")
 		return &zauth_pb.ServiceRegist_RES{Code: zglobal.Code_ParamsErr}
 	}
 

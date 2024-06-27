@@ -8,7 +8,10 @@ import (
 
 func Logout(ctx *zservice.Context) *zauth_pb.Default_RES {
 
-	if res, e := grpcClient.Logout(ctx, &zauth_pb.Default_REQ{}); e != nil {
+	if res, e := grpcClient.Logout(ctx, &zauth_pb.Logout_REQ{
+		Token:     ctx.AuthToken,
+		TokenSign: ctx.AuthTokenSign,
+	}); e != nil {
 		ctx.LogPanic(e)
 	} else if res.Code != zglobal.Code_SUCC {
 		ctx.LogPanic(res)

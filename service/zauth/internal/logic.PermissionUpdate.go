@@ -9,6 +9,7 @@ import (
 func Logic_PermissionUpdate(ctx *zservice.Context, in *zauth_pb.PermissionInfo) *zauth_pb.Default_RES {
 
 	if in.PermissionID == 0 || in.Name == "" || in.Service == "" {
+		ctx.LogError("param error")
 		return &zauth_pb.Default_RES{Code: zglobal.Code_ParamsErr}
 	}
 

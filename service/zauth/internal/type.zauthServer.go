@@ -11,7 +11,7 @@ type ZauthServer struct {
 }
 
 // 登出
-func (s *ZauthServer) Logout(ctx context.Context, in *zauth_pb.Default_REQ) (*zauth_pb.Default_RES, error) {
+func (s *ZauthServer) Logout(ctx context.Context, in *zauth_pb.Logout_REQ) (*zauth_pb.Default_RES, error) {
 	return Logic_Logout(ctx.(*zservice.Context), in), nil
 }
 
@@ -31,7 +31,7 @@ func (s *ZauthServer) HasUID(ctx context.Context, in *zauth_pb.HasUID_REQ) (*zau
 }
 
 // 登陆检查
-func (s *ZauthServer) LoginCheck(ctx context.Context, in *zauth_pb.LogicCheck_REQ) (*zauth_pb.Default_RES, error) {
+func (s *ZauthServer) LoginCheck(ctx context.Context, in *zauth_pb.LoginCheck_REQ) (*zauth_pb.LoginCheck_RES, error) {
 	return Logic_LoginCheck(ctx.(*zservice.Context), in), nil
 }
 

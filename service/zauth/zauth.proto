@@ -19,23 +19,44 @@ message LoginByPhone_REQ {
     uint32 expires    = 2;  // 过期时间 没有传入 (单位: 秒)，最小 30s，过期时间到了后需要重新授权
     string verifyCode = 3;  // 验证码
     string service    = 4;  // 登陆服
+    string toekn      = 5;  // 令牌
+    string toeknSign  = 6;  // 令牌 sign 
 }
 message LoginByName_REQ {
-    string user     = 1;  // 账号
-    string password = 2;  // 密码
-    uint32 expires  = 3;  // 过期时间 没有传入 (单位: 秒)，最小 30s，过期时间到了后需要重新授权
-    string service  = 4;  // 登陆服
+    string user      = 1;  // 账号
+    string password  = 2;  // 密码
+    uint32 expires   = 3;  // 过期时间 没有传入 (单位: 秒)，最小 30s，过期时间到了后需要重新授权
+    string service   = 4;  // 登陆服
+    string toekn     = 5;  // 令牌
+    string toeknSign = 6;  // 令牌 sign 
 }
 message Login_RES{
     uint32   code     = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
     UserInfo userInfo = 2;  // 用户信息
 }
+
+message LoginCheck_REQ{
+    string token     = 1;  // 令牌
+    string tokenSign = 2;  // 签名
+    string service   = 3;  // 服务
+}
+
+message LoginCheck_RES{
+    uint32   code     = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
+    UserInfo userInfo = 2;  // 用户信息, 登录后会返回
+}
+
+message Logout_REQ{
+    string token     = 1;
+    string tokenSign = 2;
+}
+
 message CheckAuth_REQ{
-    string Service   = 1;  // 服务
-    string Action    = 2;  // 动作
-    string Path      = 3;  // 路径
-    string Token     = 4;  // 令牌
-    string TokenSign = 5;  // 令牌签名
+    string service   = 1;  // 服务
+    string action    = 2;  // 动作
+    string path      = 3;  // 路径
+    string token     = 4;  // 令牌
+    string tokenSign = 5;  // 令牌签名
 }
 message CheckAuth_RES{
     uint32 code           = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
@@ -44,11 +65,6 @@ message CheckAuth_RES{
 }
 message HasUID_REQ{
     uint32 uid = 1;  // 账号ID
-}
-message LogicCheck_REQ{
-    string token   = 1;  // 令牌
-    string sign    = 2;  // 签名
-    string service = 3;  // 服务
 }
 
 // 权限相关
@@ -223,11 +239,11 @@ message AssetInfo_RES { // 资源信息
 
 service zauth{
 
-    rpc Logout(Default_REQ) returns(Default_RES);           // 登出
-    rpc LoginByPhone(LoginByPhone_REQ) returns(Login_RES);  // 手机号登陆
-    rpc LoginByName(LoginByName_REQ) returns(Login_RES);    // 账户登陆
-    rpc LoginCheck(LogicCheck_REQ) returns(Default_RES);    // 登陆检查, 检查用户是否在指定服务登陆
-    rpc HasUID(HasUID_REQ) returns(Default_RES);            // 检查账户是否存在
+    rpc Logout(Logout_REQ) returns(Default_RES);             // 登出
+    rpc LoginByPhone(LoginByPhone_REQ) returns(Login_RES);   // 手机号登陆
+    rpc LoginByName(LoginByName_REQ) returns(Login_RES);     // 账户登陆
+    rpc LoginCheck(LoginCheck_REQ) returns(LoginCheck_RES);  // 登陆检查, 检查用户是否在指定服务登陆
+    rpc HasUID(HasUID_REQ) returns(Default_RES);             // 检查账户是否存在
     
     rpc PermissionCreate(PermissionInfo) returns(PermissionInfo_RES);              // 创建权限
     rpc PermissionListGet(PermissionListGet_REQ) returns(PermissionInfoList_RES);  // 获取权限列表权限列表

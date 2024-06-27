@@ -9,11 +9,6 @@ import (
 	"zservice/zservice/ex/gormservice"
 	"zservice/zservice/ex/grpcservice"
 	"zservice/zservice/ex/redisservice"
-
-	"github.com/gin-gonic/gin"
-	clientv3 "go.etcd.io/etcd/client/v3"
-	"google.golang.org/grpc"
-	"gorm.io/gorm"
 )
 
 func init() {
@@ -28,8 +23,8 @@ func main() {
 		User:   zservice.Getenv("MYSQL_USER"),
 		Pass:   zservice.Getenv("MYSQL_PASS"),
 		Debug:  zservice.GetenvBool("MYSQL_DEBUG"),
-		OnStart: func(db *gorm.DB) {
-			internal.Mysql = db
+		OnStart: func(s *gormservice.GormMysqlService) {
+			internal.Mysql = s.Mysql
 			internal.InitMysql()
 		},
 	})
@@ -54,8 +49,8 @@ func main() {
 
 	internal.EtcdService = etcdservice.NewEtcdService(&etcdservice.EtcdServiceConfig{
 		Addr: zservice.Getenv("ETCD_ADDR"),
-		OnStart: func(etcd *clientv3.Client) {
-			internal.Etcd = etcd
+		OnStart: func(s *etcdservice.EtcdService) {
+			internal.Etcd = s.Etcd
 			internal.InitEtcd()
 		},
 	})
@@ -64,8 +59,8 @@ func main() {
 	internal.GrpcService = grpcservice.NewGrpcService(&grpcservice.GrpcServiceConfig{
 		ListenPort: zservice.Getenv("grpc_listen_port"),
 		EtcdClient: internal.EtcdService.Etcd,
-		OnStart: func(grpc *grpc.Server) {
-			internal.Grpc = grpc
+		OnStart: func(s *grpcservice.GrpcService) {
+			internal.Grpc = s.GrpcServer
 			internal.InitGrpc()
 		},
 	})
@@ -73,9 +68,9 @@ func main() {
 
 	internal.GinService = ginservice.NewGinService(&ginservice.GinServiceConfig{
 		ListenPort: zservice.Getenv("gin_listen_port"),
-		OnStart: func(engine *gin.Engine) {
-			engine.Use(zauth_ex.GinCheckAuthMiddleware(internal.GinService.ZService, true))
-			internal.Gin = engine
+		OnStart: func(s *ginservice.GinService) {
+			s.Engine.Use(zauth_ex.GinCheckAuthMiddleware(internal.GinService.ZService, true))
+			internal.Gin = s.Engine
 			internal.InitGin()
 		},
 	})

@@ -15,7 +15,7 @@ type NsqProducerService struct {
 type NsqProducerServiceConfig struct {
 	Addr string // nsq地址
 
-	OnStart func(*nsq.Producer) // 启动的回调
+	OnStart func(*NsqProducerService) // 启动的回调
 }
 
 // 创建一个新的nsq服务
@@ -24,7 +24,7 @@ func NewNsqProducerService(c *NsqProducerServiceConfig) *NsqProducerService {
 		zservice.LogPanic("NsqProducerServiceConfig is nil")
 		return nil
 	}
-	name := "NsqProducerService"
+	name := "NsqProducerService-" + c.Addr
 
 	if c.Addr == "" {
 		zservice.LogPanic("NsqProducerServiceConfig.Addr is nil")
@@ -49,7 +49,7 @@ func NewNsqProducerService(c *NsqProducerServiceConfig) *NsqProducerService {
 		}
 
 		if c.OnStart != nil {
-			c.OnStart(nps.Producer)
+			c.OnStart(nps)
 		}
 		s.StartDone()
 	})

@@ -11,5 +11,8 @@ import (
 func gin_post_loginout(ctx *gin.Context) {
 	zctx := ginservice.GetCtxEX(ctx)
 
-	ctx.JSON(http.StatusOK, Logic_Logout(zctx, &zauth_pb.Default_REQ{}))
+	ctx.JSON(http.StatusOK, Logic_Logout(zctx, &zauth_pb.Logout_REQ{
+		Token:     zctx.AuthToken,
+		TokenSign: zctx.AuthTokenSign,
+	}))
 }

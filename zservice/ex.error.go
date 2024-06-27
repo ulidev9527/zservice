@@ -16,15 +16,16 @@ func NewError(v ...any) *Error {
 	return NewErrorCaller(2, Sprint(v...), nil)
 }
 func NewErrorCaller(skip int, str string, e error) *Error {
-	_, file, line, _ := runtime.Caller(skip)
-	s := fmt.Sprint(file, ":", line, " > ", str)
+	code := uint32(zglobal.Code_Fail)
+	s := str
 	if e != nil {
 		s = fmt.Sprint(s, " | ", e.Error())
 	}
-	return &Error{
-		code: zglobal.Code_Fail,
+	err := &Error{
+		code: code,
 		msg:  s,
 	}
+	return err.AddCaller(skip)
 }
 func NewErrore(e error) *Error {
 	return NewErrorCaller(2, "", e)
@@ -45,6 +46,18 @@ func (e *Error) Error() string {
 }
 func (e *Error) String() string {
 	return e.msg
+}
+
+// 添加路径记录
+// skip 一般不需要填写，涉及到 caller 跳层问题
+func (e *Error) AddCaller(skips ...int) *Error {
+	skip := 1
+	if len(skips) > 0 {
+		skip = skips[0] + 1
+	}
+	_, file, line, _ := runtime.Caller(skip)
+	e.msg = fmt.Sprint(file, ":", line, " > ", e.msg)
+	return e
 }
 
 // 设置错误码

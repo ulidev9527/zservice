@@ -4,8 +4,6 @@ import (
 	"zservice/service/zlog/internal"
 	"zservice/zservice"
 	"zservice/zservice/ex/gormservice"
-
-	"gorm.io/gorm"
 )
 
 func init() {
@@ -20,8 +18,8 @@ func main() {
 		User:   zservice.Getenv("MYSQL_USER"),
 		Pass:   zservice.Getenv("MYSQL_PASS"),
 		Debug:  zservice.GetenvBool("MYSQL_DEBUG"),
-		OnStart: func(db *gorm.DB) {
-			internal.Mysql = db
+		OnStart: func(s *gormservice.GormMysqlService) {
+			internal.Mysql = s.Mysql
 			internal.InitMysql()
 		},
 	})

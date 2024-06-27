@@ -7,8 +7,9 @@ import (
 )
 
 // 登陆检查
-func LoginCheck(ctx *zservice.Context, in *zauth_pb.LogicCheck_REQ) bool {
-	if ctx.AuthToken == "" {
+func LoginCheck(ctx *zservice.Context, in *zauth_pb.LoginCheck_REQ) bool {
+	if in.Token == "" || in.TokenSign == "" {
+		ctx.LogError("param err")
 		return false
 	}
 

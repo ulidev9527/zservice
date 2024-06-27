@@ -58,7 +58,7 @@ func GetPermissionBySAP(ctx *zservice.Context, service, action, path string) (*P
 	} else {
 		if tab, e := GetPermissionByID(ctx, zservice.StringToUint(s)); e != nil {
 			if e.GetCode() != zglobal.Code_NotFound {
-				return nil, zservice.NewError(e)
+				return nil, e.AddCaller()
 
 			}
 		} else {

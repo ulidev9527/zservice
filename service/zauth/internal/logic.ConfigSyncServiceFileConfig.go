@@ -13,6 +13,7 @@ import (
 func Logic_ConfigSyncServiceFileConfig(ctx *zservice.Context, in *zauth_pb.ConfigSyncServiceFileConfig_REQ) *zauth_pb.Default_RES {
 
 	if in.Service == "" || in.FilePath == "" {
+		ctx.LogError("param error")
 		return &zauth_pb.Default_RES{Code: zglobal.Code_ParamsErr}
 	}
 

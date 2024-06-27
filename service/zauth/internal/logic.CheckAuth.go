@@ -1,23 +1,19 @@
 package internal
 
 import (
-	"errors"
-	"fmt"
 	"strings"
 	"time"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
-	"zservice/zservice/ex/redisservice"
+	"zservice/zservice/ex/gormservice"
 	"zservice/zservice/zglobal"
-
-	"gorm.io/gorm"
 )
 
 // 检查权限
 func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_pb.CheckAuth_RES {
 
 	// 获取和检查 token
-	resultRES := &zauth_pb.CheckAuth_RES{}
+	resultRES := &zauth_pb.CheckAuth_RES{Code: zglobal.Code_Zauth_Fail}
 	// 获取 token
 	authToken := &AuthToken{}
 	if at, e := GetToken(ctx, in.Token); e != nil {
@@ -37,8 +33,9 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 			}
 		}
 	} else {
-		if at.TokenCheck(in.Token, in.TokenSign) { // 检查 token 是否正确
+		if at.TokenCheck(in.TokenSign) { // 检查 token 是否正确
 			resultRES.Token = at.Token
+			resultRES.Uid = at.UID
 			authToken = at
 		} else {
 			ctx.LogError("token check fail", in.Token)
@@ -77,7 +74,7 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 		// 未找到 查表, 按权限最接近的查询
 		tabs := []PermissionTable{}
 		if e := Mysql.Model(&PermissionTable{}).Where("(service, action, path) IN ?", inArr).Order("LENGTH(action) DESC, LENGTH(path) DESC").Find(&tabs).Error; e != nil {
-			if !errors.Is(e, gorm.ErrRecordNotFound) {
+			if !gormservice.IsNotFound(e) {
 				return nil, zservice.NewError(e)
 			}
 		}
@@ -105,6 +102,7 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 	switch permissionInfo.State {
 	case 0: // 权限禁用
 	case 3: // 继承父级，父级未处理，权限配置有问题，查当前服务的顶级权限是否配置正确
+		ctx.LogInfo("permission config error")
 		return resultRES
 	case 1: // 公开访问
 		resultRES.Code = zglobal.Code_SUCC
@@ -113,23 +111,13 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 
 	// 检查是否拥有该权限
 	if authToken.UID == 0 { // 未登录, 不继续接下里用户判断流程
+		ctx.LogInfo("not login", in.Service, in.Token, in.TokenSign)
 		return resultRES
 	}
 
 	// 检查登陆服务是否正确
 	if !authToken.HasLoginService(in.Service) {
-		return resultRES
-	}
-
-	// 服务登陆和token验证
-	if s, e := Redis.Get(fmt.Sprintf(RK_UserLoginService, authToken.UID, in.Service)).Result(); e != nil {
-		// 找不到和其它错误
-		if redisservice.IsNilErr(e) {
-			resultRES.Code = zglobal.Code_NotFound
-		}
-		ctx.LogError(e)
-		return resultRES
-	} else if s != authToken.Token { // token 不正确, 需要重新登陆
+		ctx.LogInfo("login service error", in.Service, in.Token, in.TokenSign)
 		return resultRES
 	}
 
@@ -146,6 +134,7 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 			resultRES.Code = zglobal.Code_SUCC
 			return resultRES
 		} else {
+			resultRES.Code = zglobal.Code_Limit
 			return resultRES
 		}
 	}
@@ -167,6 +156,9 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 
 	if bindCount > 0 {
 		resultRES.Code = zglobal.Code_SUCC
+	} else {
+		ctx.LogError()
 	}
+
 	return resultRES
 }

@@ -2,6 +2,7 @@ package internal
 
 import (
 	"fmt"
+	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
 	"zservice/zservice/ex/gormservice"
 	"zservice/zservice/ex/redisservice"
@@ -94,10 +95,10 @@ func GetUserByLoginName(ctx *zservice.Context, loginName string) (*UserTable, *z
 	}
 
 	// 更新缓存
-	if e := Redis.Set(rk, zservice.Uint32ToString(tab.UID)).Err(); e != nil {
+	if e := Redis.SetEX(rk, zservice.Uint32ToString(tab.UID), zglobal.Time_10Day).Err(); e != nil {
 		ctx.LogError(e)
 	}
-	if e := Redis.Set(fmt.Sprintf(RK_UserInfo, tab.UID), zservice.JsonMustMarshalString(tab)).Err(); e != nil {
+	if e := Redis.SetEX(fmt.Sprintf(RK_UserInfo, tab.UID), zservice.JsonMustMarshalString(tab), zglobal.Time_10Day).Err(); e != nil {
 		ctx.LogError(e)
 	}
 
@@ -168,6 +169,16 @@ func (z *UserTable) AddLoginNameAndPassword(ctx *zservice.Context, name, passwor
 // 验证密码
 func (z *UserTable) VerifyPass(ctx *zservice.Context, password string) bool {
 	return z.LoginPass == UserGenPassSign(z, password)
+}
+
+// 转换成用户信息
+func (z *UserTable) ToUserInfo() *zauth_pb.UserInfo {
+	return &zauth_pb.UserInfo{
+		Uid:       z.UID,
+		LoginName: z.LoginName,
+		Phone:     z.Phone,
+		State:     z.State,
+	}
 }
 
 // 存储

@@ -12,7 +12,7 @@ const (
 	RK_UserInfo                    = "user:info:%v"                       // 账号信息缓存 %v:UID val:UserTable
 	RK_UserLoginName               = "user:loginName:%v"                  // 账号信息缓存 %v:loginName val:UID
 	RK_UserLoginPhone              = "user:loginPhone:%v"                 // 账号信息缓存 %v:手机号 val:UID
-	RK_UserLoginService            = "user:loginService:%v:%v"            // 账号登陆后的目标service缓存 %v:uid %v:service val:AuthToken
+	RK_UserLoginServices           = "user:loginService:%v:%v"            // 账号登陆后的目标service缓存 %v:uid %v:service val:[AuthToken]
 	RK_AOBind_Info                 = "AOBind:link:%v:%v"                  // 账号组织绑定 %v:OrgID %v:UID val:BindID
 	RK_PermissionInfo              = "permission:info:%v"                 // 权限信息 %v:PermissionID
 	RK_PermissionBindInfo          = "permission:bindInfo:%v:%v:%v"       // 权限绑定 %v:TargetType %v:TargetID %v:PermissionID val:PermissionBindTable
@@ -28,7 +28,8 @@ const (
 	RK_AssetMd5                    = "asset:md5:%s"                       // 资产信息 %s:md5 val:1
 	RK_ServiceKVInfo               = "service:kv:%s:%s"                   // 服务键值对信息 %s:serviceName %s:key val:value
 
-	KV_SMS_VerifyCodeSend_NoSend = "sms/verifyCodeSend/NoSend" // 不发送验证码
+	KV_Service_SMS_VerifyCodeSend_NoSend = "sms/verifyCodeSend/NoSend" // 服务配置 不发送验证码
+	KV_Service_Login_AllowMPOP           = "login/AllowMPOP"           // 是否允许服务进行多点登录
 
 	EV_Config_ServiceFileConfigChange = "ConfigService_%s_FileConfigChange" // 服务文件配置变更通知
 	EV_Config_ZZZZStringChange        = "ZZZZStringChange"                  // ZZZZ 字符串变更

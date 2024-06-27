@@ -5,8 +5,6 @@ import (
 	"zservice/service/zlog/zlog_pb"
 	"zservice/zservice"
 	"zservice/zservice/ex/nsqservice"
-
-	"github.com/nsqio/go-nsq"
 )
 
 func init() {
@@ -17,8 +15,6 @@ func main() {
 
 	nsqPS := nsqservice.NewNsqProducerService(&nsqservice.NsqProducerServiceConfig{
 		Addr: zservice.Getenv("NSQ_Producer_ADDR"),
-		OnStart: func(p *nsq.Producer) {
-		},
 	})
 
 	zservice.AddDependService(nsqPS.ZService)

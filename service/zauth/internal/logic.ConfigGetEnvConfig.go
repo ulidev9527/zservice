@@ -12,6 +12,7 @@ import (
 
 func Logic_ConfigGetEnvConfig(ctx *zservice.Context, in *zauth_pb.ConfigGetEnvConfig_REQ) *zauth_pb.ConfigGetServiceEnvConfig_RES {
 	if in.Service == "" {
+		ctx.LogError("param error")
 		return &zauth_pb.ConfigGetServiceEnvConfig_RES{Code: zglobal.Code_ParamsErr}
 	}
 

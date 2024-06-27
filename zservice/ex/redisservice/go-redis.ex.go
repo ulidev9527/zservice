@@ -113,30 +113,3 @@ func (r *GoRedisEX) SetNX(key string, value string, expiration time.Duration) *r
 func (r *GoRedisEX) SetNXCtx(ctx context.Context, key string, value string, expiration time.Duration) *redis.BoolCmd {
 	return r.client.SetNX(ctx, r.AddKeyPrefix(key), value, expiration)
 }
-
-func (r *GoRedisEX) HMGet(key string, fields ...string) *redis.SliceCmd {
-	return r.HMGetCtx(context.TODO(), key, fields...)
-}
-func (r *GoRedisEX) HMGetCtx(ctx context.Context, key string, fields ...string) *redis.SliceCmd {
-	return r.client.HMGet(ctx, r.AddKeyPrefix(key), fields...)
-}
-
-func (r *GoRedisEX) HGetAll(key string) *redis.MapStringStringCmd {
-	return r.HGetAllCtx(context.TODO(), key)
-}
-func (r *GoRedisEX) HGetAllCtx(ctx context.Context, key string) *redis.MapStringStringCmd {
-	return r.client.HGetAll(ctx, r.AddKeyPrefix(key))
-}
-
-func (r *GoRedisEX) HGet(key, field string) *redis.StringCmd {
-	return r.HGetCtx(context.TODO(), key, field)
-}
-func (r *GoRedisEX) HGetCtx(ctx context.Context, key, field string) *redis.StringCmd {
-	return r.client.HGet(ctx, r.AddKeyPrefix(key), field)
-}
-func (r *GoRedisEX) HSet(key string, values ...any) *redis.IntCmd {
-	return r.HSetCtx(context.TODO(), key, values...)
-}
-func (r *GoRedisEX) HSetCtx(ctx context.Context, key string, values ...any) *redis.IntCmd {
-	return r.client.HSet(ctx, r.AddKeyPrefix(key), values...)
-}

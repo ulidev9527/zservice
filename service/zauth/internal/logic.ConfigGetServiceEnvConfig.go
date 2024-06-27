@@ -12,6 +12,7 @@ import (
 
 func Logic_ConfigGetServiceEnvConfig(ctx *zservice.Context, in *zauth_pb.ConfigGetServiceEnvConfig_REQ) *zauth_pb.ConfigGetServiceEnvConfig_RES {
 	if len(in.Auth) != 128 && ctx.TraceService == "" {
+		ctx.LogError("param error")
 		return &zauth_pb.ConfigGetServiceEnvConfig_RES{Code: zglobal.Code_ParamsErr}
 	}
 

@@ -4,40 +4,36 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
+	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
+	"zservice/zservice/ex/redisservice"
 	"zservice/zservice/zglobal"
 )
 
 type AuthToken struct {
 	UID           uint32    // 用户ID
 	Token         string    // 令牌
-	ExpiresSecond uint32    // 过期时间 单位: 秒
-	Expires       time.Time // 过期时间 单位: 秒
+	CreateAT      time.Time // 创建时间 毫秒
+	ExpiresSecond uint32    // 过期时间 秒
+	Expires       time.Time // 过期时间
 	Sign          string    // 签名，用于生成 token 和验证
-	TokenKey      string    // token key
 	LoginServices []string  // 登陆的服务
 }
 
 // 创建一个 token
 func CreateToken(ctx *zservice.Context, tokenSign string) (*AuthToken, *zservice.Error) {
 	// 创建 token
-	tk := &AuthToken{
-		Sign:     zservice.MD5String(tokenSign),
-		TokenKey: zservice.RandomMD5(),
-	}
+	tk := &AuthToken{}
 
-	tk.Token = genTokenSign(tk.Sign, tk.TokenKey)
+	tk.CreateAT = time.Now()
+	tk.Sign = tokenSign
+	tk.Token = zservice.MD5String(fmt.Sprint(tk.Sign, zservice.RandomMD5(), zservice.RandomXID(), tk.CreateAT))
 
 	if e := tk.Save(ctx); e != nil {
-		return nil, e
+		return nil, e.AddCaller()
 	}
 
 	return tk, nil
-}
-
-// 生成 token
-func genTokenSign(sign, key string) string {
-	return zservice.MD5String(fmt.Sprint(sign, key))
 }
 
 // 获取 token
@@ -47,13 +43,11 @@ func GetToken(ctx *zservice.Context, tkStr string) (*AuthToken, *zservice.Error)
 	}
 
 	rk := fmt.Sprintf(RK_TokenInfo, tkStr)
-	if has, e := Redis.Exists(rk).Result(); e != nil {
-		return nil, zservice.NewError(e)
-	} else if has == 0 {
-		return nil, zservice.NewError("no token:", tkStr).SetCode(zglobal.Code_NotFound)
-	}
 
 	if res, e := Redis.Get(rk).Result(); e != nil {
+		if redisservice.IsNilErr(e) {
+			return nil, zservice.NewError(e).SetCode(zglobal.Code_NotFound)
+		}
 		return nil, zservice.NewError(e)
 	} else {
 		tk := &AuthToken{}
@@ -72,13 +66,72 @@ func GetToken(ctx *zservice.Context, tkStr string) (*AuthToken, *zservice.Error)
 	}
 }
 
-// token 校验
-func (l *AuthToken) TokenCheck(tk string, sign string) bool {
-	if tk == "" || sign == "" {
-		return false
+// token 登录
+func TokenLogin(ctx *zservice.Context, in struct {
+	Service string
+	Expires uint32
+}, at *AuthToken, user *UserTable) *zservice.Error {
+
+	// 多点登录限制验证
+	if res, e := GetOrCreateServiceKVTable(ctx, in.Service, KV_Service_Login_AllowMPOP); e != nil {
+		return zservice.NewError(e)
+	} else if !zservice.StringToBoolean(res.Value) {
+		// 不允许多点登录，退出当前服务的其它授权 token
+		rk := fmt.Sprintf(RK_UserLoginServices, user.UID, in.Service)
+		if list, e := Redis.LRange(rk, 0, -1).Result(); e != nil { // 获取 token 所有登录服务
+			ctx.LogError("redis get fail", rk, e)
+		} else {
+			remKeys := []string{}
+			for _, tk := range list {
+				if _at, e := GetToken(ctx, tk); e != nil { // 获取 token 信息
+					if e.GetCode() == zglobal.Code_NotFound {
+						remKeys = append(remKeys, tk)
+					} else {
+						ctx.LogError("get tk fail", tk, e)
+					}
+				} else {
+					// 退出相应 token 登录状态
+					res := Logic_Logout(ctx, &zauth_pb.Logout_REQ{Token: _at.Token, TokenSign: _at.Sign})
+					if res.Code != zglobal.Code_SUCC {
+						ctx.LogError("login out fail", tk)
+					}
+				}
+			}
+			if len(remKeys) > 0 { // 清理
+				for _, tk := range remKeys {
+					zservice.Go(func() {
+						ctx.LogInfo("rem invalid token:", tk)
+						if e := Redis.LRem(rk, 0, tk).Err(); e != nil {
+							ctx.LogError(e)
+						}
+					})
+				}
+			}
+		}
 	}
-	s := genTokenSign(zservice.MD5String(sign), l.TokenKey)
-	return s == tk
+
+	// 设置关联信息
+	at.ExpiresSecond = in.Expires
+	at.UID = user.UID
+	at.AddLoginService(in.Service)
+
+	if e := at.Save(ctx); e != nil {
+		return e.AddCaller()
+	}
+
+	// 登录 token 更新
+	if e := Redis.LPush(fmt.Sprintf(RK_UserLoginServices, at.UID, in.Service), at.Token).Err(); e != nil {
+		zservice.Go(func() {
+			at.Del(ctx)
+		})
+		return zservice.NewError(e)
+	}
+	return nil
+}
+
+// token 校验
+func (l *AuthToken) TokenCheck(sign string) bool {
+	return sign == l.Sign
 }
 
 // 是否有登陆服务
@@ -107,17 +160,8 @@ func (l *AuthToken) Save(ctx *zservice.Context) *zservice.Error {
 	}
 	l.Expires = time.Now().Add(time.Second * time.Duration(l.ExpiresSecond))
 
-	if l.UID != 0 { // 登录 token 存储
-		for _, service := range l.LoginServices {
-			// 更新 service
-			if e := Redis.SetEX(fmt.Sprintf(RK_UserLoginService, l.UID, service), l.Token, time.Until(l.Expires)).Err(); e != nil {
-				return zservice.NewError(e).SetCode(zglobal.Code_Fail)
-			}
-		}
-	}
-
 	if e := Redis.SetEX(fmt.Sprintf(RK_TokenInfo, l.Token), zservice.JsonMustMarshalString(l), time.Until(l.Expires)).Err(); e != nil {
-		return zservice.NewError(e).SetCode(zglobal.Code_Fail)
+		return zservice.NewError(e)
 	}
 	return nil
 }
@@ -126,24 +170,6 @@ func (l *AuthToken) Save(ctx *zservice.Context) *zservice.Error {
 func (l *AuthToken) Del(ctx *zservice.Context) {
 
 	rk_info := fmt.Sprintf(RK_TokenInfo, l.Token)
-
-	// 用户登陆信息删除
-	zservice.Go(func() {
-		if len(l.LoginServices) > 0 {
-			delKeys := []string{}
-			for _, service := range l.LoginServices {
-				rk := fmt.Sprintf(RK_UserLoginService, l.UID, service)
-				if s, e := Redis.Get(rk).Result(); e != nil {
-					ctx.LogError(e)
-				} else if s == l.Token {
-					delKeys = append(delKeys, rk)
-				}
-			}
-			if e := Redis.Del(delKeys...).Err(); e != nil {
-				ctx.LogError(e)
-			}
-		}
-	})
 
 	// 删除 token 信息
 	if e := Redis.Del(rk_info).Err(); e != nil {

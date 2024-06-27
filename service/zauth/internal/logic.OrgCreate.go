@@ -10,6 +10,7 @@ import (
 func Logic_OrgCreate(ctx *zservice.Context, in *zauth_pb.OrgInfo) *zauth_pb.OrgInfo_RES {
 
 	if in.Name == "" {
+		ctx.LogError("param error")
 		return &zauth_pb.OrgInfo_RES{Code: zglobal.Code_ParamsErr}
 	}
 

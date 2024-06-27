@@ -11,6 +11,7 @@ import (
 func Logic_PermissionCreate(ctx *zservice.Context, in *zauth_pb.PermissionInfo) *zauth_pb.PermissionInfo_RES {
 
 	if in == nil || in.Name == "" || in.Service == "" {
+		ctx.LogError("param error")
 		return &zauth_pb.PermissionInfo_RES{Code: zglobal.Code_ParamsErr}
 	}
 

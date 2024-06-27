@@ -15,8 +15,8 @@ type EtcdService struct {
 }
 
 type EtcdServiceConfig struct {
-	Addr    string                 // ETCD 服务地址
-	OnStart func(*clientv3.Client) // 启动的回调
+	Addr    string             // ETCD 服务地址
+	OnStart func(*EtcdService) // 启动的回调
 }
 
 func NewEtcdService(c *EtcdServiceConfig) *EtcdService {
@@ -41,7 +41,7 @@ func NewEtcdService(c *EtcdServiceConfig) *EtcdService {
 			s.LogInfo("ETCD Status:", string(zservice.JsonMustMarshal(status)))
 		}
 		if c.OnStart != nil {
-			c.OnStart(es.Etcd)
+			c.OnStart(es)
 		}
 		s.StartDone()
 

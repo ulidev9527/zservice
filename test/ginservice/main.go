@@ -15,19 +15,19 @@ func init() {
 func main() {
 	ginS := ginservice.NewGinService(&ginservice.GinServiceConfig{
 		ListenPort: zservice.Getenv("GIN_ADDR"),
-		OnStart: func(engine *gin.Engine) {
+		OnStart: func(s *ginservice.GinService) {
 
-			engine.GET("/test_auth", func(ctx *gin.Context) {
+			s.Engine.GET("/test_auth", func(ctx *gin.Context) {
 
 				ctx.String(200, "ok")
 
 			})
 
-			engine.GET("/test", func(ctx *gin.Context) {
+			s.Engine.GET("/test", func(ctx *gin.Context) {
 
 				ctx.String(200, "ok")
 			})
-			engine.GET("/Test", func(ctx *gin.Context) {
+			s.Engine.GET("/Test", func(ctx *gin.Context) {
 				ctx.String(200, "OK___")
 			})
 		},

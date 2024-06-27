@@ -19,13 +19,13 @@ import (
 
 type GrpcService struct {
 	*zservice.ZService
-	Server *grpc.Server
+	GrpcServer *grpc.Server
 }
 
 type GrpcServiceConfig struct {
 	ListenPort string // 监听端口
 	EtcdClient *clientv3.Client
-	OnStart    func(*grpc.Server) // 启动的回调
+	OnStart    func(*GrpcService) // 启动的回调
 }
 
 func NewGrpcService(c *GrpcServiceConfig) *GrpcService {
@@ -42,7 +42,7 @@ func NewGrpcService(c *GrpcServiceConfig) *GrpcService {
 
 		// https://ayang.ink/分布式_grpc-基于-etcd-的服务发现/#grpc-服务端
 
-		gs.Server = grpc.NewServer(
+		gs.GrpcServer = grpc.NewServer(
 			grpc.ChainUnaryInterceptor(ServerUnaryInterceptor),
 			grpc.ChainStreamInterceptor(ServerStreamInterceptor),
 		)
@@ -127,7 +127,7 @@ func NewGrpcService(c *GrpcServiceConfig) *GrpcService {
 				s.LogPanic(e)
 			}
 
-			if e := gs.Server.Serve(lis); e != nil {
+			if e := gs.GrpcServer.Serve(lis); e != nil {
 				s.LogPanic(e)
 			}
 		}()
@@ -138,7 +138,7 @@ func NewGrpcService(c *GrpcServiceConfig) *GrpcService {
 		}()
 
 		if c.OnStart != nil {
-			c.OnStart(gs.Server)
+			c.OnStart(gs)
 		}
 
 	})
