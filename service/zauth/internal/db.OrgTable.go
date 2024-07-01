@@ -1,17 +1,18 @@
 package internal
 
 import (
-	"encoding/json"
 	"fmt"
 	"zservice/zservice"
 	"zservice/zservice/ex/gormservice"
 	"zservice/zservice/ex/redisservice"
 	"zservice/zservice/zglobal"
+
+	"gorm.io/gorm"
 )
 
 // 组织表
 type OrgTable struct {
-	gormservice.Model
+	gorm.Model
 	OrgID    uint32 `gorm:"unique"` // 组织ID
 	Name     string // 组名
 	RootID   uint32 // 根组织ID
@@ -40,33 +41,11 @@ func HasOrgByID(ctx *zservice.Context, id uint32) (bool, *zservice.Error) {
 
 // 根据ID获取一个组织
 func GetOrgByID(ctx *zservice.Context, id uint32) (*OrgTable, *zservice.Error) {
-	rk_info := fmt.Sprintf(RK_OrgInfo, id)
+
 	tab := &OrgTable{}
-
-	if s, e := Redis.Get(rk_info).Result(); e != nil {
-		if !redisservice.IsNilErr(e) {
-			return nil, zservice.NewError(e)
-		}
-	} else if e := json.Unmarshal([]byte(s), tab); e != nil { // 无法转换为json
-		ctx.LogError(e)
-	} else if tab.OrgID > 0 { // 大于 0 表示有这个组织
-		return tab, nil
+	if e := dbhelper.GetTableValue(ctx, tab, fmt.Sprintf(RK_OrgInfo, id), fmt.Sprintf("org_id = %v", id)); e != nil {
+		return nil, e
 	}
-
-	// 未找到 查表
-	if e := Mysql.Model(&OrgTable{}).Where("org_id = ?", id).First(tab).Error; e != nil {
-		if gormservice.IsNotFound(e) {
-			return nil, zservice.NewError(e).SetCode(zglobal.Code_NotFound)
-		}
-		return nil, zservice.NewError(e)
-	}
-
-	// 设置缓存
-	zservice.Go(func() {
-		if e := Redis.Set(rk_info, zservice.JsonMustMarshalString(tab)).Err(); e != nil {
-			ctx.LogError(e)
-		}
-	})
 	return tab, nil
 }
 

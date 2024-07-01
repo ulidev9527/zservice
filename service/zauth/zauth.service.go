@@ -3,12 +3,14 @@ package main
 import (
 	"zservice/service/zauth/internal"
 	"zservice/service/zauth/zauth_ex"
+	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
 	"zservice/zservice/ex/etcdservice"
 	"zservice/zservice/ex/ginservice"
 	"zservice/zservice/ex/gormservice"
 	"zservice/zservice/ex/grpcservice"
 	"zservice/zservice/ex/redisservice"
+	"zservice/zservice/zglobal"
 )
 
 func init() {
@@ -38,7 +40,12 @@ func main() {
 	})
 
 	ServiceRegist := zservice.NewService("ServiceRegist", func(z *zservice.ZService) {
-		zauth_ex.ServiceInfo.Regist(true)
+		ctx := zservice.NewContext()
+		zauth_ex.ServiceInfo.Regist(ctx, &zauth_pb.ServiceRegist_REQ{
+			InitPermissions: []*zauth_pb.PermissionInfo{
+				{Action: "post", Path: "/login", State: zglobal.E_PermissionState_AllowAll},
+			},
+		}, true)
 
 		z.StartDone()
 	})

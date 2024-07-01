@@ -85,7 +85,7 @@ func GetMainService() *ZService {
 }
 
 func Start() *ZService {
-	return mainService.start()
+	return mainService.Start()
 }
 
 func Stop() {

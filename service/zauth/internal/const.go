@@ -13,7 +13,7 @@ const (
 	RK_UserLoginName               = "user:loginName:%v"                  // 账号信息缓存 %v:loginName val:UID
 	RK_UserLoginPhone              = "user:loginPhone:%v"                 // 账号信息缓存 %v:手机号 val:UID
 	RK_UserLoginServices           = "user:loginService:%v:%v"            // 账号登陆后的目标service缓存 %v:uid %v:service val:[AuthToken]
-	RK_AOBind_Info                 = "AOBind:link:%v:%v"                  // 账号组织绑定 %v:OrgID %v:UID val:BindID
+	RK_UserOrgBind_Info            = "userOrg:bindInfo:%v:%v"             // 账号组织绑定 %v:UID %v:OrgID val:UserOrgBindTable
 	RK_PermissionInfo              = "permission:info:%v"                 // 权限信息 %v:PermissionID
 	RK_PermissionBindInfo          = "permission:bindInfo:%v:%v:%v"       // 权限绑定 %v:TargetType %v:TargetID %v:PermissionID val:PermissionBindTable
 	RK_PermissionSAP               = "permission:sap:%v:%v:%v"            // 权限绑定 %v:service %v:action %v:path val:PermissionID

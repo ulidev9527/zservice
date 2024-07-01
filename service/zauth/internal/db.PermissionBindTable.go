@@ -1,21 +1,23 @@
 package internal
 
 import (
+	"database/sql"
 	"fmt"
 	"time"
 	"zservice/zservice"
-	"zservice/zservice/ex/gormservice"
 	"zservice/zservice/zglobal"
+
+	"gorm.io/gorm"
 )
 
 // 账号权限绑定表
 type PermissionBindTable struct {
-	gormservice.Model
-	TargetType   uint32 // 外部ID类型 0无效 1组织 2账号
-	TargetID     uint32 // 外部ID
-	PermissionID uint32 // 权限ID
-	Expires      uint64 // 过期时间
-	State        uint32 // 状态 0禁止访问 1允许访问
+	gorm.Model
+	TargetType   uint32       // 外部ID类型 0无效 1组织 2账号
+	TargetID     uint32       // 外部ID
+	PermissionID uint32       // 权限ID
+	Expires      sql.NullTime // 过期时间
+	State        uint32       // 状态 0禁止访问 1允许访问
 }
 
 // 是否有权限绑定
@@ -43,10 +45,10 @@ func GetPermissionBind(ctx *zservice.Context, targetType uint32, targetID uint32
 
 // 是否过期
 func (z *PermissionBindTable) IsExpired() bool {
-	if z.Expires == 0 {
+	if z.Expires.Time.IsZero() {
 		return false
 	}
-	return time.Now().Unix() < int64(z.Expires)
+	return z.Expires.Time.After(time.Now())
 }
 
 // 存储

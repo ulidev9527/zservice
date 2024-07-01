@@ -67,8 +67,8 @@ func (s *ZauthServer) GetServiceKV(ctx context.Context, in *zauth_pb.GetServiceK
 func (s *ZauthServer) ServiceRegist(ctx context.Context, in *zauth_pb.ServiceRegist_REQ) (*zauth_pb.ServiceRegist_RES, error) {
 	return Logic_ServiceRegist(ctx.(*zservice.Context), in), nil
 }
-func (s *ZauthServer) AddUserToOrg(ctx context.Context, in *zauth_pb.AddUserToOrg_REQ) (*zauth_pb.Default_RES, error) {
-	return Logic_AddUserToOrg(ctx.(*zservice.Context), in), nil
+func (s *ZauthServer) UserOrgBind(ctx context.Context, in *zauth_pb.UserOrgBind_REQ) (*zauth_pb.Default_RES, error) {
+	return Logic_UserOrgBind(ctx.(*zservice.Context), in), nil
 }
 
 // 获取文件配置

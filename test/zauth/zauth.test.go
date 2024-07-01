@@ -5,6 +5,7 @@ import (
 	"strings"
 	"zservice/service/zauth/zauth"
 	"zservice/service/zauth/zauth_ex"
+	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
 	"zservice/zservice/ex/etcdservice"
 	"zservice/zservice/ex/ginservice"
@@ -28,14 +29,15 @@ func main() {
 	})
 
 	grpcClient := zservice.NewService("zauth.grpc", func(z *zservice.ZService) {
-
+		ctx := zservice.NewContext()
 		zauth.Init(&zauth.ZAuthInitConfig{
 			ServiceName: zservice.Getenv("ZAUTH_SERVICE_NAME"),
 			Etcd:        etcdS.Etcd,
 			GrpcAddr:    zservice.Getenv("zauth_grpc_addr"),
 			UseGrpcEtcd: zservice.GetenvBool("USE_GRPC_ETCD"),
 		})
-		zauth_ex.ServiceInfo.Regist()
+
+		zauth_ex.ServiceInfo.Regist(ctx, &zauth_pb.ServiceRegist_REQ{})
 		z.StartDone()
 	})
 	grpcClient.AddDependService(etcdS.ZService)

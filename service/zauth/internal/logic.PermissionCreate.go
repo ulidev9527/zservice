@@ -10,13 +10,9 @@ import (
 // 创建逻辑
 func Logic_PermissionCreate(ctx *zservice.Context, in *zauth_pb.PermissionInfo) *zauth_pb.PermissionInfo_RES {
 
-	if in == nil || in.Name == "" || in.Service == "" {
-		ctx.LogError("param error")
+	if in.Service == "" {
+		ctx.LogError("param error", in)
 		return &zauth_pb.PermissionInfo_RES{Code: zglobal.Code_ParamsErr}
-	}
-
-	if in.State > 3 {
-		in.State = 3
 	}
 
 	// 检查权限是否存在

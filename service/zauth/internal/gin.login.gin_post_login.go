@@ -34,7 +34,6 @@ func gin_post_login(ctx *gin.Context) {
 	case 1: // 手机号登陆
 		res := Logic_LoginByPhone(zctx, &zauth_pb.LoginByPhone_REQ{
 			Phone:      req.Phone,
-			Expires:    uint32(zglobal.Time_10Day.Seconds()),
 			VerifyCode: req.SMSVerifyCode,
 			Service:    zservice.GetServiceName(),
 			Toekn:      zctx.AuthToken,
@@ -49,7 +48,6 @@ func gin_post_login(ctx *gin.Context) {
 		res := Logic_LoginByName(zctx, &zauth_pb.LoginByName_REQ{
 			User:      req.LoginName,
 			Password:  req.LoginPass,
-			Expires:   uint32(zglobal.Time_10Day.Seconds()),
 			Service:   zservice.GetServiceName(),
 			Toekn:     zctx.AuthToken,
 			ToeknSign: zctx.AuthTokenSign,

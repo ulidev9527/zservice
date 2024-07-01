@@ -68,7 +68,6 @@ func Logic_LoginByPhone(ctx *zservice.Context, in *zauth_pb.LoginByPhone_REQ) *z
 		Expires uint32
 	}{
 		Service: in.Service,
-		Expires: in.Expires,
 	}, at, user); e != nil {
 		ctx.LogError(e)
 		return &zauth_pb.Login_RES{Code: e.GetCode()}

@@ -32,5 +32,7 @@ func InitGin() {
 	Gin.POST("/org", gin_post_orgCreate)
 	Gin.PUT("/org", gin_put_orgUpdate)
 
+	Gin.POST("/userOrgBind", gin_post_userOrgBind)
+
 	Gin.POST("/zzzzString", gin_post_zzzzString)
 }

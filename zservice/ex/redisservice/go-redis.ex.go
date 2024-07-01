@@ -63,7 +63,7 @@ func (r *GoRedisEX) LockCtx(ctx context.Context, key string, timeout ...time.Dur
 		return nil, zservice.NewError(e)
 	}
 	if !ok {
-		return nil, zservice.NewErrorf("lock %s fail", lockKey).SetCode(zglobal.Code_Already_Lock)
+		return nil, zservice.NewErrorf("lock %s fail", lockKey).SetCode(zglobal.Code_RepetitionErr)
 	}
 
 	return func() {
@@ -85,6 +85,9 @@ func (r *GoRedisEX) GetCtx(ctx context.Context, key string) *redis.StringCmd {
 // 查询到的内容直接转结构体
 func (r *GoRedisEX) GetScan(key string, v any) *zservice.Error {
 	if s, e := r.Get(key).Result(); e != nil {
+		if IsNilErr(e) {
+			return zservice.NewError(e).SetCode(zglobal.Code_NotFound)
+		}
 		return zservice.NewError(e)
 	} else if e := json.Unmarshal([]byte(s), v); e != nil {
 		return zservice.NewError(e)

@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -9,16 +10,18 @@ import (
 	"zservice/zservice/ex/gormservice"
 	"zservice/zservice/ex/redisservice"
 	"zservice/zservice/zglobal"
+
+	"gorm.io/gorm"
 )
 
 // 资源
 type AssetTable struct {
-	gormservice.Model
-	Name   string // 名称
-	MD5    string // md5
-	Token  string // 资源token
-	Expire int64  // 过期时间
-	Size   uint64 // 文件大小
+	gorm.Model
+	Name    string       // 名称
+	MD5     string       // md5
+	Token   string       // 资源token
+	Expires sql.NullTime // 过期时间
+	Size    uint64       // 文件大小
 }
 
 // 创建资源
@@ -30,11 +33,11 @@ func AssetCreate(ctx *zservice.Context, in *zauth_pb.AssetInfo) (*AssetTable, *z
 
 	// 准备写入数据
 	tab := &AssetTable{
-		Name:   in.Name,
-		MD5:    in.Md5,
-		Token:  zservice.MD5String(fmt.Sprintf("%s_%d_%d", in.Md5, in.Expire, time.Now().UnixMicro())),
-		Expire: in.Expire,
-		Size:   in.Size,
+		Name:    in.Name,
+		MD5:     in.Md5,
+		Token:   zservice.MD5String(fmt.Sprintf("%s_%d_%d", in.Md5, in.Expires, time.Now().UnixMicro())),
+		Expires: sql.NullTime{Time: time.UnixMilli(in.Expires)},
+		Size:    in.Size,
 	}
 
 	if e := tab.Save(ctx); e != nil {

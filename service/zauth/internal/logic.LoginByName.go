@@ -49,7 +49,6 @@ func Logic_LoginByName(ctx *zservice.Context, in *zauth_pb.LoginByName_REQ) *zau
 		Expires uint32
 	}{
 		Service: in.Service,
-		Expires: in.Expires,
 	}, at, user); e != nil {
 		ctx.LogError(e)
 		return &zauth_pb.Login_RES{Code: e.GetCode()}

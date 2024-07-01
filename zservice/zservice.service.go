@@ -48,7 +48,7 @@ func NewService(name string, onStart func(*ZService)) *ZService {
 }
 
 // 启动服务
-func (z *ZService) start() *ZService {
+func (z *ZService) Start() *ZService {
 	z.mu.Lock()
 	if z.state != 0 {
 		return z
@@ -63,7 +63,7 @@ func (z *ZService) start() *ZService {
 		z.LogInfo("waiting depend service")
 		if z == mainService {
 			for i := 0; i < len(z.dependService); i++ {
-				go z.dependService[i].start()
+				go z.dependService[i].Start()
 			}
 		}
 		// 等待依赖启动

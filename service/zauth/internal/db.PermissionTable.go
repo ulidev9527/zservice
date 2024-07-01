@@ -6,17 +6,19 @@ import (
 	"zservice/zservice/ex/gormservice"
 	"zservice/zservice/ex/redisservice"
 	"zservice/zservice/zglobal"
+
+	"gorm.io/gorm"
 )
 
 // 权限表
 type PermissionTable struct {
-	gormservice.Model
+	gorm.Model
 	PermissionID uint32 `gorm:"unique"` // 权限ID
 	Name         string // 权限名称
 	Service      string // 服务名称
 	Action       string // 权限动作
 	Path         string // 权限路径
-	State        uint32 `gorm:"default:3"` // 状态 0禁用 1公开访问 2授权访问 3继承父级(默认)
+	State        uint32 `gorm:"default:3"` // 状态 0拒绝所有访问 1公开访问 2授权访问 3继承父级(默认)
 }
 
 // 同步权限表缓存

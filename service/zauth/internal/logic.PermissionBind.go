@@ -1,7 +1,9 @@
 package internal
 
 import (
+	"database/sql"
 	"fmt"
+	"time"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
 	"zservice/zservice/zglobal"
@@ -58,7 +60,7 @@ func Logic_PermissionBind(ctx *zservice.Context, in *zauth_pb.PermissionBind_REQ
 					TargetType:   tab.TargetType,
 					TargetID:     tab.TargetID,
 					PermissionID: tab.PermissionID,
-					Expires:      tab.Expires,
+					Expires:      tab.Expires.Time.UnixMilli(),
 					State:        tab.State,
 				},
 			}
@@ -67,7 +69,7 @@ func Logic_PermissionBind(ctx *zservice.Context, in *zauth_pb.PermissionBind_REQ
 			tab.TargetType = in.TargetType
 			tab.TargetID = in.TargetID
 			tab.PermissionID = in.PermissionID
-			tab.Expires = in.Expires
+			tab.Expires = sql.NullTime{Time: time.UnixMilli(in.Expires)}
 			tab.State = in.State
 			if e := tab.Save(ctx); e != nil {
 				ctx.LogError(e)
@@ -80,7 +82,7 @@ func Logic_PermissionBind(ctx *zservice.Context, in *zauth_pb.PermissionBind_REQ
 					TargetType:   tab.TargetType,
 					TargetID:     tab.TargetID,
 					PermissionID: tab.PermissionID,
-					Expires:      tab.Expires,
+					Expires:      tab.Expires.Time.UnixMilli(),
 					State:        tab.State,
 				}}
 		}
@@ -90,7 +92,7 @@ func Logic_PermissionBind(ctx *zservice.Context, in *zauth_pb.PermissionBind_REQ
 		TargetType:   in.TargetType,
 		TargetID:     in.TargetID,
 		PermissionID: in.PermissionID,
-		Expires:      in.Expires,
+		Expires:      sql.NullTime{Time: time.UnixMilli(in.Expires)},
 		State:        in.State,
 	}
 
@@ -103,7 +105,7 @@ func Logic_PermissionBind(ctx *zservice.Context, in *zauth_pb.PermissionBind_REQ
 		TargetType:   tab.TargetType,
 		TargetID:     tab.TargetID,
 		PermissionID: tab.PermissionID,
-		Expires:      tab.Expires,
+		Expires:      tab.Expires.Time.UnixMilli(),
 		State:        tab.State,
 	}}
 }

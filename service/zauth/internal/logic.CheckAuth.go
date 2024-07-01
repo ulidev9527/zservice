@@ -73,7 +73,10 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 
 		// 未找到 查表, 按权限最接近的查询
 		tabs := []PermissionTable{}
-		if e := Mysql.Model(&PermissionTable{}).Where("(service, action, path) IN ?", inArr).Order("LENGTH(action) DESC, LENGTH(path) DESC").Find(&tabs).Error; e != nil {
+		if e := Mysql.
+			Order("LENGTH(action) DESC, LENGTH(path) DESC").
+			Find(&tabs, "(service, action, path) IN ? AND state > 0", inArr).
+			Error; e != nil {
 			if !gormservice.IsNotFound(e) {
 				return nil, zservice.NewError(e)
 			}
@@ -100,64 +103,65 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 
 	// 当前权限是否公开
 	switch permissionInfo.State {
-	case 0: // 权限禁用
-	case 3: // 继承父级，父级未处理，权限配置有问题，查当前服务的顶级权限是否配置正确
-		ctx.LogInfo("permission config error")
-		return resultRES
+	case zglobal.E_PermissionState_IgnoreAll: // 拒绝所有访问
+		ctx.LogWarn("permission is:", zglobal.E_PermissionState_IgnoreAll, in)
+		resultRES.Code = zglobal.Code_Zauth_Fail
 	case 1: // 公开访问
 		resultRES.Code = zglobal.Code_SUCC
 		return resultRES
-	}
+	case 2: // 需要登录
+		// 检查是否拥有该权限
+		if authToken.UID == 0 { // 未登录, 不继续接下里用户判断流程
+			ctx.LogInfo("not login", in.Service, in.Token, in.TokenSign)
+			return resultRES
+		}
 
-	// 检查是否拥有该权限
-	if authToken.UID == 0 { // 未登录, 不继续接下里用户判断流程
-		ctx.LogInfo("not login", in.Service, in.Token, in.TokenSign)
-		return resultRES
-	}
+		// 检查登陆服务是否正确
+		if !authToken.HasLoginService(in.Service) {
+			ctx.LogInfo("login service error", in.Service, in.Token, in.TokenSign)
+			return resultRES
+		}
 
-	// 检查登陆服务是否正确
-	if !authToken.HasLoginService(in.Service) {
-		ctx.LogInfo("login service error", in.Service, in.Token, in.TokenSign)
-		return resultRES
-	}
+		// 检查用户和权限组的绑定
+		// 当前账号是否有权限配置
+		if tab, e := GetPermissionBind(ctx, 2, authToken.UID, permissionInfo.PermissionID); e != nil {
+			if e.GetCode() != zglobal.Code_NotFound { // 未找到进行父级查找，其它错误直接在这里返回
+				ctx.LogError(e)
+				resultRES.Code = e.GetCode()
+				return resultRES
+			}
+		} else if !tab.IsExpired() { // 过期的检查权限表示无效，检查所在组织是否有权限
+			if tab.State == 1 {
+				resultRES.Code = zglobal.Code_SUCC
+				return resultRES
+			} else {
+				resultRES.Code = zglobal.Code_Limit
+				return resultRES
+			}
+		}
 
-	// 检查用户和权限组的绑定
-	// 当前账号是否有权限配置
-	if tab, e := GetPermissionBind(ctx, 2, authToken.UID, permissionInfo.PermissionID); e != nil {
-		if e.GetCode() != zglobal.Code_NotFound { // 未找到进行父级查找，其它错误直接在这里返回
+		// 查库
+		bindCount := int64(0)
+		if e := Mysql.Model(&UserOrgBindTable{}).Where( // 查找组中是否有当前账号的绑定信息
+			"uid = ? AND org_id IN (?)",
+			authToken.UID,
+			Mysql.Model(&PermissionBindTable{}).Where( // 查找所有分配权限的组
+				"permission_id = ? AND target_type = 1 AND state = 1 AND (expires IS NULL OR expires > ?)",
+				permissionInfo.PermissionID,
+				time.Now(),
+			).Select("target_id"),
+		).Count(&bindCount).Error; e != nil {
 			ctx.LogError(e)
-			resultRES.Code = e.GetCode()
 			return resultRES
 		}
-	} else if !tab.IsExpired() { // 过期的检查权限表示无效，检查所在组织是否有权限
-		if tab.State == 1 {
+
+		if bindCount > 0 {
 			resultRES.Code = zglobal.Code_SUCC
-			return resultRES
-		} else {
-			resultRES.Code = zglobal.Code_Limit
-			return resultRES
 		}
-	}
-
-	// 查库
-	bindCount := int64(0)
-	if e := Mysql.Model(&UserOrgBindTable{}).Where( // 查找组中是否有当前账号的绑定信息
-		"uid = ? AND org_id IN (?)",
-		authToken.UID,
-		Mysql.Model(&PermissionBindTable{}).Where( // 查找所有分配权限的组
-			"permission_id = ? AND target_type = 1 AND state = 1 AND (expires = 0 OR expires > ?)",
-			permissionInfo.PermissionID,
-			time.Now().Unix(),
-		).Select("target_id"),
-	).Count(&bindCount).Error; e != nil {
-		ctx.LogError(e)
+	default:
+		// 其它状态肯定是配置出错或者上面逻辑有问题
+		ctx.LogError("permission config error", permissionInfo.State, in)
 		return resultRES
-	}
-
-	if bindCount > 0 {
-		resultRES.Code = zglobal.Code_SUCC
-	} else {
-		ctx.LogError()
 	}
 
 	return resultRES

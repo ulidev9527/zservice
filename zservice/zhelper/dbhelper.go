@@ -11,12 +11,12 @@ import (
 )
 
 type DBHelper struct {
-	Redis *redisservice.GoRedisEX
-	Mysql *gorm.DB
+	redis *redisservice.GoRedisEX
+	mysql *gorm.DB
 }
 
 func NewDBHelper(Redis *redisservice.GoRedisEX, Mysql *gorm.DB) *DBHelper {
-	return &DBHelper{Redis: Redis, Mysql: Mysql}
+	return &DBHelper{redis: Redis, mysql: Mysql}
 }
 
 // 同步表缓存
@@ -28,7 +28,7 @@ func (db *DBHelper) SyncTableCache(ctx *zservice.Context, tabArr any, getRK func
 	errorCount := 0   // 错误数量
 	for {
 		// 查数据库
-		if e := db.Mysql.Limit(limitCount).Order("created_at ASC").Offset(startCount).Find(&tabArr).Error; e != nil {
+		if e := db.mysql.Limit(limitCount).Order("created_at ASC").Offset(startCount).Find(&tabArr).Error; e != nil {
 			return zservice.NewError(e)
 		}
 
@@ -38,18 +38,18 @@ func (db *DBHelper) SyncTableCache(ctx *zservice.Context, tabArr any, getRK func
 		for _, v := range arr {
 			allCount++
 			rk_info := getRK(v)
-			un, e := db.Redis.Lock(rk_info)
+			un, e := db.redis.Lock(rk_info)
 			if e != nil {
 				ctx.LogError(e)
 				errorCount++
 			}
 			defer un()
 
-			if e := db.Redis.Set(rk_info, string(zservice.JsonMustMarshal(v))).Err(); e != nil {
+			if e := db.redis.Set(rk_info, string(zservice.JsonMustMarshal(v))).Err(); e != nil {
 				ctx.LogError(e)
 				errorCount++
 			} else {
-				db.Redis.Expire(rk_info, zglobal.Time_10Day) // 设置过期时间
+				db.redis.Expire(rk_info, zglobal.Time_10Day) // 设置过期时间
 			}
 		}
 
@@ -74,7 +74,7 @@ func (db *DBHelper) SyncTableCache(ctx *zservice.Context, tabArr any, getRK func
 // 查询表中是否有指定值
 func (db *DBHelper) HasTableValue(ctx *zservice.Context, tab any, rk string, sqlWhere string) (bool, *zservice.Error) {
 
-	if has, e := db.Redis.Exists(rk).Result(); e != nil {
+	if has, e := db.redis.Exists(rk).Result(); e != nil {
 		return false, zservice.NewError(e)
 	} else if has > 0 {
 		return true, nil
@@ -82,7 +82,7 @@ func (db *DBHelper) HasTableValue(ctx *zservice.Context, tab any, rk string, sql
 
 	// 验证数据库中是否存在
 	count := int64(0)
-	if e := db.Mysql.Model(&tab).Where(sqlWhere).Count(&count).Error; e != nil {
+	if e := db.mysql.Model(&tab).Where(sqlWhere).Count(&count).Error; e != nil {
 		return false, zservice.NewError(e)
 	}
 
@@ -119,18 +119,16 @@ func (db *DBHelper) GetNewTableID(
 
 // 获取指定值
 // 注意，如果没找到数据回返回：zglobal.Code_NotFound
-func (db *DBHelper) GetTableValue(ctx *zservice.Context, tab any, rk string, sqlWhere string, expire ...time.Duration) *zservice.Error {
+func (db *DBHelper) GetTableValue(ctx *zservice.Context, tab any, rk string, sqlWhere string, expires ...time.Duration) *zservice.Error {
 	// 读缓存
-	if has, e := db.Redis.Exists(rk).Result(); e != nil {
-		return zservice.NewError(e)
-	} else if has > 0 {
-		if e := db.Redis.GetScan(rk, &tab); e != nil {
-			return zservice.NewError(e)
+	if e := db.redis.GetScan(rk, &tab); e != nil {
+		if e.GetCode() != zglobal.Code_NotFound {
+			return e.AddCaller()
 		}
-		return nil
 	}
 
-	if e := db.Mysql.Model(&tab).Where(sqlWhere).First(&tab).Error; e != nil {
+	// 查库
+	if e := db.mysql.First(tab, sqlWhere).Error; e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
 			return zservice.NewError(e).SetCode(zglobal.Code_NotFound)
 		} else {
@@ -141,10 +139,10 @@ func (db *DBHelper) GetTableValue(ctx *zservice.Context, tab any, rk string, sql
 	// 更新缓存
 	zservice.Go(func() {
 		if e := func() error {
-			if len(expire) > 0 {
-				return db.Redis.SetEX(rk, string(zservice.JsonMustMarshal(tab)), expire[0]).Err()
+			if len(expires) > 0 {
+				return db.redis.SetEX(rk, string(zservice.JsonMustMarshal(tab)), expires[0]).Err()
 			} else {
-				return db.Redis.SetEX(rk, string(zservice.JsonMustMarshal(tab)), zglobal.Time_3Day).Err()
+				return db.redis.SetEX(rk, string(zservice.JsonMustMarshal(tab)), zglobal.Time_3Day).Err()
 			}
 		}(); e != nil {
 			ctx.LogError(e)

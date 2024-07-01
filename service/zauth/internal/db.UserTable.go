@@ -7,11 +7,13 @@ import (
 	"zservice/zservice/ex/gormservice"
 	"zservice/zservice/ex/redisservice"
 	"zservice/zservice/zglobal"
+
+	"gorm.io/gorm"
 )
 
 // 账号表
 type UserTable struct {
-	gormservice.Model
+	gorm.Model
 	UID            uint32 `gorm:"unique"` // 用户唯一ID
 	LoginName      string // 登陆账号
 	LoginPass      string // 登陆密码
@@ -115,7 +117,13 @@ func GetUserByPhone(ctx *zservice.Context, phone string) (*UserTable, *zservice.
 		}
 	} else {
 		if zservice.IsInteger(s) {
-			return GetUserByUID(ctx, zservice.StringToUint32(s))
+			if tab, e := GetUserByUID(ctx, zservice.StringToUint32(s)); e != nil {
+				if e.GetCode() != zglobal.Code_NotFound {
+					return nil, e.AddCaller()
+				}
+			} else {
+				return tab, nil
+			}
 		}
 	}
 
@@ -131,12 +139,14 @@ func GetUserByPhone(ctx *zservice.Context, phone string) (*UserTable, *zservice.
 	}
 
 	// 更新缓存
-	if e := Redis.Set(rk, zservice.Uint32ToString(tab.UID)).Err(); e != nil {
-		ctx.LogError(e)
-	}
-	if e := Redis.Set(fmt.Sprintf(RK_UserInfo, tab.UID), zservice.JsonMustMarshalString(tab)).Err(); e != nil {
-		ctx.LogError(e)
-	}
+	zservice.Go(func() {
+		if e := Redis.Set(rk, zservice.Uint32ToString(tab.UID)).Err(); e != nil {
+			ctx.LogError(e)
+		}
+		if e := Redis.Set(fmt.Sprintf(RK_UserInfo, tab.UID), zservice.JsonMustMarshalString(tab)).Err(); e != nil {
+			ctx.LogError(e)
+		}
+	})
 
 	return &tab, nil
 }

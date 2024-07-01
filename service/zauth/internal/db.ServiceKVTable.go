@@ -7,10 +7,12 @@ import (
 	"zservice/zservice/ex/gormservice"
 	"zservice/zservice/ex/redisservice"
 	"zservice/zservice/zglobal"
+
+	"gorm.io/gorm"
 )
 
 type ServiceKVTable struct {
-	gormservice.Model
+	gorm.Model
 	Key     string
 	Value   string
 	Service string // 所属服务

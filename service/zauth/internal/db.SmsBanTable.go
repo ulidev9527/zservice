@@ -1,21 +1,21 @@
 package internal
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"time"
 	"zservice/zservice"
-	"zservice/zservice/ex/gormservice"
 
 	"gorm.io/gorm"
 )
 
 // 短信封禁
 type SmsBanTable struct {
-	gormservice.Model
-	Phone   string // 手机号
-	Expires uint64 // 过期时间
-	BanMsg  string // 封禁原因
+	gorm.Model
+	Phone   string       // 手机号
+	Expires sql.NullTime // 过期时间
+	BanMsg  string       // 封禁原因
 }
 
 // 账号是否封禁
@@ -36,7 +36,7 @@ func IsSmsBan(ctx *zservice.Context, phone string) (bool, *zservice.Error) {
 
 	// 查数据库
 	tb := &SmsBanTable{}
-	if e := Mysql.Model(&SmsBanTable{}).Where("phone = ? and expires > now()", phone).Order("expires DESC").Limit(1).First(&tb).Error; e != nil {
+	if e := Mysql.Order("expires DESC").Limit(1).First(&tb, "phone = ? and expires > ?", phone, time.Now()).Error; e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
 			return false, nil
 		} else {
@@ -44,7 +44,7 @@ func IsSmsBan(ctx *zservice.Context, phone string) (bool, *zservice.Error) {
 		}
 	} else {
 		// 更新缓存
-		_, e = Redis.SetEX(rk_phoneBan, "1", time.Second*time.Duration(tb.Expires)).Result()
+		_, e = Redis.SetEX(rk_phoneBan, "1", time.Until(tb.Expires.Time)).Result()
 		if e != nil {
 			zservice.LogError(e)
 		}

@@ -6,13 +6,13 @@ import (
 	"zservice/zservice/zglobal"
 )
 
-func AddUserToOrg(ctx *zservice.Context, in *zauth_pb.AddUserToOrg_REQ) *zauth_pb.Default_RES {
+func UserOrgBind(ctx *zservice.Context, in *zauth_pb.UserOrgBind_REQ) *zauth_pb.Default_RES {
 
 	if in.Uid == 0 || in.OrgID == 0 {
 		return &zauth_pb.Default_RES{Code: zglobal.Code_ParamsErr}
 	}
 
-	if res, e := grpcClient.AddUserToOrg(ctx, in); e != nil {
+	if res, e := grpcClient.UserOrgBind(ctx, in); e != nil {
 		return &zauth_pb.Default_RES{Code: zglobal.Code_Fail}
 	} else {
 		return res

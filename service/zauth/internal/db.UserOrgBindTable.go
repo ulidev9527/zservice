@@ -1,69 +1,89 @@
 package internal
 
 import (
+	"database/sql"
 	"fmt"
 	"time"
 	"zservice/zservice"
-	"zservice/zservice/ex/gormservice"
 	"zservice/zservice/zglobal"
+
+	"gorm.io/gorm"
 )
 
 // 账号组织绑定
 type UserOrgBindTable struct {
-	gormservice.Model
+	gorm.Model
 
-	OrgID   uint32 // 组ID
-	UID     uint32 // 用户ID
-	Expires int64  // 过期时间
-	State   uint32 `gorm:"default:1"` // 状态 0禁用 1开启
+	UID     uint32       // 用户ID
+	OrgID   uint32       // 组ID
+	Expires sql.NullTime // 过期时间
+	State   uint32       `gorm:"default:1"` // 状态 0禁用 1开启
 }
 
-// 加入组织
-func UserOrgBind(ctx *zservice.Context, uid uint32, orgID uint32, Expires int64) (*UserOrgBindTable, *zservice.Error) {
-	// 验证参数是否正确
-	if has, e := HasOrgByID(ctx, orgID); e != nil {
-		return nil, e
-	} else if !has {
-		return nil, zservice.NewError("org not found:", orgID).SetCode(zglobal.Code_Zauth_Org_NotFund)
+// 用户和组织绑定
+func UserOrgBind(ctx *zservice.Context, uid uint32, orgID uint32, Expires int64, state uint32) (*UserOrgBindTable, *zservice.Error) {
+
+	if tab, e := GetUserOrgBind(ctx, uid, orgID); e != nil {
+		if e.GetCode() != zglobal.Code_NotFound {
+			return nil, e
+		}
+	} else {
+		// 检查是否更新
+		if zservice.MD5String(fmt.Sprint(uid, orgID, Expires, state)) ==
+			zservice.MD5String(fmt.Sprint(tab.UID, tab.OrgID, tab.Expires.Time.UnixMilli(), state)) {
+			return tab, nil
+		} else {
+			tab.Expires = sql.NullTime{Time: time.UnixMilli(Expires)}
+			tab.State = state
+			if e := tab.Save(ctx); e != nil {
+				return nil, e
+			}
+			return tab, nil
+		}
 	}
 
-	if has, e := HasUserByID(ctx, uid); e != nil {
-		return nil, e
-	} else if !has {
-		return nil, zservice.NewError("user not found:", uid).SetCode(zglobal.Code_Zauth_User_NotFund)
-	}
+	// 创建新数据
 
-	// 是否已经绑定
-	if has, e := HasUserOrgBindByID(ctx, uid, orgID); e != nil {
-		return nil, e
-	} else if has {
-		return nil, zservice.NewError("user already join org:", uid, orgID).SetCode(zglobal.Code_Zauth_UserAlreadyJoin_Org)
-	}
-
-	// 准备写入数据
-	z := &UserOrgBindTable{
+	tab := &UserOrgBindTable{
 		OrgID:   orgID,
 		UID:     uid,
-		Expires: Expires,
+		Expires: sql.NullTime{Time: time.UnixMilli(Expires)},
+		State:   state,
 	}
 
-	if e := z.Save(ctx); e != nil {
+	if e := tab.Save(ctx); e != nil {
 		return nil, e
 	}
-	return z, nil
+	return tab, nil
+}
+
+// 用户用户和组织绑定信息
+func GetUserOrgBind(ctx *zservice.Context, uid uint32, orgID uint32) (*UserOrgBindTable, *zservice.Error) {
+
+	tab := &UserOrgBindTable{}
+
+	if e := dbhelper.GetTableValue(ctx,
+		tab,
+		fmt.Sprintf(RK_UserOrgBind_Info, uid, orgID),
+		fmt.Sprintf("uid = %d AND org_id = %d", uid, orgID),
+	); e != nil {
+		return nil, e
+	}
+
+	return tab, nil
 }
 
 // 是否有账号和组织绑定
 func HasUserOrgBindByID(ctx *zservice.Context, uid uint32, orgID uint32) (bool, *zservice.Error) {
-	return dbhelper.HasTableValue(ctx, &UserOrgBindTable{}, fmt.Sprintf(RK_AOBind_Info, orgID, uid), fmt.Sprintf("uid = %v and org_id = %v", uid, orgID))
+	return dbhelper.HasTableValue(ctx, &UserOrgBindTable{}, fmt.Sprintf(RK_UserOrgBind_Info, uid, orgID), fmt.Sprintf("uid = %v and org_id = %v", uid, orgID))
 }
 
 // 是否过期
 func (z *UserOrgBindTable) IsExpired() bool {
-	if z.Expires == 0 {
+	if z.Expires.Time.IsZero() {
 		return false
 	}
-	return time.Now().Unix() < int64(z.Expires)
+	return z.Expires.Time.After(time.Now())
 }
 
 // 是否启动
@@ -77,7 +97,7 @@ func (z *UserOrgBindTable) IsAllow() bool {
 // 存储
 func (z *UserOrgBindTable) Save(ctx *zservice.Context) *zservice.Error {
 
-	rk_info := fmt.Sprintf(RK_AOBind_Info, z.OrgID, z.UID)
+	rk_info := fmt.Sprintf(RK_UserOrgBind_Info, z.UID, z.OrgID)
 	un, e := Redis.Lock(rk_info)
 	if e != nil {
 		return e
@@ -91,7 +111,7 @@ func (z *UserOrgBindTable) Save(ctx *zservice.Context) *zservice.Error {
 	// 删缓存
 	zservice.Go(func() {
 		if e := Redis.Del(rk_info).Err(); e != nil {
-			ctx.LogError(zglobal.Code_Redis_DelFail, e)
+			ctx.LogError(e)
 		}
 	})
 	return nil

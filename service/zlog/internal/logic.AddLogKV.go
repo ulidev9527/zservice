@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"time"
 	"zservice/service/zlog/zlog_pb"
 	"zservice/zservice"
 	"zservice/zservice/zglobal"
@@ -11,7 +12,7 @@ func Logic_AddLogKV(ctx *zservice.Context, in *zlog_pb.LogKV_REQ) *zlog_pb.Defau
 	tab := &LogKVTable{
 		Key:      in.Key,
 		Value:    in.Value,
-		SaveTime: in.SaveTime,
+		SaveTime: time.UnixMilli(in.SaveTime),
 		TraceID:  ctx.TraceID,
 		Service:  ctx.TraceService,
 	}

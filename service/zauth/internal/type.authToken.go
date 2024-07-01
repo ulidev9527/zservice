@@ -14,7 +14,7 @@ type AuthToken struct {
 	UID           uint32    // 用户ID
 	Token         string    // 令牌
 	CreateAT      time.Time // 创建时间 毫秒
-	ExpiresSecond uint32    // 过期时间 秒
+	ExpiresSecond uint32    // 过期时间 s
 	Expires       time.Time // 过期时间
 	Sign          string    // 签名，用于生成 token 和验证
 	LoginServices []string  // 登陆的服务
@@ -25,6 +25,7 @@ func CreateToken(ctx *zservice.Context, tokenSign string) (*AuthToken, *zservice
 	// 创建 token
 	tk := &AuthToken{}
 
+	tk.ExpiresSecond = uint32(zglobal.Time_10m.Seconds())
 	tk.CreateAT = time.Now()
 	tk.Sign = tokenSign
 	tk.Token = zservice.MD5String(fmt.Sprint(tk.Sign, zservice.RandomMD5(), zservice.RandomXID(), tk.CreateAT))
@@ -112,6 +113,10 @@ func TokenLogin(ctx *zservice.Context, in struct {
 
 	// 设置关联信息
 	at.ExpiresSecond = in.Expires
+	if at.ExpiresSecond == 0 {
+		at.ExpiresSecond = uint32(zglobal.Time_10Day.Seconds())
+	}
+
 	at.UID = user.UID
 	at.AddLoginService(in.Service)
 
@@ -155,8 +160,8 @@ func (l *AuthToken) AddLoginService(service string) {
 // 保存
 func (l *AuthToken) Save(ctx *zservice.Context) *zservice.Error {
 
-	if l.ExpiresSecond < 600 {
-		l.ExpiresSecond = 600
+	if l.ExpiresSecond < uint32(zglobal.Time_10m.Seconds()) {
+		l.ExpiresSecond = uint32(zglobal.Time_10m.Seconds())
 	}
 	l.Expires = time.Now().Add(time.Second * time.Duration(l.ExpiresSecond))
 
