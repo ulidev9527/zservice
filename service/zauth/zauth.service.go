@@ -57,7 +57,7 @@ func main() {
 	internal.EtcdService = etcdservice.NewEtcdService(&etcdservice.EtcdServiceConfig{
 		Addr: zservice.Getenv("ETCD_ADDR"),
 		OnStart: func(s *etcdservice.EtcdService) {
-			internal.Etcd = s.Etcd
+			internal.Etcd = s.EtcdClient
 			internal.InitEtcd()
 		},
 	})
@@ -65,7 +65,7 @@ func main() {
 
 	internal.GrpcService = grpcservice.NewGrpcService(&grpcservice.GrpcServiceConfig{
 		ListenPort: zservice.Getenv("grpc_listen_port"),
-		EtcdClient: internal.EtcdService.Etcd,
+		EtcdClient: internal.EtcdService.EtcdClient,
 		OnStart: func(s *grpcservice.GrpcService) {
 			internal.Grpc = s.GrpcServer
 			internal.InitGrpc()

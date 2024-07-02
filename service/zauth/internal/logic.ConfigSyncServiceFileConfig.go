@@ -65,7 +65,7 @@ func Logic_ConfigSyncServiceFileConfig(ctx *zservice.Context, in *zauth_pb.Confi
 		}
 
 		// 事件推送
-		EV_Send_Config_serviceFileConfigChange(ctx, Etcd, in.Service, fileName)
+		EtcdService.SendEvent(ctx, fmt.Sprintf(zglobal.EV_Config_ServiceFileConfigChange, in.Service), fileName)
 
 		return &zauth_pb.Default_RES{Code: zglobal.Code_SUCC}
 	}

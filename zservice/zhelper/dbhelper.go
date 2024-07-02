@@ -1,9 +1,9 @@
 package zhelper
 
 import (
-	"errors"
 	"time"
 	"zservice/zservice"
+	"zservice/zservice/ex/gormservice"
 	"zservice/zservice/ex/redisservice"
 	"zservice/zservice/zglobal"
 
@@ -129,7 +129,7 @@ func (db *DBHelper) GetTableValue(ctx *zservice.Context, tab any, rk string, sql
 
 	// 查库
 	if e := db.mysql.First(tab, sqlWhere).Error; e != nil {
-		if errors.Is(e, gorm.ErrRecordNotFound) {
+		if gormservice.IsNotFound(e) {
 			return zservice.NewError(e).SetCode(zglobal.Code_NotFound)
 		} else {
 			return zservice.NewError(e)

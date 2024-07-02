@@ -2,6 +2,7 @@ package etcdservice
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 	"zservice/zservice"
@@ -11,7 +12,7 @@ import (
 
 type EtcdService struct {
 	*zservice.ZService
-	Etcd *clientv3.Client
+	EtcdClient *clientv3.Client
 }
 
 type EtcdServiceConfig struct {
@@ -35,7 +36,7 @@ func NewEtcdService(c *EtcdServiceConfig) *EtcdService {
 
 		timeoutCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		if status, e := es.Etcd.Status(timeoutCtx, c.Addr); e != nil {
+		if status, e := es.EtcdClient.Status(timeoutCtx, c.Addr); e != nil {
 			s.LogPanic(e)
 		} else {
 			s.LogInfo("ETCD Status:", string(zservice.JsonMustMarshal(status)))
@@ -56,6 +57,44 @@ func NewEtcdService(c *EtcdServiceConfig) *EtcdService {
 		es.LogPanic(e)
 	}
 
-	es.Etcd = etcd
+	es.EtcdClient = etcd
 	return es
+}
+
+// 发送事件
+func (es *EtcdService) SendEvent(ctx *zservice.Context, key string, val string) *zservice.Error {
+	eb := &EventBody{
+		S2S: ctx.GetS2S(),
+		Val: val,
+	}
+	ctx.LogDebug(zservice.JsonMustMarshalString(eb))
+	if _, e := es.EtcdClient.Put(ctx, key, zservice.JsonMustMarshalString(eb)); e != nil {
+		ctx.LogInfof("ETCD K:%s V:%s E:%s", key, val, e)
+		return zservice.NewError(e)
+	} else {
+		ctx.LogInfof("ETCD K:%s V:%s", key, val)
+	}
+	return nil
+}
+
+// 监听事件
+func (es *EtcdService) WatchEvent(key string, cb func(ctx *zservice.Context, val string)) {
+	zservice.Go(func() {
+		watcher := es.EtcdClient.Watch(zservice.ContextTODO(), key)
+		for resp := range watcher {
+			for _, event := range resp.Events {
+
+				eb := &EventBody{}
+				if e := json.Unmarshal([]byte(event.Kv.Value), eb); e != nil {
+					es.LogErrorf("ETCD K:%s E:%s", key, e)
+					continue
+				}
+				ctx := zservice.NewContext(eb.S2S)
+
+				ctx.LogInfof("ETCD K:%s V:%s", key, eb.Val)
+				cb(ctx, eb.Val)
+			}
+		}
+
+	})
 }

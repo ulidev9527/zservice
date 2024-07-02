@@ -13,39 +13,38 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-type GrpcClientConfig struct { // etcd 和 addr 二选一
+type GrpcClientOption struct {
 	ServiceName string           // 服务名
 	EtcdClient  *clientv3.Client // etcd 客户端
 	Addr        string           // grcp 服务器地址
-	UseEtcd     bool             // 是否使用Etcd
 }
 
-func NewGrpcClient(c *GrpcClientConfig) (*grpc.ClientConn, error) {
+// GRPC 客户端创建，优先使用 Addr 配置的地址直连，如果 Addr 未配置，使用 ETCD 服务发现
+func NewGrpcClient(opt *GrpcClientOption) (*grpc.ClientConn, error) {
 
 	// 配置检查
-	if c == nil {
-		return nil, zservice.NewError("GrpcClientConfig is nil")
-	}
 
 	grpcOpts := []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithUnaryInterceptor(ClientUnaryInterceptor),
 	}
 
-	// etcd 和 addr 二选一
 	// 直连
-	if !c.UseEtcd {
-		return grpc.Dial(c.Addr, grpcOpts...)
+	if opt.Addr != "" {
+		return grpc.Dial(opt.Addr, grpcOpts...)
 	}
 
 	// etcd
-	if c.EtcdClient == nil {
+	if opt.ServiceName == "" {
+		return nil, zservice.NewError("ServiceName is nil")
+	}
+	if opt.EtcdClient == nil {
 		return nil, zservice.NewError("EtcdClient is nil")
 	}
 
-	serviceName := fmt.Sprintf(S_ServiceName, c.ServiceName)
+	serviceName := fmt.Sprintf(S_ServiceName, opt.ServiceName)
 	// 创建 etcd 实现的 grpc 服务注册发现模块 resolver
-	builder, e := resolver.NewBuilder(c.EtcdClient)
+	builder, e := resolver.NewBuilder(opt.EtcdClient)
 	if e != nil {
 		return nil, e
 	}
@@ -81,11 +80,7 @@ func ClientUnaryInterceptor(ctx context.Context, method string, req, reply any, 
 
 	// 配置metadata
 	ctx = metadata.AppendToOutgoingContext(ctx, zservice.S_S2S, zservice.JsonMustMarshalString(zctx.ContextS2S))
-	if zservice.ISDebug {
-		if zservice.ISDebug {
-			zservice.LogDebug(method, zservice.S_C2S, zservice.JsonMustMarshalString(zctx.ContextS2S))
-		}
-	}
+	zctx.LogDebug(method, zservice.S_C2S, zservice.JsonMustMarshalString(zctx.ContextS2S))
 
 	// panic
 	defer func() {

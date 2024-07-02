@@ -30,11 +30,10 @@ func main() {
 
 	grpcClient := zservice.NewService("zauth.grpc", func(z *zservice.ZService) {
 		ctx := zservice.NewContext()
-		zauth.Init(&zauth.ZAuthInitConfig{
+		zauth.Init(&zauth.ZAuthInitOption{
 			ServiceName: zservice.Getenv("ZAUTH_SERVICE_NAME"),
-			Etcd:        etcdS.Etcd,
+			EtcdService: etcdS,
 			GrpcAddr:    zservice.Getenv("zauth_grpc_addr"),
-			UseGrpcEtcd: zservice.GetenvBool("USE_GRPC_ETCD"),
 		})
 
 		zauth_ex.ServiceInfo.Regist(ctx, &zauth_pb.ServiceRegist_REQ{})

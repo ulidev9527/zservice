@@ -32,7 +32,6 @@ const (
 	KV_Service_Login_AllowMPOP           = "login/AllowMPOP"           // 是否允许服务进行多点登录
 
 	EV_Config_ServiceFileConfigChange = "ConfigService_%s_FileConfigChange" // 服务文件配置变更通知
-	EV_Config_ZZZZStringChange        = "ZZZZStringChange"                  // ZZZZ 字符串变更
 
 	FI_ServiceConfigFile = "static/fileConfig/%s/%s" // 服务配置文件路径
 	FI_ServiceEnvFile    = "static/envConfig/%s.env" // 服务环境文件路径

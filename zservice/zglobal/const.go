@@ -17,6 +17,7 @@ const (
 	Code_CountErr      = 11 // 数量不合格
 	Code_RepetitionErr = 12 // 数据重复
 	Code_Reject        = 13 // 拒绝
+	Code_500Err        = 14 // 代码执行阻断执行错误
 
 	Code_OpenFileErr         = 101 // 打开文件错误
 	Code_WiteFileErr         = 102 // 写入文件错误
@@ -83,4 +84,7 @@ const (
 	Time_3Day  = time.Hour * 24 * 3    // 3 天
 
 	NSQ_Topic_zlog_AddKV = "zlog_add_kv" // 添加 kv 日志
+
+	EV_Config_ServiceFileConfigChange = "ConfigService_%s_FileConfigChange" // 服务文件配置变更通知
+
 )

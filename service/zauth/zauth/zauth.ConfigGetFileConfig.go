@@ -51,6 +51,10 @@ func ConfigGetFileConfig(ctx *zservice.Context, fileName string, item any, keys 
 			return true
 		})
 
+		if str == "" {
+			return zservice.NewError("config not found:", fileName).SetCode(zglobal.Code_NotFound)
+		}
+
 		str = str[0 : len(str)-1] // 去掉尾部逗号 `,`
 		str = fmt.Sprintf("[ %s ]", str)
 		if e := json.Unmarshal([]byte(str), item); e != nil {

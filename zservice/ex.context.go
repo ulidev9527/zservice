@@ -103,6 +103,20 @@ func (ctx *Context) LogWarn(v ...any) {
 func (ctx *Context) LogWarnf(f string, v ...any) {
 	LogWarnCaller(2, ctx.logCtxStr(), fmt.Sprintf(f, v...))
 }
+
+func (ctx *Context) LogDebug(v ...any) {
+	if !ISDebug {
+		return
+	}
+	LogDebugCaller(2, ctx.logCtxStr(), Sprint(v...))
+}
+func (ctx *Context) LogDebugf(f string, v ...any) {
+	if !ISDebug {
+		return
+	}
+	LogDebugCaller(2, ctx.logCtxStr(), fmt.Sprintf(f, v...))
+}
+
 func (ctx *Context) LogError(v ...any) {
 	LogErrorCaller(2, ctx.logCtxStr(), Sprint(v...))
 }

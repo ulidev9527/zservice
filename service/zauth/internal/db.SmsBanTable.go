@@ -2,10 +2,10 @@ package internal
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"time"
 	"zservice/zservice"
+	"zservice/zservice/ex/gormservice"
 
 	"gorm.io/gorm"
 )
@@ -37,7 +37,7 @@ func IsSmsBan(ctx *zservice.Context, phone string) (bool, *zservice.Error) {
 	// 查数据库
 	tb := &SmsBanTable{}
 	if e := Mysql.Order("expires DESC").Limit(1).First(&tb, "phone = ? and expires > ?", phone, time.Now()).Error; e != nil {
-		if errors.Is(e, gorm.ErrRecordNotFound) {
+		if gormservice.IsNotFound(e) {
 			return false, nil
 		} else {
 			return false, zservice.NewError(e)
