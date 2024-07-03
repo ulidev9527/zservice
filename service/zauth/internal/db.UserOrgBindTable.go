@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"database/sql"
 	"fmt"
 	"time"
 	"zservice/zservice"
@@ -14,14 +13,14 @@ import (
 type UserOrgBindTable struct {
 	gorm.Model
 
-	UID     uint32       // 用户ID
-	OrgID   uint32       // 组ID
-	Expires sql.NullTime // 过期时间
-	State   uint32       `gorm:"default:1"` // 状态 0禁用 1开启
+	UID     uint32         // 用户ID
+	OrgID   uint32         // 组ID
+	Expires zservice.Ztime // 过期时间
+	State   uint32         `gorm:"default:1"` // 状态 0禁用 1开启
 }
 
 // 用户和组织绑定
-func UserOrgBind(ctx *zservice.Context, uid uint32, orgID uint32, Expires int64, state uint32) (*UserOrgBindTable, *zservice.Error) {
+func UserOrgBind(ctx *zservice.Context, uid uint32, orgID uint32, expires int64, state uint32) (*UserOrgBindTable, *zservice.Error) {
 
 	if tab, e := GetUserOrgBind(ctx, uid, orgID); e != nil {
 		if e.GetCode() != zglobal.Code_NotFound {
@@ -29,11 +28,11 @@ func UserOrgBind(ctx *zservice.Context, uid uint32, orgID uint32, Expires int64,
 		}
 	} else {
 		// 检查是否更新
-		if zservice.MD5String(fmt.Sprint(uid, orgID, Expires, state)) ==
-			zservice.MD5String(fmt.Sprint(tab.UID, tab.OrgID, tab.Expires.Time.UnixMilli(), state)) {
+		if zservice.MD5String(fmt.Sprint(uid, orgID, expires, state)) ==
+			zservice.MD5String(fmt.Sprint(tab.UID, tab.OrgID, tab.Expires.UnixMilli(), state)) {
 			return tab, nil
 		} else {
-			tab.Expires = sql.NullTime{Time: time.UnixMilli(Expires)}
+			tab.Expires = zservice.ZtimeNew(time.UnixMilli(expires))
 			tab.State = state
 			if e := tab.Save(ctx); e != nil {
 				return nil, e
@@ -47,7 +46,7 @@ func UserOrgBind(ctx *zservice.Context, uid uint32, orgID uint32, Expires int64,
 	tab := &UserOrgBindTable{
 		OrgID:   orgID,
 		UID:     uid,
-		Expires: sql.NullTime{Time: time.UnixMilli(Expires)},
+		Expires: zservice.ZtimeNew(time.UnixMilli(expires)),
 		State:   state,
 	}
 
@@ -62,7 +61,7 @@ func GetUserOrgBind(ctx *zservice.Context, uid uint32, orgID uint32) (*UserOrgBi
 
 	tab := &UserOrgBindTable{}
 
-	if e := dbhelper.GetTableValue(ctx,
+	if e := DBService.GetTableValue(ctx,
 		tab,
 		fmt.Sprintf(RK_UserOrgBind_Info, uid, orgID),
 		fmt.Sprintf("uid = %d AND org_id = %d", uid, orgID),
@@ -75,15 +74,15 @@ func GetUserOrgBind(ctx *zservice.Context, uid uint32, orgID uint32) (*UserOrgBi
 
 // 是否有账号和组织绑定
 func HasUserOrgBindByID(ctx *zservice.Context, uid uint32, orgID uint32) (bool, *zservice.Error) {
-	return dbhelper.HasTableValue(ctx, &UserOrgBindTable{}, fmt.Sprintf(RK_UserOrgBind_Info, uid, orgID), fmt.Sprintf("uid = %v and org_id = %v", uid, orgID))
+	return DBService.HasTableValue(ctx, &UserOrgBindTable{}, fmt.Sprintf(RK_UserOrgBind_Info, uid, orgID), fmt.Sprintf("uid = %v and org_id = %v", uid, orgID))
 }
 
 // 是否过期
 func (z *UserOrgBindTable) IsExpired() bool {
-	if z.Expires.Time.IsZero() {
+	if z.Expires.IsZero() {
 		return false
 	}
-	return z.Expires.Time.After(time.Now())
+	return z.Expires.After(time.Now())
 }
 
 // 是否启动
@@ -104,7 +103,7 @@ func (z *UserOrgBindTable) Save(ctx *zservice.Context) *zservice.Error {
 	}
 	defer un()
 
-	if e := Mysql.Save(&z).Error; e != nil {
+	if e := Gorm.Save(&z).Error; e != nil {
 		return zservice.NewError(e)
 	}
 

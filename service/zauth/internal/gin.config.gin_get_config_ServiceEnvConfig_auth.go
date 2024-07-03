@@ -3,7 +3,7 @@ package internal
 import (
 	"net/http"
 	"zservice/service/zauth/zauth_pb"
-	"zservice/zservice/ex/ginservice"
+	"zservice/zservice/service/ginservice"
 
 	"github.com/gin-gonic/gin"
 )

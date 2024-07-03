@@ -6,7 +6,6 @@ import (
 	"os"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
-	"zservice/zservice/ex/redisservice"
 	"zservice/zservice/zglobal"
 )
 
@@ -19,7 +18,7 @@ func Logic_ConfigGetServiceEnvConfig(ctx *zservice.Context, in *zauth_pb.ConfigG
 	rk_auth := fmt.Sprintf(RK_Config_ServiceEnvAuth, ctx.TraceService)
 
 	if str, e := Redis.Get(rk_auth).Result(); e != nil {
-		if !redisservice.IsNilErr(e) {
+		if !DBService.IsNotFoundErr(e) {
 			ctx.LogError(e)
 			return &zauth_pb.ConfigGetServiceEnvConfig_RES{Code: zglobal.Code_Fail}
 		}

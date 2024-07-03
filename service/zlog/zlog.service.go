@@ -3,7 +3,7 @@ package main
 import (
 	"zservice/service/zlog/internal"
 	"zservice/zservice"
-	"zservice/zservice/ex/gormservice"
+	"zservice/zservice/service/dbservice"
 )
 
 func init() {
@@ -12,20 +12,21 @@ func init() {
 
 func main() {
 
-	internal.MysqlService = gormservice.NewGormMysqlService(&gormservice.GormMysqlServiceConfig{
-		DBName: zservice.Getenv("MYSQL_DBNAME"),
-		Addr:   zservice.Getenv("MYSQL_ADDR"),
-		User:   zservice.Getenv("MYSQL_USER"),
-		Pass:   zservice.Getenv("MYSQL_PASS"),
-		Debug:  zservice.GetenvBool("MYSQL_DEBUG"),
-		OnStart: func(s *gormservice.GormMysqlService) {
-			internal.Mysql = s.Mysql
-			internal.InitMysql()
-		},
+	internal.DBService = dbservice.NewDBService(dbservice.DBServiceOption{
+		GORMType:    zservice.Getenv("DBSERVICE_GORM_TYPE"),
+		GORMName:    zservice.Getenv("DBSERVICE_GORM_NAME"),
+		GORMAddr:    zservice.Getenv("DBSERVICE_GORM_ADDR"),
+		GORMUser:    zservice.Getenv("DBSERVICE_GORM_USER"),
+		GORMPass:    zservice.Getenv("DBSERVICE_GORM_PASS"),
+		RedisAddr:   zservice.Getenv("DBSERVICE_REDIS_ADDR"),
+		RedisPass:   zservice.Getenv("DBSERVICE_REDIS_PASS"),
+		RedisPrefix: zservice.Getenv("DBSERVICE_REDIS_PREFIX"),
+		Debug:       zservice.GetenvBool("DBSERVICE_DEBUG"),
+		OnStart:     internal.InitDB,
 	})
 
 	zservice.AddDependService(
-		internal.MysqlService.ZService,
+		internal.DBService.ZService,
 	)
 
 	zservice.Start().WaitStart()

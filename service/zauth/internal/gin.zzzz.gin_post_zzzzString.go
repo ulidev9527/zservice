@@ -2,7 +2,7 @@ package internal
 
 import (
 	"net/http"
-	"zservice/zservice/ex/ginservice"
+	"zservice/zservice/service/ginservice"
 	"zservice/zservice/zglobal"
 
 	"github.com/gin-gonic/gin"

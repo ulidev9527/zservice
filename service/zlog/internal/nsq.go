@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"zservice/service/zlog/zlog_pb"
 	"zservice/zservice"
-	"zservice/zservice/ex/nsqservice"
+	"zservice/zservice/service/nsqservice"
 	"zservice/zservice/zglobal"
 )
 

@@ -5,11 +5,10 @@ import (
 	"zservice/service/zauth/zauth_ex"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
-	"zservice/zservice/ex/etcdservice"
-	"zservice/zservice/ex/ginservice"
-	"zservice/zservice/ex/gormservice"
-	"zservice/zservice/ex/grpcservice"
-	"zservice/zservice/ex/redisservice"
+	"zservice/zservice/service/dbservice"
+	"zservice/zservice/service/etcdservice"
+	"zservice/zservice/service/ginservice"
+	"zservice/zservice/service/grpcservice"
 	"zservice/zservice/zglobal"
 )
 
@@ -19,24 +18,17 @@ func init() {
 
 func main() {
 
-	internal.MysqlService = gormservice.NewGormMysqlService(&gormservice.GormMysqlServiceConfig{
-		DBName: zservice.Getenv("MYSQL_DBNAME"),
-		Addr:   zservice.Getenv("MYSQL_ADDR"),
-		User:   zservice.Getenv("MYSQL_USER"),
-		Pass:   zservice.Getenv("MYSQL_PASS"),
-		Debug:  zservice.GetenvBool("MYSQL_DEBUG"),
-		OnStart: func(s *gormservice.GormMysqlService) {
-			internal.Mysql = s.Mysql
-			internal.InitMysql()
-		},
-	})
-	internal.RedisService = redisservice.NewRedisService(&redisservice.RedisServiceConfig{
-		Addr: zservice.Getenv("REDIS_ADDR"),
-		Pass: zservice.Getenv("REDIS_PASS"),
-		OnStart: func(db *redisservice.GoRedisEX) {
-			internal.Redis = db
-			internal.InitRedis()
-		},
+	internal.DBService = dbservice.NewDBService(dbservice.DBServiceOption{
+		GORMType:    zservice.Getenv("DBSERVICE_GORM_TYPE"),
+		GORMName:    zservice.Getenv("DBSERVICE_GORM_NAME"),
+		GORMAddr:    zservice.Getenv("DBSERVICE_GORM_ADDR"),
+		GORMUser:    zservice.Getenv("DBSERVICE_GORM_USER"),
+		GORMPass:    zservice.Getenv("DBSERVICE_GORM_PASS"),
+		RedisAddr:   zservice.Getenv("DBSERVICE_REDIS_ADDR"),
+		RedisPass:   zservice.Getenv("DBSERVICE_REDIS_PASS"),
+		RedisPrefix: zservice.Getenv("DBSERVICE_REDIS_PREFIX"),
+		Debug:       zservice.GetenvBool("DBSERVICE_DEBUG"),
+		OnStart:     internal.InitDB,
 	})
 
 	ServiceRegist := zservice.NewService("ServiceRegist", func(z *zservice.ZService) {
@@ -49,10 +41,7 @@ func main() {
 
 		z.StartDone()
 	})
-	ServiceRegist.AddDependService(
-		internal.MysqlService.ZService,
-		internal.RedisService.ZService,
-	)
+	ServiceRegist.AddDependService(internal.DBService.ZService)
 
 	internal.EtcdService = etcdservice.NewEtcdService(&etcdservice.EtcdServiceConfig{
 		Addr: zservice.Getenv("ETCD_ADDR"),

@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"zservice/zservice"
-	"zservice/zservice/ex/gormservice"
-	"zservice/zservice/ex/redisservice"
 	"zservice/zservice/zglobal"
 
 	"gorm.io/gorm"
@@ -45,7 +43,7 @@ func GetServiceKVTable(ctx *zservice.Context, service string, key string) (*Serv
 
 	// 查缓存
 	if s, e := Redis.Get(rk_info).Result(); e != nil {
-		if !redisservice.IsNilErr(e) {
+		if !DBService.IsNotFoundErr(e) {
 			return nil, zservice.NewError(e)
 		}
 
@@ -63,8 +61,8 @@ func GetServiceKVTable(ctx *zservice.Context, service string, key string) (*Serv
 	}
 
 	// 查库
-	if e := Mysql.Where("service = ? AND `key` = ?", service, key).First(&tab).Error; e != nil {
-		if gormservice.IsNotFound(e) {
+	if e := Gorm.Where("service = ? AND `key` = ?", service, key).First(&tab).Error; e != nil {
+		if DBService.IsNotFoundErr(e) {
 			return nil, zservice.NewError(e).SetCode(zglobal.Code_NotFound)
 		}
 		return nil, zservice.NewError(e)
@@ -89,7 +87,7 @@ func (tab *ServiceKVTable) Save(ctx *zservice.Context) *zservice.Error {
 	}
 	defer un()
 
-	if e := Mysql.Save(tab).Error; e != nil {
+	if e := Gorm.Save(tab).Error; e != nil {
 		return zservice.NewError(e)
 	}
 

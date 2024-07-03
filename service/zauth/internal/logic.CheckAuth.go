@@ -5,7 +5,6 @@ import (
 	"time"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
-	"zservice/zservice/ex/gormservice"
 	"zservice/zservice/zglobal"
 )
 
@@ -73,11 +72,11 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 
 		// 未找到 查表, 按权限最接近的查询
 		tabs := []PermissionTable{}
-		if e := Mysql.
+		if e := Gorm.
 			Order("LENGTH(action) DESC, LENGTH(path) DESC").
 			Find(&tabs, "(service, action, path) IN ? AND state > 0", inArr).
 			Error; e != nil {
-			if !gormservice.IsNotFound(e) {
+			if !DBService.IsNotFoundErr(e) {
 				return nil, zservice.NewError(e)
 			}
 		}
@@ -142,10 +141,10 @@ func Logic_CheckAuth(ctx *zservice.Context, in *zauth_pb.CheckAuth_REQ) *zauth_p
 
 		// 查库
 		bindCount := int64(0)
-		if e := Mysql.Model(&UserOrgBindTable{}).Where( // 查找组中是否有当前账号的绑定信息
+		if e := Gorm.Model(&UserOrgBindTable{}).Where( // 查找组中是否有当前账号的绑定信息
 			"uid = ? AND org_id IN (?)",
 			authToken.UID,
-			Mysql.Model(&PermissionBindTable{}).Where( // 查找所有分配权限的组
+			Gorm.Model(&PermissionBindTable{}).Where( // 查找所有分配权限的组
 				"permission_id = ? AND target_type = 1 AND state = 1 AND (expires IS NULL OR expires > ?)",
 				permissionInfo.PermissionID,
 				time.Now(),

@@ -1,4 +1,4 @@
-package redisservice
+package dbservice
 
 import (
 	"context"
@@ -17,6 +17,31 @@ type GoRedisEX struct {
 	keyPrefix       string // 前缀
 	ignoreKeyPrefix bool   // 是否忽略前缀
 	keyLockPrefix   string // 锁前缀
+}
+
+func NewGoRedisEX(opt DBServiceOption) *GoRedisEX {
+	keyPrefix := opt.RedisPrefix
+	if keyPrefix == "" {
+		keyPrefix = zservice.GetServiceName()
+	}
+	r := &GoRedisEX{
+		client: redis.NewClient(&redis.Options{
+			Addr:     opt.RedisAddr,
+			Password: opt.RedisPass,
+		}),
+		keyPrefix:     fmt.Sprint(keyPrefix, ":"),
+		keyLockPrefix: fmt.Sprint("__zserviceKeyLock:", keyPrefix, ":"),
+	}
+	_, e := r.client.Info(context.TODO(), "stats").Result()
+	if e != nil {
+		zservice.LogPanic(e)
+	}
+	return r
+}
+
+// 是否是空数据错误
+func (r *GoRedisEX) IsNotFoundErr(e error) bool {
+	return redis.Nil == e
 }
 
 // 添加前缀
@@ -85,12 +110,12 @@ func (r *GoRedisEX) GetCtx(ctx context.Context, key string) *redis.StringCmd {
 // 查询到的内容直接转结构体
 func (r *GoRedisEX) GetScan(key string, v any) *zservice.Error {
 	if s, e := r.Get(key).Result(); e != nil {
-		if IsNilErr(e) {
+		if r.IsNotFoundErr(e) {
 			return zservice.NewError(e).SetCode(zglobal.Code_NotFound)
 		}
 		return zservice.NewError(e)
 	} else if e := json.Unmarshal([]byte(s), v); e != nil {
-		return zservice.NewError(e)
+		return zservice.NewError(e, key)
 	} else {
 		return nil
 	}

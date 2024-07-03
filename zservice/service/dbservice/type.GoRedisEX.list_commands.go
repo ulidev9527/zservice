@@ -1,4 +1,4 @@
-package redisservice
+package dbservice
 
 import (
 	"context"

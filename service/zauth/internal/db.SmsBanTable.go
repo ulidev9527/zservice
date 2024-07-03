@@ -1,11 +1,9 @@
 package internal
 
 import (
-	"database/sql"
 	"fmt"
 	"time"
 	"zservice/zservice"
-	"zservice/zservice/ex/gormservice"
 
 	"gorm.io/gorm"
 )
@@ -13,9 +11,9 @@ import (
 // 短信封禁
 type SmsBanTable struct {
 	gorm.Model
-	Phone   string       // 手机号
-	Expires sql.NullTime // 过期时间
-	BanMsg  string       // 封禁原因
+	Phone   string         // 手机号
+	Expires zservice.Ztime // 过期时间
+	BanMsg  string         // 封禁原因
 }
 
 // 账号是否封禁
@@ -36,8 +34,8 @@ func IsSmsBan(ctx *zservice.Context, phone string) (bool, *zservice.Error) {
 
 	// 查数据库
 	tb := &SmsBanTable{}
-	if e := Mysql.Order("expires DESC").Limit(1).First(&tb, "phone = ? and expires > ?", phone, time.Now()).Error; e != nil {
-		if gormservice.IsNotFound(e) {
+	if e := Gorm.Order("expires DESC").Limit(1).First(&tb, "phone = ? and expires > ?", phone, time.Now()).Error; e != nil {
+		if DBService.IsNotFoundErr(e) {
 			return false, nil
 		} else {
 			return false, zservice.NewError(e)

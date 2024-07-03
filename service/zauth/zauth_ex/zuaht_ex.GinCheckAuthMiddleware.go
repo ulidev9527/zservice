@@ -7,7 +7,7 @@ import (
 	"zservice/service/zauth/zauth"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
-	"zservice/zservice/ex/ginservice"
+	"zservice/zservice/service/ginservice"
 	"zservice/zservice/zglobal"
 
 	"github.com/gin-gonic/gin"

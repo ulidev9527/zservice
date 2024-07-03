@@ -1,31 +1,51 @@
 package zservice
 
-func MaxInt(a int, b int, nums ...int) int {
-
-	if a < b {
-		a = b
+func MaxInt(nums ...int) int {
+	if len(nums) == 0 {
+		return 0
 	}
-
-	len := len(nums)
-	if len == 0 {
-		return a
+	a := nums[0]
+	for _, b := range nums {
+		if a < b {
+			a = b
+		}
 	}
-
-	b = nums[0]
-	return MaxInt(a, b, append(nums[:1], nums[1:]...)...)
+	return a
+}
+func MaxInt64(nums ...int64) int64 {
+	if len(nums) == 0 {
+		return 0
+	}
+	a := nums[0]
+	for _, b := range nums {
+		if a < b {
+			a = b
+		}
+	}
+	return a
 }
 
-func MinInt(a int, b int, nums ...int) int {
-
-	if a > b {
-		a = b
+func MinInt(nums ...int) int {
+	if len(nums) == 0 {
+		return 0
 	}
-
-	len := len(nums)
-	if len == 0 {
-		return a
+	a := nums[0]
+	for _, b := range nums {
+		if a > b {
+			a = b
+		}
 	}
-
-	b = nums[0]
-	return MinInt(a, b, append(nums[:1], nums[1:]...)...)
+	return a
+}
+func MinInt64(nums ...int64) int64 {
+	if len(nums) == 0 {
+		return 0
+	}
+	a := nums[0]
+	for _, b := range nums {
+		if a > b {
+			a = b
+		}
+	}
+	return a
 }

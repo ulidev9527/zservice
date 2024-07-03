@@ -6,7 +6,6 @@ import (
 	"time"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
-	"zservice/zservice/ex/redisservice"
 	"zservice/zservice/zglobal"
 )
 
@@ -46,7 +45,7 @@ func GetToken(ctx *zservice.Context, tkStr string) (*AuthToken, *zservice.Error)
 	rk := fmt.Sprintf(RK_TokenInfo, tkStr)
 
 	if res, e := Redis.Get(rk).Result(); e != nil {
-		if redisservice.IsNilErr(e) {
+		if DBService.IsNotFoundErr(e) {
 			return nil, zservice.NewError(e).SetCode(zglobal.Code_NotFound)
 		}
 		return nil, zservice.NewError(e)

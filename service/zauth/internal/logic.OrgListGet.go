@@ -29,7 +29,7 @@ func Logic_OrgListGet(ctx *zservice.Context, in *zauth_pb.OrgListGet_REQ) *zauth
 	// 查询数据结构
 	tabs := []OrgTable{}
 	searchStr := fmt.Sprint("%", in.Search, "%")
-	if e := Mysql.Model(&OrgTable{}).Where("name like ? OR id like ? OR root_id like ? OR parent_id like ?", searchStr, searchStr, searchStr, searchStr).Order("created_at DESC").Offset(int((in.Page - 1) * in.Size)).Limit(int(in.Size)).Find(&tabs).Error; e != nil {
+	if e := Gorm.Model(&OrgTable{}).Where("name like ? OR id like ? OR root_id like ? OR parent_id like ?", searchStr, searchStr, searchStr, searchStr).Order("created_at DESC").Offset(int((in.Page - 1) * in.Size)).Limit(int(in.Size)).Find(&tabs).Error; e != nil {
 		ctx.LogError(e)
 		return &zauth_pb.OrgInfoList_RES{Code: zglobal.Code_Fail}
 	}

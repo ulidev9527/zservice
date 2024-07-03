@@ -17,7 +17,7 @@ func Logic_AddLogKV(ctx *zservice.Context, in *zlog_pb.LogKV_REQ) *zlog_pb.Defau
 		Service:  ctx.TraceService,
 	}
 
-	if e := Mysql.Create(tab).Error; e != nil {
+	if e := Gorm.Create(tab).Error; e != nil {
 		zservice.LogError(e)
 		return &zlog_pb.Default_RES{Code: zglobal.Code_DB_SaveFail}
 	}

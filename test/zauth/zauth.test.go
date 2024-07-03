@@ -7,8 +7,8 @@ import (
 	"zservice/service/zauth/zauth_ex"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
-	"zservice/zservice/ex/etcdservice"
-	"zservice/zservice/ex/ginservice"
+	"zservice/zservice/service/etcdservice"
+	"zservice/zservice/service/ginservice"
 
 	"github.com/gin-gonic/gin"
 )

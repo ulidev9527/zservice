@@ -59,7 +59,7 @@ func Logic_AddAsset(ctx *zservice.Context, in *zauth_pb.AddAsset_REQ) *zauth_pb.
 			Name:    tab.Name,
 			Md5:     tab.MD5,
 			Token:   tab.Token,
-			Expires: tab.Expires.Time.UnixMilli(),
+			Expires: tab.Expires.UnixMilli(),
 			Size:    tab.Size,
 		}}
 	}

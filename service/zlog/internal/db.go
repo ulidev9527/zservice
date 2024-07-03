@@ -1,16 +1,23 @@
 package internal
 
 import (
-	"zservice/zservice/ex/gormservice"
-
-	"gorm.io/gorm"
+	"zservice/zservice/service/dbservice"
 )
 
 var (
-	MysqlService *gormservice.GormMysqlService
-	Mysql        *gorm.DB
+	DBService *dbservice.DBService
+	Gorm      *dbservice.GormEX
+	Redis     *dbservice.GoRedisEX
 )
 
-func InitMysql() {
-	Mysql.AutoMigrate(&LogKVTable{})
+func InitDB(s *dbservice.DBService) {
+
+	DBService = s
+	Gorm = DBService.Gorm
+	Redis = DBService.Redis
+
+	Gorm.AutoMigrate(
+		LogKVTable{},
+	)
+
 }

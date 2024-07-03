@@ -2,7 +2,7 @@ package internal
 
 import (
 	"zservice/service/zauth/zauth_pb"
-	"zservice/zservice/ex/grpcservice"
+	"zservice/zservice/service/grpcservice"
 
 	"google.golang.org/grpc"
 )

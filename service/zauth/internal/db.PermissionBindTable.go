@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"database/sql"
 	"fmt"
 	"time"
 	"zservice/zservice"
@@ -13,16 +12,16 @@ import (
 // 账号权限绑定表
 type PermissionBindTable struct {
 	gorm.Model
-	TargetType   uint32       // 外部ID类型 0无效 1组织 2账号
-	TargetID     uint32       // 外部ID
-	PermissionID uint32       // 权限ID
-	Expires      sql.NullTime // 过期时间
-	State        uint32       // 状态 0禁止访问 1允许访问
+	TargetType   uint32         // 外部ID类型 0无效 1组织 2账号
+	TargetID     uint32         // 外部ID
+	PermissionID uint32         // 权限ID
+	Expires      zservice.Ztime // 过期时间
+	State        uint32         // 状态 0禁止访问 1允许访问
 }
 
 // 是否有权限绑定
 func HasPermissionBind(ctx *zservice.Context, targetType uint32, targetID uint32, permissionID uint32) (bool, *zservice.Error) {
-	return dbhelper.HasTableValue(ctx,
+	return DBService.HasTableValue(ctx,
 		&PermissionBindTable{},
 		fmt.Sprintf(RK_PermissionBindInfo, targetType, targetID, permissionID),
 		fmt.Sprintf("target_type = %d AND target_id = %d AND permission_id = %d", targetType, targetID, permissionID),
@@ -32,7 +31,7 @@ func HasPermissionBind(ctx *zservice.Context, targetType uint32, targetID uint32
 // 获取权限绑定
 func GetPermissionBind(ctx *zservice.Context, targetType uint32, targetID uint32, permissionID uint32) (*PermissionBindTable, *zservice.Error) {
 	tab := &PermissionBindTable{}
-	if e := dbhelper.GetTableValue(ctx,
+	if e := DBService.GetTableValue(ctx,
 		tab,
 		fmt.Sprintf(RK_PermissionBindInfo, targetType, targetID, permissionID),
 		fmt.Sprintf("target_type = %d AND target_id = %d AND permission_id = %d", targetType, targetID, permissionID),
@@ -45,10 +44,10 @@ func GetPermissionBind(ctx *zservice.Context, targetType uint32, targetID uint32
 
 // 是否过期
 func (z *PermissionBindTable) IsExpired() bool {
-	if z.Expires.Time.IsZero() {
+	if z.Expires.IsZero() {
 		return false
 	}
-	return z.Expires.Time.After(time.Now())
+	return z.Expires.After(time.Now())
 }
 
 // 存储
@@ -63,7 +62,7 @@ func (z *PermissionBindTable) Save(ctx *zservice.Context) *zservice.Error {
 	}
 	defer un()
 
-	if e := Mysql.Save(&z).Error; e != nil {
+	if e := Gorm.Save(&z).Error; e != nil {
 		return zservice.NewError(e)
 	}
 

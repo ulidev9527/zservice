@@ -1,34 +1,29 @@
 package internal
 
-import (
-	"zservice/zservice/ex/gormservice"
-	"zservice/zservice/ex/redisservice"
-	"zservice/zservice/zhelper"
-
-	"gorm.io/gorm"
-)
+import "zservice/zservice/service/dbservice"
 
 var (
-	MysqlService *gormservice.GormMysqlService
-	Mysql        *gorm.DB
-	RedisService *redisservice.RedisService
-	Redis        *redisservice.GoRedisEX
-	dbhelper     *zhelper.DBHelper
+	DBService *dbservice.DBService
+	Gorm      *dbservice.GormEX
+	Redis     *dbservice.GoRedisEX
 )
 
-func InitMysql() {
+func InitDB(s *dbservice.DBService) {
 
-	Mysql.AutoMigrate(AssetTable{})
-	Mysql.AutoMigrate(OrgTable{})
-	Mysql.AutoMigrate(PermissionBindTable{})
-	Mysql.AutoMigrate(PermissionTable{})
-	Mysql.AutoMigrate(ServiceKVTable{})
-	Mysql.AutoMigrate(SmsBanTable{})
-	Mysql.AutoMigrate(UserTable{})
-	Mysql.AutoMigrate(UserOrgBindTable{})
+	DBService = s
+	Gorm = DBService.Gorm
+	Redis = DBService.Redis
 
-	dbhelper = zhelper.NewDBHelper(Redis, Mysql)
-}
-func InitRedis() {
+	Gorm.AutoMigrate(
+
+		AssetTable{},
+		OrgTable{},
+		PermissionBindTable{},
+		PermissionTable{},
+		ServiceKVTable{},
+		SmsBanTable{},
+		UserTable{},
+		UserOrgBindTable{},
+	)
 
 }

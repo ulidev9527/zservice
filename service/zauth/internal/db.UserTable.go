@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
-	"zservice/zservice/ex/gormservice"
-	"zservice/zservice/ex/redisservice"
 	"zservice/zservice/zglobal"
 
 	"gorm.io/gorm"
@@ -37,19 +35,19 @@ func CreateUser(ctx *zservice.Context) (*UserTable, *zservice.Error) {
 
 // 获取一个新的账号ID
 func GetNewUID(ctx *zservice.Context) (uint32, *zservice.Error) {
-	return dbhelper.GetNewTableID(ctx, func() uint32 {
+	return DBService.GetNewTableID(ctx, func() uint32 {
 		return zservice.RandomUInt32Range(1000000, 999999999) // 7-9位数
 	}, HasUserByID)
 }
 
 // 是否存在这个账号
 func HasUserByID(ctx *zservice.Context, id uint32) (bool, *zservice.Error) {
-	return dbhelper.HasTableValue(ctx, &UserTable{}, fmt.Sprintf(RK_UserInfo, id), fmt.Sprintf("uid = %v", id))
+	return DBService.HasTableValue(ctx, &UserTable{}, fmt.Sprintf(RK_UserInfo, id), fmt.Sprintf("uid = %v", id))
 }
 
 // 是否存在这个账号
 func HasUserByLoginName(ctx *zservice.Context, loginName string) (bool, *zservice.Error) {
-	return dbhelper.HasTableValue(ctx, &UserTable{}, fmt.Sprintf(RK_UserLoginName, loginName), fmt.Sprintf("login_name = '%v'", loginName))
+	return DBService.HasTableValue(ctx, &UserTable{}, fmt.Sprintf(RK_UserLoginName, loginName), fmt.Sprintf("login_name = '%v'", loginName))
 }
 
 // 账号密码签名
@@ -61,7 +59,7 @@ func UserGenPassSign(z *UserTable, password string) string {
 func GetUserByUID(ctx *zservice.Context, id uint32) (*UserTable, *zservice.Error) {
 	tab := UserTable{}
 
-	if e := dbhelper.GetTableValue(ctx, &tab, fmt.Sprintf(RK_UserInfo, id), fmt.Sprintf("uid = %v", id)); e != nil {
+	if e := DBService.GetTableValue(ctx, &tab, fmt.Sprintf(RK_UserInfo, id), fmt.Sprintf("uid = %v", id)); e != nil {
 		return nil, e
 	}
 	return &tab, nil
@@ -89,8 +87,8 @@ func GetUserByLoginName(ctx *zservice.Context, loginName string) (*UserTable, *z
 	tab := UserTable{}
 
 	// 验证数据库中是否存在
-	if e := Mysql.Model(&tab).Where(fmt.Sprintf("login_name = '%v'", loginName)).First(&tab).Error; e != nil {
-		if gormservice.IsNotFound(e) {
+	if e := Gorm.Model(&tab).Where(fmt.Sprintf("login_name = '%v'", loginName)).First(&tab).Error; e != nil {
+		if DBService.IsNotFoundErr(e) {
 			return nil, zservice.NewError(e).SetCode(zglobal.Code_NotFound)
 		}
 		return nil, zservice.NewError(e)
@@ -112,7 +110,7 @@ func GetUserByPhone(ctx *zservice.Context, phone string) (*UserTable, *zservice.
 	rk := fmt.Sprintf(RK_UserLoginPhone, phone)
 
 	if s, e := Redis.Get(rk).Result(); e != nil {
-		if !redisservice.IsNilErr(e) {
+		if !DBService.IsNotFoundErr(e) {
 			return nil, zservice.NewError(e)
 		}
 	} else {
@@ -131,8 +129,8 @@ func GetUserByPhone(ctx *zservice.Context, phone string) (*UserTable, *zservice.
 	tab := UserTable{}
 
 	// 验证数据库中是否存在
-	if e := Mysql.Model(&tab).Where(fmt.Sprintf("phone = '%v'", phone)).First(&tab).Error; e != nil {
-		if gormservice.IsNotFound(e) {
+	if e := Gorm.Model(&tab).Where(fmt.Sprintf("phone = '%v'", phone)).First(&tab).Error; e != nil {
+		if DBService.IsNotFoundErr(e) {
 			return nil, zservice.NewError(e).SetCode(zglobal.Code_NotFound)
 		}
 		return nil, zservice.NewError(e)
@@ -203,7 +201,7 @@ func (z *UserTable) Save(ctx *zservice.Context) *zservice.Error {
 	}
 	defer un()
 
-	if e := Mysql.Save(z).Error; e != nil {
+	if e := Gorm.Save(z).Error; e != nil {
 		return zservice.NewError(e)
 	}
 

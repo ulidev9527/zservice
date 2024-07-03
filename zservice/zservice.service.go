@@ -15,7 +15,7 @@ type ZService struct {
 	createTime           time.Time       // 创建时间
 	startTime            time.Time       // 启动时间
 	onStart              func(*ZService) // 等待启动
-	state                int             // 服务状态 0已创建 1等待启动 2已启动 3已停止
+	state                uint32          // 服务状态 0已创建 1等待启动 2已启动 3已停止
 	mu                   sync.Mutex      // 互斥锁
 }
 
@@ -111,6 +111,9 @@ func (z *ZService) AddDependService(sArr ...*ZService) *ZService {
 		mainService.AddDependService(sArr...)
 	}
 	return z
+}
+func (z *ZService) GetState() uint32 {
+	return z.state
 }
 
 // 停止服务

@@ -2,7 +2,7 @@ package main
 
 import (
 	"zservice/zservice"
-	"zservice/zservice/ex/ginservice"
+	"zservice/zservice/service/ginservice"
 
 	"github.com/gin-gonic/gin"
 )

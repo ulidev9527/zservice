@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
-	"zservice/zservice/ex/gormservice"
 	"zservice/zservice/zglobal"
 )
 
@@ -102,8 +101,8 @@ func Logic_ServiceRegist(ctx *zservice.Context, in *zauth_pb.ServiceRegist_REQ) 
 	// 是否有账号和当前组绑定
 	adminUserTab := &UserTable{}
 	userBindTab := &UserOrgBindTable{}
-	if e := Mysql.Model(&UserOrgBindTable{}).Where("org_id = ?", orgInfo.OrgID).First(userBindTab).Error; e != nil {
-		if !gormservice.IsNotFound(e) { // 其他错误
+	if e := Gorm.Model(&UserOrgBindTable{}).Where("org_id = ?", orgInfo.OrgID).First(userBindTab).Error; e != nil {
+		if !DBService.IsNotFoundErr(e) { // 其他错误
 			ctx.LogError(e)
 			return &zauth_pb.ServiceRegist_RES{Code: zglobal.Code_Fail}
 		} else {

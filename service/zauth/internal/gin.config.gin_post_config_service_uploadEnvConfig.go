@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"zservice/service/zauth/zauth_pb"
-	"zservice/zservice/ex/ginservice"
+	"zservice/zservice/service/ginservice"
 	"zservice/zservice/zglobal"
 
 	"github.com/gin-gonic/gin"

@@ -1,14 +1,11 @@
 package internal
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"time"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
-	"zservice/zservice/ex/gormservice"
-	"zservice/zservice/ex/redisservice"
 	"zservice/zservice/zglobal"
 
 	"gorm.io/gorm"
@@ -17,11 +14,11 @@ import (
 // 资源
 type AssetTable struct {
 	gorm.Model
-	Name    string       // 名称
-	MD5     string       // md5
-	Token   string       // 资源token
-	Expires sql.NullTime // 过期时间
-	Size    uint64       // 文件大小
+	Name    string         // 名称
+	MD5     string         // md5
+	Token   string         // 资源token
+	Expires zservice.Ztime // 过期时间
+	Size    uint64         // 文件大小
 }
 
 // 创建资源
@@ -36,7 +33,7 @@ func AssetCreate(ctx *zservice.Context, in *zauth_pb.AssetInfo) (*AssetTable, *z
 		Name:    in.Name,
 		MD5:     in.Md5,
 		Token:   zservice.MD5String(fmt.Sprintf("%s_%d_%d", in.Md5, in.Expires, time.Now().UnixMicro())),
-		Expires: sql.NullTime{Time: time.UnixMilli(in.Expires)},
+		Expires: zservice.ZtimeUnixMilli(in.Expires),
 		Size:    in.Size,
 	}
 
@@ -55,7 +52,7 @@ func AssetGetByToken(ctx *zservice.Context, token string) (*AssetTable, *zservic
 
 	// 读取缓存
 	if s, e := Redis.Get(rk_token).Result(); e != nil {
-		if !redisservice.IsNilErr(e) {
+		if !DBService.IsNotFoundErr(e) {
 			return nil, zservice.NewError(e)
 		}
 	} else {
@@ -67,8 +64,8 @@ func AssetGetByToken(ctx *zservice.Context, token string) (*AssetTable, *zservic
 	}
 
 	// 读取数据库
-	if e := Mysql.Where("token = ?", token).First(tab).Error; e != nil {
-		if gormservice.IsNotFound(e) {
+	if e := Gorm.Where("token = ?", token).First(tab).Error; e != nil {
+		if DBService.IsNotFoundErr(e) {
 			return nil, zservice.NewError(e).SetCode(zglobal.Code_NotFound)
 		}
 		return nil, zservice.NewError(e)
@@ -91,7 +88,7 @@ func (tab *AssetTable) Save(ctx *zservice.Context) *zservice.Error {
 	}
 	defer un()
 
-	if e := Mysql.Save(tab).Error; e != nil {
+	if e := Gorm.Save(tab).Error; e != nil {
 		return zservice.NewError("save asset error:", e.Error())
 	}
 

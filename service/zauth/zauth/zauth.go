@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
-	"zservice/zservice/ex/etcdservice"
-	"zservice/zservice/ex/grpcservice"
+	"zservice/zservice/service/etcdservice"
+	"zservice/zservice/service/grpcservice"
 	"zservice/zservice/zglobal"
 )
 
