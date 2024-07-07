@@ -25,6 +25,11 @@ func (s *ZauthServer) LoginByName(ctx context.Context, in *zauth_pb.LoginByName_
 	return Logic_LoginByName(ctx.(*zservice.Context), in), nil
 }
 
+// Token 登录
+func (s *ZauthServer) LoginByToken(ctx context.Context, in *zauth_pb.LoginByToken_REQ) (*zauth_pb.Login_RES, error) {
+	return Logic_LoginByToken(ctx.(*zservice.Context), in), nil
+}
+
 // 是否有账号
 func (s *ZauthServer) HasUID(ctx context.Context, in *zauth_pb.HasUID_REQ) (*zauth_pb.Default_RES, error) {
 	return Logic_HasUID(ctx.(*zservice.Context), in), nil
@@ -71,8 +76,22 @@ func (s *ZauthServer) UserOrgBind(ctx context.Context, in *zauth_pb.UserOrgBind_
 	return Logic_UserOrgBind(ctx.(*zservice.Context), in), nil
 }
 
-// 获取文件配置
-func (s *ZauthServer) ConfigGetFileConfig(ctx context.Context, in *zauth_pb.ConfigGetFileConfig_REQ) (*zauth_pb.ConfigGetFileConfig_RES, error) {
+// 上传文件
+func (s *ZauthServer) UploadAsset(ctx context.Context, in *zauth_pb.UploadAsset_REQ) (*zauth_pb.AssetInfo_RES, error) {
+	return Logic_UploadAsset(ctx.(*zservice.Context), in), nil
+}
 
-	return Logic_ConfigGetFileConfig(ctx.(*zservice.Context), in), nil
+// 下载文件
+func (s *ZauthServer) DownloadAsset(ctx context.Context, in *zauth_pb.DownloadAsset_REQ) (*zauth_pb.AssetInfo_RES, error) {
+	return Logic_DownloadAsset(ctx.(*zservice.Context), in), nil
+}
+
+// 上传文件配置
+func (s *ZauthServer) UploadConfigAsset(ctx context.Context, in *zauth_pb.UploadConfigAsset_REQ) (*zauth_pb.UploadConfigAsset_RES, error) {
+	return Logic_UploadConfigAsset(ctx.(*zservice.Context), in), nil
+}
+
+// 下载文件配置
+func (s *ZauthServer) DownloadConfigAsset(ctx context.Context, in *zauth_pb.DownloadConfigAsset_REQ) (*zauth_pb.AssetInfo_RES, error) {
+	return Logic_DownloadConfigAsset(ctx.(*zservice.Context), in), nil
 }

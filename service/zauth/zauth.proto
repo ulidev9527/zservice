@@ -1,13 +1,13 @@
 syntax = "proto3";
 package zauth_pb;
-option go_package="./zauth_pb";
+option go_package = "./zauth_pb";
 
-message Default_REQ{} // 默认请求
+message Default_REQ{}  // 默认请求
 message Default_RES {
     uint32 code = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
 }
 
-// 账户/登陆相关
+  // 账户/登陆相关
 message UserInfo {
     uint32 uid       = 1;
     string loginName = 2;
@@ -27,6 +27,11 @@ message LoginByName_REQ {
     string service   = 3;  // 登陆服
     string toekn     = 4;  // 令牌
     string toeknSign = 5;  // 令牌 sign 
+}
+message LoginByToken_REQ{
+    string service    = 1;  // 登陆服
+    string toekn      = 2;  // 令牌
+    string toeknSign  = 3;  // 令牌 sign 
 }
 message Login_RES{
     uint32   code     = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
@@ -57,15 +62,15 @@ message CheckAuth_REQ{
     string tokenSign = 5;  // 令牌签名
 }
 message CheckAuth_RES{
-    uint32 code           = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
-    string token          = 2;  // 令牌，返回时需要进行匹配，如果不匹配代表有更新
-    uint32 uid            = 3;  // 用户ID, 登陆成功后会返回uid
+    uint32 code  = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
+    string token = 2;  // 令牌，返回时需要进行匹配，如果不匹配代表有更新
+    uint32 uid   = 3;  // 用户ID, 登陆成功后会返回uid
 }
 message HasUID_REQ{
     uint32 uid = 1;  // 账号ID
 }
 
-// 权限相关
+  // 权限相关
 message PermissionInfo{
     uint32 permissionID = 1;  // 权限ID
     string name         = 2;  // 权限名称
@@ -78,7 +83,7 @@ message PermissionInfo{
 message PermissionBindInfo{
     uint32 targetType   = 1;  // 权限类型 1组织 2账号
     uint32 targetID     = 2;  // 权限对象ID
-    int64  expires       = 3;  // 过期时间戳
+    int64  expires      = 3;  // 过期时间戳
     uint32 permissionID = 4;  // 权限ID
     uint32 state        = 5;  // 是否允许访问 0禁止 1允许
 }
@@ -100,7 +105,7 @@ message PermissionBind_REQ{
     uint32 permissionID = 1;  // 权限ID
     uint32 targetType   = 2;  // 权限类型 1组织 2账号
     uint32 targetID     = 3;  // 权限对象ID
-    int64  expires       = 4;  // 过期时间戳
+    int64  expires      = 4;  // 过期时间戳
     uint32 state        = 5;  // 是否允许访问 0禁止 1允许
 }
 message PermissionBind_RES{
@@ -108,7 +113,7 @@ message PermissionBind_RES{
     PermissionBindInfo info = 2;  // 权限绑定信息
 }
 
-// 组织相关
+  // 组织相关
 message OrgInfo{
     uint32 OrgID    = 1;  // 组织ID
     string name     = 2;  // 组织名称
@@ -132,7 +137,7 @@ message OrgListGet_REQ{
     string search = 3;  // 搜索关键字
 }
 
-// 短信相关
+  // 短信相关
 message SMSVerifyCodeSend_REQ { // 发送验证码 请求
     string phone      = 1;  // 手机号 必须带有 +86
     string verifyCode = 2;  // 接口验证码，如果需要就上传
@@ -147,12 +152,12 @@ message SMSVerifyCodeVerify_REQ { // 发送验证码 请求
     string verifyCode = 2;  // 验证码
 }
 
-// 其它
+  // 其它
 message HasZZZZString_REQ{
-    string str = 1; // 字符串
+    string str = 1;  // 字符串
 }
 
-// 键值对数据存储
+  // 键值对数据存储
 message SetServiceKV_REQ{
     string key     = 1;
     string value   = 2;
@@ -168,43 +173,11 @@ message GetServiceKV_RES{
     string value = 3;
 }
 
-// 配置相关
-message ConfigGetFileConfig_REQ {
-    string fileName = 1;  // 文件名
-    string Service  = 2;  // 服务名
-}
-message ConfigGetFileConfig_RES{
-    uint32 code  = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
-    string value = 2;  // 配置内容 返回：map[string]string 结构字符串
-}
-message ConfigSyncServiceFileConfig_REQ{
-    string filePath = 1;  // 文件路径
-    string Service  = 2;  // 服务名
-    uint32 parser   = 3;  // 解析器
-}
-message ConfigSyncServiceEnvConfig_REQ{
-    string filePath = 1;  // 文件路径
-    string service  = 2;  // 服务名
-}
-message ConfigSyncServiceEnvConfig_RES{
-    uint32 code = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
-    string auth = 2;  // 授权码
-}
-message ConfigGetServiceEnvConfig_REQ{
-    string auth    = 1;  // 授权码
-}
-message ConfigGetServiceEnvConfig_RES{
-    uint32 code  = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
-    string value = 2;  // 返回的数据
-}
-message ConfigGetEnvConfig_REQ{
-    string service = 1;  // 服务名
-}
 
-// 服务注册
-// 权限信息
+  // 服务注册
+  // 权限信息
 message ServiceRegist_REQ{
-    string service = 1;  // 服务名
+    string   service                        = 1;  // 服务名
     repeated PermissionInfo initPermissions = 2;  // 初始化的权限列表，数据库没有的进行创建，有的则忽略，此处数据只会使用 action/path/static 三个字段
 }
 message ServiceRegist_RES {
@@ -219,20 +192,14 @@ message UserOrgBind_REQ{
     uint32 state   = 4;  // 状态 0禁用 1开启
 }
 
-// 资源
+  // 资源
 message AssetInfo {
     string name    = 1;  // 文件名
-    string md5     = 2;  // 文件md5
-    string token   = 3;  // 资源访问标识, 使用标识可以进行资源的访问
+    uint64 size    = 2;  // 文件大小
+    string md5     = 3;  // 文件md5
     int64  expires = 4;  // 过期时间戳
-    uint64 size    = 5;  // 文件大小
+    string assetID = 5;  // 资源唯一标识
     bytes  data    = 6;  // 文件数据
-}
-
-message AddAsset_REQ { // 添加资源
-    string name      = 1;  // 文件全名, 文件全名 包括后缀
-    int64  expires    = 2;  // 过期时间戳
-    bytes  fileBytes = 3;  // 文件数据
 }
 
 message AssetInfo_RES { // 资源信息
@@ -240,11 +207,55 @@ message AssetInfo_RES { // 资源信息
     AssetInfo info = 2;  // 资源信息
 }
 
+message ConfigAssetInfo{
+    string name          = 1;  // 文件名
+    string service       = 2;  // 服务名
+    uint32 parser        = 3;  // 解析器
+    string assetID       = 4;  // 解析前资源唯一标识
+    string parserAssetID = 5;  // 解析后资源唯一标识
+}
+message UploadAsset_REQ { // 上传资源
+    string name    = 1;  // 文件全名, 文件全名 包括后缀 不包含路径
+    int64  expires = 2;  // 过期时间戳
+    bytes  Data    = 3;  // 文件数据
+}
+
+message DownloadAsset_REQ{ // 有 assetID 根据资源 assetID 下载，没有 assetID 需要 name + service 进行下载
+    string assetID = 1;  // 资源token
+    string name    = 2;  // 文件全名, 文件全名 包括后缀 不包含路径
+    string service = 3;  // 服务名
+}
+
+message UploadConfigAsset_REQ{
+    string name    = 1;  // 文件名
+    string service = 2;  // 服务名
+    uint32 parser  = 3;  // 解析器
+    bytes  data    = 4;  // 文件数据
+}
+
+message UploadConfigAsset_RES{
+    uint32          code            = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
+    AssetInfo       assetInfo       = 2;  // 资源信息
+    AssetInfo       parserAssetInfo = 3;  // 解析后资源信息
+    ConfigAssetInfo configInfo      = 4;  // 配置信息
+}
+
+message DownloadConfigAsset_REQ {
+    string name    = 1;  // 文件名
+    string service = 2;  // 服务名
+}
+
+message SyncConfigAsset_REQ{
+    string name    = 1;  // 文件名
+    string service = 2;  // 服务名
+}
+
 service zauth{
 
     rpc Logout(Logout_REQ) returns(Default_RES);             // 登出
     rpc LoginByPhone(LoginByPhone_REQ) returns(Login_RES);   // 手机号登陆
     rpc LoginByName(LoginByName_REQ) returns(Login_RES);     // 账户登陆
+    rpc LoginByToken(LoginByToken_REQ) returns(Login_RES);   // token 登陆
     rpc LoginCheck(LoginCheck_REQ) returns(LoginCheck_RES);  // 登陆检查, 检查用户是否在指定服务登陆
     rpc HasUID(HasUID_REQ) returns(Default_RES);             // 检查账户是否存在
     
@@ -262,19 +273,19 @@ service zauth{
 
     rpc CheckAuth(CheckAuth_REQ) returns(CheckAuth_RES);  // 检查权限
 
-    rpc HasZZZZString(HasZZZZString_REQ) returns(Default_RES); // 验证ZZZZ字符串
+    rpc HasZZZZString(HasZZZZString_REQ) returns(Default_RES);  // 验证ZZZZ字符串
 
-    rpc ConfigGetFileConfig(ConfigGetFileConfig_REQ) returns(ConfigGetFileConfig_RES);                       // 获取文件配置
-    rpc ConfigSyncServiceFileConfig(ConfigSyncServiceFileConfig_REQ) returns(Default_RES);                   // 同步服务的文件配置
-    rpc ConfigSyncServiceEnvConfig(ConfigSyncServiceEnvConfig_REQ) returns(ConfigSyncServiceEnvConfig_RES);  // 同步服务的环境变量
-    rpc ConfigGetServiceEnvConfig(ConfigGetServiceEnvConfig_REQ) returns(ConfigGetServiceEnvConfig_RES);     // 获取服务的环境变量
-    rpc ConfigGetEnvConfig(ConfigGetEnvConfig_REQ) returns(ConfigGetServiceEnvConfig_RES);                   // 获取环境变量
 
-    rpc SetServiceKV(SetServiceKV_REQ) returns(Default_RES);    // 设置服务的键值对
+    rpc SetServiceKV(SetServiceKV_REQ) returns(Default_RES);       // 设置服务的键值对
     rpc GetServiceKV(GetServiceKV_REQ) returns(GetServiceKV_RES);  // 获取服务的键值对
     
     rpc ServiceRegist(ServiceRegist_REQ)returns(ServiceRegist_RES);  // 服务注册, 创建服务组/服务权限
-    rpc UserOrgBind(UserOrgBind_REQ)returns(Default_RES);          // 添加用户到服务组
+    rpc UserOrgBind(UserOrgBind_REQ)returns(Default_RES);            // 添加用户到服务组
 
-    rpc AddAsset(AddAsset_REQ) returns(AssetInfo_RES);  // 添加资源
+    rpc UploadAsset(UploadAsset_REQ) returns(AssetInfo_RES);      // 添加资源
+    rpc DownloadAsset(DownloadAsset_REQ) returns(AssetInfo_RES);  // 下载资源
+
+    rpc UploadConfigAsset(UploadConfigAsset_REQ) returns(UploadConfigAsset_RES);  // 上传配置资源
+    rpc DownloadConfigAsset(DownloadConfigAsset_REQ) returns(AssetInfo_RES);      // 下载配置资源
+
 }

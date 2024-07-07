@@ -3,8 +3,8 @@ package internal
 import (
 	"net/http"
 	"zservice/service/zauth/zauth_pb"
-	"zservice/zservice/service/ginservice"
-	"zservice/zservice/zglobal"
+	"zservice/zservice"
+	"zservice/zserviceex/ginservice"
 
 	"github.com/gin-gonic/gin"
 )
@@ -23,7 +23,7 @@ func gin_post_SMS_VerifyCodeSend(ctx *gin.Context) {
 
 	if e := ctx.ShouldBind(&req); e != nil {
 		zctx.LogError(e)
-		ctx.JSON(http.StatusOK, gin.H{"code": zglobal.Code_ParamsErr})
+		ctx.JSON(http.StatusOK, gin.H{"code": zservice.Code_ParamsErr})
 		return
 	}
 

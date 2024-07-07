@@ -4,7 +4,6 @@ import (
 	"time"
 	"zservice/service/zlog/zlog_pb"
 	"zservice/zservice"
-	"zservice/zservice/zglobal"
 )
 
 func Logic_AddLogKV(ctx *zservice.Context, in *zlog_pb.LogKV_REQ) *zlog_pb.Default_RES {
@@ -19,7 +18,7 @@ func Logic_AddLogKV(ctx *zservice.Context, in *zlog_pb.LogKV_REQ) *zlog_pb.Defau
 
 	if e := Gorm.Create(tab).Error; e != nil {
 		zservice.LogError(e)
-		return &zlog_pb.Default_RES{Code: zglobal.Code_DB_SaveFail}
+		return &zlog_pb.Default_RES{Code: zservice.Code_DB_SaveFail}
 	}
-	return &zlog_pb.Default_RES{Code: zglobal.Code_SUCC}
+	return &zlog_pb.Default_RES{Code: zservice.Code_SUCC}
 }

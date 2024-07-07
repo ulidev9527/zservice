@@ -1,7 +1,7 @@
 package internal
 
 import (
-	"zservice/zservice/service/dbservice"
+	"zservice/zserviceex/dbservice"
 )
 
 var (

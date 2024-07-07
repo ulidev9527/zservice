@@ -1,7 +1,7 @@
 package main
 
 import (
-	"time"
+	"errors"
 	"zservice/zservice"
 )
 
@@ -20,30 +20,11 @@ func init() {
 }
 
 func main() {
+	e := zservice.NewError("222")
+	if errors.Is(e, &zservice.Error{}) {
+		zservice.LogError(1)
+	} else {
+		zservice.LogError(2)
+	}
 
-	data := zservice.ZtimeNow()
-
-	zservice.LogError(
-		data.UTC().Truncate(0).Unix(),
-		data.UnixMilli(),
-		data.UnixMicro(),
-		data.UnixNano(),
-		data.IsZero(),
-		"---",
-		time.UnixMilli(1720000993974).String(),
-		time.UnixMilli(0).String(),
-		// data.Unix(),
-		// data.UnixMilli(),
-		// data.UnixMicro(),
-		// data.UnixNano(),
-		// data.IsZero(),
-
-		zservice.MaxInt(1823, 2312, 1, 31, 32, 13, 123, 1, 31, 3),
-
-		zservice.MinInt(1823, 2312, 1, 31, 32, 13, 123, 1, 31, 3),
-
-		zservice.MaxInt64(1823, 2312, 1, 31, 32, 13, 123, 1, 31, 3),
-
-		zservice.MinInt64(1823, 2312, 1, 31, 32, 13, 123, 1, 31, 3),
-	)
 }

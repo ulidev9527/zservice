@@ -4,8 +4,7 @@ import (
 	"encoding/json"
 	"zservice/service/zlog/zlog_pb"
 	"zservice/zservice"
-	"zservice/zservice/service/nsqservice"
-	"zservice/zservice/zglobal"
+	"zservice/zserviceex/nsqservice"
 )
 
 func NsqInit() {
@@ -14,7 +13,7 @@ func NsqInit() {
 	go nsqservice.NewNsqConsumer(&nsqservice.NsqConsumerConfig{
 		Addrs:         zservice.Getenv("NSQ_ADDRS"),
 		UseNsqlookupd: zservice.GetenvBool("USE_NSQLOOKUPD"),
-		Topic:         zglobal.NSQ_Topic_zlog_AddKV,
+		Topic:         zservice.NSQ_Topic_zlog_AddKV,
 		Channel:       zservice.GetServiceName(),
 		OnMessage: func(ctx *zservice.Context, body []byte) {
 

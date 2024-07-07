@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
-	"zservice/zservice/service/etcdservice"
-	"zservice/zservice/service/grpcservice"
-	"zservice/zservice/zglobal"
+	"zservice/zserviceex/etcdservice"
+	"zservice/zserviceex/grpcservice"
 )
 
 var grpcClient zauth_pb.ZauthClient
@@ -31,7 +30,7 @@ func Init(opt *ZAuthInitOption) {
 	}
 
 	// 服务配置改变监听
-	opt.EtcdService.WatchEvent(fmt.Sprintf(zglobal.EV_Config_ServiceFileConfigChange, zservice.GetServiceName()), func(ctx *zservice.Context, val string) {
+	opt.EtcdService.WatchEvent(fmt.Sprintf(zservice.EV_Config_ServiceFileConfigChange, zservice.GetServiceName()), func(ctx *zservice.Context, val string) {
 		fileConfigCache.Delete(val)
 	})
 }

@@ -2,7 +2,6 @@ package internal
 
 import (
 	"zservice/zservice"
-	"zservice/zservice/zglobal"
 
 	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
 	dysmsapi20170525 "github.com/alibabacloud-go/dysmsapi-20170525/v3/client"
@@ -27,7 +26,7 @@ func SMSSend_aliyun(ctx *zservice.Context, c *SMSSend_aliyunConfig) *zservice.Er
 		c.Secret == "" ||
 		c.TemplateCode == "" ||
 		c.SignName == "" {
-		return zservice.NewError("param err").SetCode(zglobal.Code_ParamsErr)
+		return zservice.NewError("param err").SetCode(zservice.Code_ParamsErr)
 	}
 
 	// 请确保代码运行环境设置了环境变量 ALIBABA_CLOUD_ACCESS_KEY_ID 和 ALIBABA_CLOUD_ACCESS_KEY_SECRET��

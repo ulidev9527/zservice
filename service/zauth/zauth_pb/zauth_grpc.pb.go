@@ -19,32 +19,31 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Zauth_Logout_FullMethodName                      = "/zauth_pb.zauth/Logout"
-	Zauth_LoginByPhone_FullMethodName                = "/zauth_pb.zauth/LoginByPhone"
-	Zauth_LoginByName_FullMethodName                 = "/zauth_pb.zauth/LoginByName"
-	Zauth_LoginCheck_FullMethodName                  = "/zauth_pb.zauth/LoginCheck"
-	Zauth_HasUID_FullMethodName                      = "/zauth_pb.zauth/HasUID"
-	Zauth_PermissionCreate_FullMethodName            = "/zauth_pb.zauth/PermissionCreate"
-	Zauth_PermissionListGet_FullMethodName           = "/zauth_pb.zauth/PermissionListGet"
-	Zauth_PermissionUpdate_FullMethodName            = "/zauth_pb.zauth/PermissionUpdate"
-	Zauth_PermissionBind_FullMethodName              = "/zauth_pb.zauth/PermissionBind"
-	Zauth_OrgCreate_FullMethodName                   = "/zauth_pb.zauth/OrgCreate"
-	Zauth_OrgListGet_FullMethodName                  = "/zauth_pb.zauth/OrgListGet"
-	Zauth_OrgUpdate_FullMethodName                   = "/zauth_pb.zauth/OrgUpdate"
-	Zauth_SMSVerifyCodeSend_FullMethodName           = "/zauth_pb.zauth/SMSVerifyCodeSend"
-	Zauth_SMSVerifyCodeVerify_FullMethodName         = "/zauth_pb.zauth/SMSVerifyCodeVerify"
-	Zauth_CheckAuth_FullMethodName                   = "/zauth_pb.zauth/CheckAuth"
-	Zauth_HasZZZZString_FullMethodName               = "/zauth_pb.zauth/HasZZZZString"
-	Zauth_ConfigGetFileConfig_FullMethodName         = "/zauth_pb.zauth/ConfigGetFileConfig"
-	Zauth_ConfigSyncServiceFileConfig_FullMethodName = "/zauth_pb.zauth/ConfigSyncServiceFileConfig"
-	Zauth_ConfigSyncServiceEnvConfig_FullMethodName  = "/zauth_pb.zauth/ConfigSyncServiceEnvConfig"
-	Zauth_ConfigGetServiceEnvConfig_FullMethodName   = "/zauth_pb.zauth/ConfigGetServiceEnvConfig"
-	Zauth_ConfigGetEnvConfig_FullMethodName          = "/zauth_pb.zauth/ConfigGetEnvConfig"
-	Zauth_SetServiceKV_FullMethodName                = "/zauth_pb.zauth/SetServiceKV"
-	Zauth_GetServiceKV_FullMethodName                = "/zauth_pb.zauth/GetServiceKV"
-	Zauth_ServiceRegist_FullMethodName               = "/zauth_pb.zauth/ServiceRegist"
-	Zauth_UserOrgBind_FullMethodName                 = "/zauth_pb.zauth/UserOrgBind"
-	Zauth_AddAsset_FullMethodName                    = "/zauth_pb.zauth/AddAsset"
+	Zauth_Logout_FullMethodName              = "/zauth_pb.zauth/Logout"
+	Zauth_LoginByPhone_FullMethodName        = "/zauth_pb.zauth/LoginByPhone"
+	Zauth_LoginByName_FullMethodName         = "/zauth_pb.zauth/LoginByName"
+	Zauth_LoginByToken_FullMethodName        = "/zauth_pb.zauth/LoginByToken"
+	Zauth_LoginCheck_FullMethodName          = "/zauth_pb.zauth/LoginCheck"
+	Zauth_HasUID_FullMethodName              = "/zauth_pb.zauth/HasUID"
+	Zauth_PermissionCreate_FullMethodName    = "/zauth_pb.zauth/PermissionCreate"
+	Zauth_PermissionListGet_FullMethodName   = "/zauth_pb.zauth/PermissionListGet"
+	Zauth_PermissionUpdate_FullMethodName    = "/zauth_pb.zauth/PermissionUpdate"
+	Zauth_PermissionBind_FullMethodName      = "/zauth_pb.zauth/PermissionBind"
+	Zauth_OrgCreate_FullMethodName           = "/zauth_pb.zauth/OrgCreate"
+	Zauth_OrgListGet_FullMethodName          = "/zauth_pb.zauth/OrgListGet"
+	Zauth_OrgUpdate_FullMethodName           = "/zauth_pb.zauth/OrgUpdate"
+	Zauth_SMSVerifyCodeSend_FullMethodName   = "/zauth_pb.zauth/SMSVerifyCodeSend"
+	Zauth_SMSVerifyCodeVerify_FullMethodName = "/zauth_pb.zauth/SMSVerifyCodeVerify"
+	Zauth_CheckAuth_FullMethodName           = "/zauth_pb.zauth/CheckAuth"
+	Zauth_HasZZZZString_FullMethodName       = "/zauth_pb.zauth/HasZZZZString"
+	Zauth_SetServiceKV_FullMethodName        = "/zauth_pb.zauth/SetServiceKV"
+	Zauth_GetServiceKV_FullMethodName        = "/zauth_pb.zauth/GetServiceKV"
+	Zauth_ServiceRegist_FullMethodName       = "/zauth_pb.zauth/ServiceRegist"
+	Zauth_UserOrgBind_FullMethodName         = "/zauth_pb.zauth/UserOrgBind"
+	Zauth_UploadAsset_FullMethodName         = "/zauth_pb.zauth/UploadAsset"
+	Zauth_DownloadAsset_FullMethodName       = "/zauth_pb.zauth/DownloadAsset"
+	Zauth_UploadConfigAsset_FullMethodName   = "/zauth_pb.zauth/UploadConfigAsset"
+	Zauth_DownloadConfigAsset_FullMethodName = "/zauth_pb.zauth/DownloadConfigAsset"
 )
 
 // ZauthClient is the client API for Zauth service.
@@ -54,6 +53,7 @@ type ZauthClient interface {
 	Logout(ctx context.Context, in *Logout_REQ, opts ...grpc.CallOption) (*Default_RES, error)
 	LoginByPhone(ctx context.Context, in *LoginByPhone_REQ, opts ...grpc.CallOption) (*Login_RES, error)
 	LoginByName(ctx context.Context, in *LoginByName_REQ, opts ...grpc.CallOption) (*Login_RES, error)
+	LoginByToken(ctx context.Context, in *LoginByToken_REQ, opts ...grpc.CallOption) (*Login_RES, error)
 	LoginCheck(ctx context.Context, in *LoginCheck_REQ, opts ...grpc.CallOption) (*LoginCheck_RES, error)
 	HasUID(ctx context.Context, in *HasUID_REQ, opts ...grpc.CallOption) (*Default_RES, error)
 	PermissionCreate(ctx context.Context, in *PermissionInfo, opts ...grpc.CallOption) (*PermissionInfo_RES, error)
@@ -67,16 +67,14 @@ type ZauthClient interface {
 	SMSVerifyCodeVerify(ctx context.Context, in *SMSVerifyCodeVerify_REQ, opts ...grpc.CallOption) (*Default_RES, error)
 	CheckAuth(ctx context.Context, in *CheckAuth_REQ, opts ...grpc.CallOption) (*CheckAuth_RES, error)
 	HasZZZZString(ctx context.Context, in *HasZZZZString_REQ, opts ...grpc.CallOption) (*Default_RES, error)
-	ConfigGetFileConfig(ctx context.Context, in *ConfigGetFileConfig_REQ, opts ...grpc.CallOption) (*ConfigGetFileConfig_RES, error)
-	ConfigSyncServiceFileConfig(ctx context.Context, in *ConfigSyncServiceFileConfig_REQ, opts ...grpc.CallOption) (*Default_RES, error)
-	ConfigSyncServiceEnvConfig(ctx context.Context, in *ConfigSyncServiceEnvConfig_REQ, opts ...grpc.CallOption) (*ConfigSyncServiceEnvConfig_RES, error)
-	ConfigGetServiceEnvConfig(ctx context.Context, in *ConfigGetServiceEnvConfig_REQ, opts ...grpc.CallOption) (*ConfigGetServiceEnvConfig_RES, error)
-	ConfigGetEnvConfig(ctx context.Context, in *ConfigGetEnvConfig_REQ, opts ...grpc.CallOption) (*ConfigGetServiceEnvConfig_RES, error)
 	SetServiceKV(ctx context.Context, in *SetServiceKV_REQ, opts ...grpc.CallOption) (*Default_RES, error)
 	GetServiceKV(ctx context.Context, in *GetServiceKV_REQ, opts ...grpc.CallOption) (*GetServiceKV_RES, error)
 	ServiceRegist(ctx context.Context, in *ServiceRegist_REQ, opts ...grpc.CallOption) (*ServiceRegist_RES, error)
 	UserOrgBind(ctx context.Context, in *UserOrgBind_REQ, opts ...grpc.CallOption) (*Default_RES, error)
-	AddAsset(ctx context.Context, in *AddAsset_REQ, opts ...grpc.CallOption) (*AssetInfo_RES, error)
+	UploadAsset(ctx context.Context, in *UploadAsset_REQ, opts ...grpc.CallOption) (*AssetInfo_RES, error)
+	DownloadAsset(ctx context.Context, in *DownloadAsset_REQ, opts ...grpc.CallOption) (*AssetInfo_RES, error)
+	UploadConfigAsset(ctx context.Context, in *UploadConfigAsset_REQ, opts ...grpc.CallOption) (*UploadConfigAsset_RES, error)
+	DownloadConfigAsset(ctx context.Context, in *DownloadConfigAsset_REQ, opts ...grpc.CallOption) (*AssetInfo_RES, error)
 }
 
 type zauthClient struct {
@@ -108,6 +106,15 @@ func (c *zauthClient) LoginByPhone(ctx context.Context, in *LoginByPhone_REQ, op
 func (c *zauthClient) LoginByName(ctx context.Context, in *LoginByName_REQ, opts ...grpc.CallOption) (*Login_RES, error) {
 	out := new(Login_RES)
 	err := c.cc.Invoke(ctx, Zauth_LoginByName_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *zauthClient) LoginByToken(ctx context.Context, in *LoginByToken_REQ, opts ...grpc.CallOption) (*Login_RES, error) {
+	out := new(Login_RES)
+	err := c.cc.Invoke(ctx, Zauth_LoginByToken_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -231,51 +238,6 @@ func (c *zauthClient) HasZZZZString(ctx context.Context, in *HasZZZZString_REQ, 
 	return out, nil
 }
 
-func (c *zauthClient) ConfigGetFileConfig(ctx context.Context, in *ConfigGetFileConfig_REQ, opts ...grpc.CallOption) (*ConfigGetFileConfig_RES, error) {
-	out := new(ConfigGetFileConfig_RES)
-	err := c.cc.Invoke(ctx, Zauth_ConfigGetFileConfig_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *zauthClient) ConfigSyncServiceFileConfig(ctx context.Context, in *ConfigSyncServiceFileConfig_REQ, opts ...grpc.CallOption) (*Default_RES, error) {
-	out := new(Default_RES)
-	err := c.cc.Invoke(ctx, Zauth_ConfigSyncServiceFileConfig_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *zauthClient) ConfigSyncServiceEnvConfig(ctx context.Context, in *ConfigSyncServiceEnvConfig_REQ, opts ...grpc.CallOption) (*ConfigSyncServiceEnvConfig_RES, error) {
-	out := new(ConfigSyncServiceEnvConfig_RES)
-	err := c.cc.Invoke(ctx, Zauth_ConfigSyncServiceEnvConfig_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *zauthClient) ConfigGetServiceEnvConfig(ctx context.Context, in *ConfigGetServiceEnvConfig_REQ, opts ...grpc.CallOption) (*ConfigGetServiceEnvConfig_RES, error) {
-	out := new(ConfigGetServiceEnvConfig_RES)
-	err := c.cc.Invoke(ctx, Zauth_ConfigGetServiceEnvConfig_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *zauthClient) ConfigGetEnvConfig(ctx context.Context, in *ConfigGetEnvConfig_REQ, opts ...grpc.CallOption) (*ConfigGetServiceEnvConfig_RES, error) {
-	out := new(ConfigGetServiceEnvConfig_RES)
-	err := c.cc.Invoke(ctx, Zauth_ConfigGetEnvConfig_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *zauthClient) SetServiceKV(ctx context.Context, in *SetServiceKV_REQ, opts ...grpc.CallOption) (*Default_RES, error) {
 	out := new(Default_RES)
 	err := c.cc.Invoke(ctx, Zauth_SetServiceKV_FullMethodName, in, out, opts...)
@@ -312,9 +274,36 @@ func (c *zauthClient) UserOrgBind(ctx context.Context, in *UserOrgBind_REQ, opts
 	return out, nil
 }
 
-func (c *zauthClient) AddAsset(ctx context.Context, in *AddAsset_REQ, opts ...grpc.CallOption) (*AssetInfo_RES, error) {
+func (c *zauthClient) UploadAsset(ctx context.Context, in *UploadAsset_REQ, opts ...grpc.CallOption) (*AssetInfo_RES, error) {
 	out := new(AssetInfo_RES)
-	err := c.cc.Invoke(ctx, Zauth_AddAsset_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, Zauth_UploadAsset_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *zauthClient) DownloadAsset(ctx context.Context, in *DownloadAsset_REQ, opts ...grpc.CallOption) (*AssetInfo_RES, error) {
+	out := new(AssetInfo_RES)
+	err := c.cc.Invoke(ctx, Zauth_DownloadAsset_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *zauthClient) UploadConfigAsset(ctx context.Context, in *UploadConfigAsset_REQ, opts ...grpc.CallOption) (*UploadConfigAsset_RES, error) {
+	out := new(UploadConfigAsset_RES)
+	err := c.cc.Invoke(ctx, Zauth_UploadConfigAsset_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *zauthClient) DownloadConfigAsset(ctx context.Context, in *DownloadConfigAsset_REQ, opts ...grpc.CallOption) (*AssetInfo_RES, error) {
+	out := new(AssetInfo_RES)
+	err := c.cc.Invoke(ctx, Zauth_DownloadConfigAsset_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -328,6 +317,7 @@ type ZauthServer interface {
 	Logout(context.Context, *Logout_REQ) (*Default_RES, error)
 	LoginByPhone(context.Context, *LoginByPhone_REQ) (*Login_RES, error)
 	LoginByName(context.Context, *LoginByName_REQ) (*Login_RES, error)
+	LoginByToken(context.Context, *LoginByToken_REQ) (*Login_RES, error)
 	LoginCheck(context.Context, *LoginCheck_REQ) (*LoginCheck_RES, error)
 	HasUID(context.Context, *HasUID_REQ) (*Default_RES, error)
 	PermissionCreate(context.Context, *PermissionInfo) (*PermissionInfo_RES, error)
@@ -341,16 +331,14 @@ type ZauthServer interface {
 	SMSVerifyCodeVerify(context.Context, *SMSVerifyCodeVerify_REQ) (*Default_RES, error)
 	CheckAuth(context.Context, *CheckAuth_REQ) (*CheckAuth_RES, error)
 	HasZZZZString(context.Context, *HasZZZZString_REQ) (*Default_RES, error)
-	ConfigGetFileConfig(context.Context, *ConfigGetFileConfig_REQ) (*ConfigGetFileConfig_RES, error)
-	ConfigSyncServiceFileConfig(context.Context, *ConfigSyncServiceFileConfig_REQ) (*Default_RES, error)
-	ConfigSyncServiceEnvConfig(context.Context, *ConfigSyncServiceEnvConfig_REQ) (*ConfigSyncServiceEnvConfig_RES, error)
-	ConfigGetServiceEnvConfig(context.Context, *ConfigGetServiceEnvConfig_REQ) (*ConfigGetServiceEnvConfig_RES, error)
-	ConfigGetEnvConfig(context.Context, *ConfigGetEnvConfig_REQ) (*ConfigGetServiceEnvConfig_RES, error)
 	SetServiceKV(context.Context, *SetServiceKV_REQ) (*Default_RES, error)
 	GetServiceKV(context.Context, *GetServiceKV_REQ) (*GetServiceKV_RES, error)
 	ServiceRegist(context.Context, *ServiceRegist_REQ) (*ServiceRegist_RES, error)
 	UserOrgBind(context.Context, *UserOrgBind_REQ) (*Default_RES, error)
-	AddAsset(context.Context, *AddAsset_REQ) (*AssetInfo_RES, error)
+	UploadAsset(context.Context, *UploadAsset_REQ) (*AssetInfo_RES, error)
+	DownloadAsset(context.Context, *DownloadAsset_REQ) (*AssetInfo_RES, error)
+	UploadConfigAsset(context.Context, *UploadConfigAsset_REQ) (*UploadConfigAsset_RES, error)
+	DownloadConfigAsset(context.Context, *DownloadConfigAsset_REQ) (*AssetInfo_RES, error)
 	mustEmbedUnimplementedZauthServer()
 }
 
@@ -366,6 +354,9 @@ func (UnimplementedZauthServer) LoginByPhone(context.Context, *LoginByPhone_REQ)
 }
 func (UnimplementedZauthServer) LoginByName(context.Context, *LoginByName_REQ) (*Login_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LoginByName not implemented")
+}
+func (UnimplementedZauthServer) LoginByToken(context.Context, *LoginByToken_REQ) (*Login_RES, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LoginByToken not implemented")
 }
 func (UnimplementedZauthServer) LoginCheck(context.Context, *LoginCheck_REQ) (*LoginCheck_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LoginCheck not implemented")
@@ -406,21 +397,6 @@ func (UnimplementedZauthServer) CheckAuth(context.Context, *CheckAuth_REQ) (*Che
 func (UnimplementedZauthServer) HasZZZZString(context.Context, *HasZZZZString_REQ) (*Default_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method HasZZZZString not implemented")
 }
-func (UnimplementedZauthServer) ConfigGetFileConfig(context.Context, *ConfigGetFileConfig_REQ) (*ConfigGetFileConfig_RES, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ConfigGetFileConfig not implemented")
-}
-func (UnimplementedZauthServer) ConfigSyncServiceFileConfig(context.Context, *ConfigSyncServiceFileConfig_REQ) (*Default_RES, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ConfigSyncServiceFileConfig not implemented")
-}
-func (UnimplementedZauthServer) ConfigSyncServiceEnvConfig(context.Context, *ConfigSyncServiceEnvConfig_REQ) (*ConfigSyncServiceEnvConfig_RES, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ConfigSyncServiceEnvConfig not implemented")
-}
-func (UnimplementedZauthServer) ConfigGetServiceEnvConfig(context.Context, *ConfigGetServiceEnvConfig_REQ) (*ConfigGetServiceEnvConfig_RES, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ConfigGetServiceEnvConfig not implemented")
-}
-func (UnimplementedZauthServer) ConfigGetEnvConfig(context.Context, *ConfigGetEnvConfig_REQ) (*ConfigGetServiceEnvConfig_RES, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ConfigGetEnvConfig not implemented")
-}
 func (UnimplementedZauthServer) SetServiceKV(context.Context, *SetServiceKV_REQ) (*Default_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetServiceKV not implemented")
 }
@@ -433,8 +409,17 @@ func (UnimplementedZauthServer) ServiceRegist(context.Context, *ServiceRegist_RE
 func (UnimplementedZauthServer) UserOrgBind(context.Context, *UserOrgBind_REQ) (*Default_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UserOrgBind not implemented")
 }
-func (UnimplementedZauthServer) AddAsset(context.Context, *AddAsset_REQ) (*AssetInfo_RES, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddAsset not implemented")
+func (UnimplementedZauthServer) UploadAsset(context.Context, *UploadAsset_REQ) (*AssetInfo_RES, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UploadAsset not implemented")
+}
+func (UnimplementedZauthServer) DownloadAsset(context.Context, *DownloadAsset_REQ) (*AssetInfo_RES, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DownloadAsset not implemented")
+}
+func (UnimplementedZauthServer) UploadConfigAsset(context.Context, *UploadConfigAsset_REQ) (*UploadConfigAsset_RES, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UploadConfigAsset not implemented")
+}
+func (UnimplementedZauthServer) DownloadConfigAsset(context.Context, *DownloadConfigAsset_REQ) (*AssetInfo_RES, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DownloadConfigAsset not implemented")
 }
 func (UnimplementedZauthServer) mustEmbedUnimplementedZauthServer() {}
 
@@ -499,6 +484,24 @@ func _Zauth_LoginByName_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ZauthServer).LoginByName(ctx, req.(*LoginByName_REQ))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Zauth_LoginByToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LoginByToken_REQ)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ZauthServer).LoginByToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Zauth_LoginByToken_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ZauthServer).LoginByToken(ctx, req.(*LoginByToken_REQ))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -737,96 +740,6 @@ func _Zauth_HasZZZZString_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Zauth_ConfigGetFileConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ConfigGetFileConfig_REQ)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ZauthServer).ConfigGetFileConfig(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Zauth_ConfigGetFileConfig_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ZauthServer).ConfigGetFileConfig(ctx, req.(*ConfigGetFileConfig_REQ))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Zauth_ConfigSyncServiceFileConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ConfigSyncServiceFileConfig_REQ)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ZauthServer).ConfigSyncServiceFileConfig(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Zauth_ConfigSyncServiceFileConfig_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ZauthServer).ConfigSyncServiceFileConfig(ctx, req.(*ConfigSyncServiceFileConfig_REQ))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Zauth_ConfigSyncServiceEnvConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ConfigSyncServiceEnvConfig_REQ)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ZauthServer).ConfigSyncServiceEnvConfig(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Zauth_ConfigSyncServiceEnvConfig_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ZauthServer).ConfigSyncServiceEnvConfig(ctx, req.(*ConfigSyncServiceEnvConfig_REQ))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Zauth_ConfigGetServiceEnvConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ConfigGetServiceEnvConfig_REQ)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ZauthServer).ConfigGetServiceEnvConfig(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Zauth_ConfigGetServiceEnvConfig_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ZauthServer).ConfigGetServiceEnvConfig(ctx, req.(*ConfigGetServiceEnvConfig_REQ))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Zauth_ConfigGetEnvConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ConfigGetEnvConfig_REQ)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ZauthServer).ConfigGetEnvConfig(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Zauth_ConfigGetEnvConfig_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ZauthServer).ConfigGetEnvConfig(ctx, req.(*ConfigGetEnvConfig_REQ))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Zauth_SetServiceKV_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SetServiceKV_REQ)
 	if err := dec(in); err != nil {
@@ -899,20 +812,74 @@ func _Zauth_UserOrgBind_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Zauth_AddAsset_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AddAsset_REQ)
+func _Zauth_UploadAsset_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UploadAsset_REQ)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ZauthServer).AddAsset(ctx, in)
+		return srv.(ZauthServer).UploadAsset(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Zauth_AddAsset_FullMethodName,
+		FullMethod: Zauth_UploadAsset_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ZauthServer).AddAsset(ctx, req.(*AddAsset_REQ))
+		return srv.(ZauthServer).UploadAsset(ctx, req.(*UploadAsset_REQ))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Zauth_DownloadAsset_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DownloadAsset_REQ)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ZauthServer).DownloadAsset(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Zauth_DownloadAsset_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ZauthServer).DownloadAsset(ctx, req.(*DownloadAsset_REQ))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Zauth_UploadConfigAsset_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UploadConfigAsset_REQ)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ZauthServer).UploadConfigAsset(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Zauth_UploadConfigAsset_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ZauthServer).UploadConfigAsset(ctx, req.(*UploadConfigAsset_REQ))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Zauth_DownloadConfigAsset_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DownloadConfigAsset_REQ)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ZauthServer).DownloadConfigAsset(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Zauth_DownloadConfigAsset_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ZauthServer).DownloadConfigAsset(ctx, req.(*DownloadConfigAsset_REQ))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -935,6 +902,10 @@ var Zauth_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "LoginByName",
 			Handler:    _Zauth_LoginByName_Handler,
+		},
+		{
+			MethodName: "LoginByToken",
+			Handler:    _Zauth_LoginByToken_Handler,
 		},
 		{
 			MethodName: "LoginCheck",
@@ -989,26 +960,6 @@ var Zauth_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Zauth_HasZZZZString_Handler,
 		},
 		{
-			MethodName: "ConfigGetFileConfig",
-			Handler:    _Zauth_ConfigGetFileConfig_Handler,
-		},
-		{
-			MethodName: "ConfigSyncServiceFileConfig",
-			Handler:    _Zauth_ConfigSyncServiceFileConfig_Handler,
-		},
-		{
-			MethodName: "ConfigSyncServiceEnvConfig",
-			Handler:    _Zauth_ConfigSyncServiceEnvConfig_Handler,
-		},
-		{
-			MethodName: "ConfigGetServiceEnvConfig",
-			Handler:    _Zauth_ConfigGetServiceEnvConfig_Handler,
-		},
-		{
-			MethodName: "ConfigGetEnvConfig",
-			Handler:    _Zauth_ConfigGetEnvConfig_Handler,
-		},
-		{
 			MethodName: "SetServiceKV",
 			Handler:    _Zauth_SetServiceKV_Handler,
 		},
@@ -1025,8 +976,20 @@ var Zauth_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Zauth_UserOrgBind_Handler,
 		},
 		{
-			MethodName: "AddAsset",
-			Handler:    _Zauth_AddAsset_Handler,
+			MethodName: "UploadAsset",
+			Handler:    _Zauth_UploadAsset_Handler,
+		},
+		{
+			MethodName: "DownloadAsset",
+			Handler:    _Zauth_DownloadAsset_Handler,
+		},
+		{
+			MethodName: "UploadConfigAsset",
+			Handler:    _Zauth_UploadConfigAsset_Handler,
+		},
+		{
+			MethodName: "DownloadConfigAsset",
+			Handler:    _Zauth_DownloadConfigAsset_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

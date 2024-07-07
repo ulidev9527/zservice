@@ -1,16 +1,12 @@
 package main
 
 import (
-	"net/http"
-	"strings"
 	"zservice/service/zauth/zauth"
 	"zservice/service/zauth/zauth_ex"
 	"zservice/service/zauth/zauth_pb"
+	"zservice/test/zauth/internal"
 	"zservice/zservice"
-	"zservice/zservice/service/etcdservice"
-	"zservice/zservice/service/ginservice"
-
-	"github.com/gin-gonic/gin"
+	"zservice/zserviceex/etcdservice"
 )
 
 func init() {
@@ -24,86 +20,30 @@ func main() {
 
 		Addr: zservice.Getenv("ETCD_ADDR"),
 		OnStart: func(s *etcdservice.EtcdService) {
-			// do something
+
 		},
 	})
 
 	grpcClient := zservice.NewService("zauth.grpc", func(z *zservice.ZService) {
+		defer z.StartDone()
 		ctx := zservice.NewContext()
 		zauth.Init(&zauth.ZAuthInitOption{
-			ServiceName: zservice.Getenv("ZAUTH_SERVICE_NAME"),
+			ServiceName: zservice.Getenv("ZAUTH_SERVICENAME"),
 			EtcdService: etcdS,
-			GrpcAddr:    zservice.Getenv("zauth_grpc_addr"),
+			GrpcAddr:    zservice.Getenv("ZAUTH_GRPCADDR"),
 		})
 
 		zauth_ex.ServiceInfo.Regist(ctx, &zauth_pb.ServiceRegist_REQ{})
-		z.StartDone()
 	})
 	grpcClient.AddDependService(etcdS.ZService)
 
-	ginS := ginservice.NewGinService(&ginservice.GinServiceConfig{
-		ListenPort: zservice.Getenv("GIN_PORT"),
-		OnStart: func(s *ginservice.GinService) {
-			engine := s.Engine
-			engine.GET("/", func(ctx *gin.Context) {
-				zctx := ginservice.GetCtxEX(ctx)
-				id := ctx.Query("id")
-				if id == "" {
+	zservice.AddDependService(
+		etcdS.ZService,
+		grpcClient,
+		internal.Test_AssetUploadDownload().AddDependService(grpcClient),
+		internal.Test_ConfigAssetUploadDownload().AddDependService(grpcClient),
+	)
 
-					arr := []struct {
-						ID         string `json:"id"`
-						Name       string `json:"name"`
-						Desc       string `json:"desc"`
-						Icon       string `json:"icon"`
-						LimitCount uint32 `json:"limit_count"`
-					}{}
-
-					e := zauth.ConfigGetFileConfig(zctx, "test.xlsx", &arr)
-					if e != nil {
-						zctx.LogError(e)
-					}
-					ctx.String(http.StatusOK, string(zservice.JsonMustMarshal(arr)))
-				} else if strings.Contains(id, ",") {
-					arr := []struct {
-						ID         string `json:"id"`
-						Name       string `json:"name"`
-						Desc       string `json:"desc"`
-						Icon       string `json:"icon"`
-						LimitCount uint32 `json:"limit_count"`
-					}{}
-
-					e := zauth.ConfigGetFileConfig(zctx, "test.xlsx", &arr, zservice.StringSplit(id, ",")...)
-					if e != nil {
-						zctx.LogError(e)
-					}
-					ctx.String(http.StatusOK, string(zservice.JsonMustMarshal(arr)))
-				} else {
-
-					m := struct {
-						ID         int    `json:"id"`
-						Name       string `json:"name"`
-						Desc       string `json:"desc"`
-						Icon       string `json:"icon"`
-						LimitCount uint32 `json:"limit_count"`
-					}{}
-					e := zauth.ConfigGetFileConfig(zctx, "test.xlsx", &m, id)
-					if e != nil {
-						zctx.LogError(e)
-					}
-					ctx.String(http.StatusOK, string(zservice.JsonMustMarshal(m)))
-				}
-			})
-		},
-	})
-
-	ginS.ZService.AddDependService(grpcClient, zservice.NewService("init", func(z *zservice.ZService) {
-
-		z.StartDone()
-
-	}))
-
-	zservice.AddDependService(ginS.ZService)
-
-	zservice.Start().WaitStart().WaitStop()
+	zservice.Start().WaitStart()
 
 }

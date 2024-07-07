@@ -4,7 +4,7 @@ import (
 	"zservice/service/zlog/zlog"
 	"zservice/service/zlog/zlog_pb"
 	"zservice/zservice"
-	"zservice/zservice/service/nsqservice"
+	"zservice/zserviceex/nsqservice"
 )
 
 func init() {

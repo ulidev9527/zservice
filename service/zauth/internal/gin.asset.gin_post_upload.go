@@ -2,11 +2,9 @@ package internal
 
 import (
 	"net/http"
-	"os"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
-	"zservice/zservice/service/ginservice"
-	"zservice/zservice/zglobal"
+	"zservice/zserviceex/ginservice"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,34 +16,25 @@ func gin_post_upload(ctx *gin.Context) {
 
 	if e != nil {
 		zctx.LogError(e)
-		ctx.JSON(http.StatusOK, gin.H{"code": zglobal.Code_Fail})
+		ctx.JSON(http.StatusOK, gin.H{"code": zservice.Code_Fail})
 		return
 	}
 
-	if file.Size > 30*1024*1024 { // 最大30M
-		zctx.LogError("file size too big")
-		ctx.JSON(http.StatusOK, gin.H{"code": zglobal.Code_Reject})
+	if file.Size > 10485760 { // 10MB
+		zctx.LogError("file size too big:", file.Size)
+		ctx.JSON(http.StatusOK, gin.H{"code": zservice.Code_Reject})
 		return
 	}
 
-	filePath := zservice.GetTempFilepath()
-
-	if e := ctx.SaveUploadedFile(file, filePath); e != nil {
+	if bt, e := ginservice.ReadUploadFile(file); e != nil {
 		zctx.LogError(e)
-		ctx.JSON(http.StatusOK, gin.H{"code": zglobal.Code_Fail})
-		return
-	}
-	defer os.Remove(filePath)
-
-	if bt, e := os.ReadFile(filePath); e != nil {
-		zctx.LogError(e)
-		ctx.JSON(http.StatusOK, gin.H{"code": zglobal.Code_Fail})
+		ctx.JSON(http.StatusOK, gin.H{"code": zservice.Code_Fail})
 		return
 	} else {
-		ctx.JSON(http.StatusOK, Logic_AddAsset(zctx, &zauth_pb.AddAsset_REQ{
-			Name:      file.Filename,
-			FileBytes: bt,
+		ctx.JSON(http.StatusOK, Logic_UploadAsset(zctx, &zauth_pb.UploadAsset_REQ{
+			Name:    file.Filename,
+			Expires: zservice.StringToInt64(ctx.PostForm("expires")),
+			Data:    bt,
 		}))
 	}
-
 }

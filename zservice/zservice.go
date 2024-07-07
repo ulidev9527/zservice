@@ -45,15 +45,6 @@ func Init(serviceName, serviceVersion string) {
 		}
 	}()
 
-	// 加载远程环境变量
-	if Getenv("ZSERVICE_REMOTE_ENV_ADDR") != "" {
-		LogInfo("load remote addr", Getenv("ZSERVICE_REMOTE_ENV_ADDR"))
-		e := LoadRemoteEnv(Getenv("ZSERVICE_REMOTE_ENV_ADDR"))
-		if e != nil {
-			LogError(e)
-		}
-	}
-
 	mainService = createService(Getenv("ZSERVICE_NAME"), nil)
 
 	LogInfof("run service at:    zservice v%s", Version)

@@ -1,6 +1,6 @@
 package internal
 
-import "zservice/zservice/service/dbservice"
+import "zservice/zserviceex/dbservice"
 
 var (
 	DBService *dbservice.DBService
@@ -17,6 +17,7 @@ func InitDB(s *dbservice.DBService) {
 	Gorm.AutoMigrate(
 
 		AssetTable{},
+		ConfigAssetTable{},
 		OrgTable{},
 		PermissionBindTable{},
 		PermissionTable{},

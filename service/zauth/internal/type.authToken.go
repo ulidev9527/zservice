@@ -6,7 +6,6 @@ import (
 	"time"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
-	"zservice/zservice/zglobal"
 )
 
 type AuthToken struct {
@@ -24,7 +23,7 @@ func CreateToken(ctx *zservice.Context, tokenSign string) (*AuthToken, *zservice
 	// 创建 token
 	tk := &AuthToken{}
 
-	tk.ExpiresSecond = uint32(zglobal.Time_10m.Seconds())
+	tk.ExpiresSecond = uint32(zservice.Time_10m.Seconds())
 	tk.CreateAT = time.Now()
 	tk.Sign = tokenSign
 	tk.Token = zservice.MD5String(fmt.Sprint(tk.Sign, zservice.RandomMD5(), zservice.RandomXID(), tk.CreateAT))
@@ -37,16 +36,16 @@ func CreateToken(ctx *zservice.Context, tokenSign string) (*AuthToken, *zservice
 }
 
 // 获取 token
-func GetToken(ctx *zservice.Context, tkStr string) (*AuthToken, *zservice.Error) {
+func GetTokenInfo(ctx *zservice.Context, tkStr string) (*AuthToken, *zservice.Error) {
 	if tkStr == "" {
-		return nil, zservice.NewError("token is empty string").SetCode(zglobal.Code_NotFound)
+		return nil, zservice.NewError("token is empty string").SetCode(zservice.Code_NotFound)
 	}
 
 	rk := fmt.Sprintf(RK_TokenInfo, tkStr)
 
 	if res, e := Redis.Get(rk).Result(); e != nil {
 		if DBService.IsNotFoundErr(e) {
-			return nil, zservice.NewError(e).SetCode(zglobal.Code_NotFound)
+			return nil, zservice.NewError(e).SetCode(zservice.Code_NotFound)
 		}
 		return nil, zservice.NewError(e)
 	} else {
@@ -83,8 +82,8 @@ func TokenLogin(ctx *zservice.Context, in struct {
 		} else {
 			remKeys := []string{}
 			for _, tk := range list {
-				if _at, e := GetToken(ctx, tk); e != nil { // 获取 token 信息
-					if e.GetCode() == zglobal.Code_NotFound {
+				if _at, e := GetTokenInfo(ctx, tk); e != nil { // 获取 token 信息
+					if e.GetCode() == zservice.Code_NotFound {
 						remKeys = append(remKeys, tk)
 					} else {
 						ctx.LogError("get tk fail", tk, e)
@@ -92,7 +91,7 @@ func TokenLogin(ctx *zservice.Context, in struct {
 				} else {
 					// 退出相应 token 登录状态
 					res := Logic_Logout(ctx, &zauth_pb.Logout_REQ{Token: _at.Token, TokenSign: _at.Sign})
-					if res.Code != zglobal.Code_SUCC {
+					if res.Code != zservice.Code_SUCC {
 						ctx.LogError("login out fail", tk)
 					}
 				}
@@ -113,7 +112,7 @@ func TokenLogin(ctx *zservice.Context, in struct {
 	// 设置关联信息
 	at.ExpiresSecond = in.Expires
 	if at.ExpiresSecond == 0 {
-		at.ExpiresSecond = uint32(zglobal.Time_10Day.Seconds())
+		at.ExpiresSecond = uint32(zservice.Time_10Day.Seconds())
 	}
 
 	at.UID = user.UID
@@ -159,8 +158,8 @@ func (l *AuthToken) AddLoginService(service string) {
 // 保存
 func (l *AuthToken) Save(ctx *zservice.Context) *zservice.Error {
 
-	if l.ExpiresSecond < uint32(zglobal.Time_10m.Seconds()) {
-		l.ExpiresSecond = uint32(zglobal.Time_10m.Seconds())
+	if l.ExpiresSecond < uint32(zservice.Time_10m.Seconds()) {
+		l.ExpiresSecond = uint32(zservice.Time_10m.Seconds())
 	}
 	l.Expires = time.Now().Add(time.Second * time.Duration(l.ExpiresSecond))
 

@@ -7,15 +7,14 @@ import (
 	"zservice/service/zauth/zauth"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
-	"zservice/zservice/service/ginservice"
-	"zservice/zservice/zglobal"
+	"zservice/zserviceex/ginservice"
 
 	"github.com/gin-gonic/gin"
 )
 
 // gin 检查权限中间件
 // @isZauthSelf 是否是自己，自己会调用 internal 中的权限逻辑, 否则通过 grpc 调用
-func GinCheckAuthMiddleware(zs *zservice.ZService, isZauthSelf ...bool) gin.HandlerFunc {
+func GinCheckAuthMiddleware(isZauthSelf ...bool) gin.HandlerFunc {
 
 	isSelf := false
 	if len(isZauthSelf) > 0 {
@@ -49,10 +48,7 @@ func GinCheckAuthMiddleware(zs *zservice.ZService, isZauthSelf ...bool) gin.Hand
 
 		if e != nil {
 			zctx.LogError(e)
-			ctx.JSON(http.StatusOK, &zglobal.Default_RES{
-				Code: zglobal.Code_Fail,
-				Msg:  zctx.TraceID,
-			})
+			ctx.JSON(http.StatusOK, gin.H{"code": zservice.Code_Fail, "msg": zctx.TraceID})
 			ctx.Abort()
 			return
 		}
@@ -63,12 +59,8 @@ func GinCheckAuthMiddleware(zs *zservice.ZService, isZauthSelf ...bool) gin.Hand
 		}
 		zctx.UID = res.Uid
 
-		if res.Code != zglobal.Code_SUCC {
-
-			ctx.JSON(http.StatusOK, &zglobal.Default_RES{
-				Code: res.GetCode(),
-				Msg:  zctx.TraceID,
-			})
+		if res.Code != zservice.Code_SUCC {
+			ctx.JSON(http.StatusOK, gin.H{"code": zservice.Code_Fail, "msg": zctx.TraceID})
 			ctx.Abort()
 			return
 		}

@@ -1,7 +1,7 @@
 package zlog
 
 import (
-	"zservice/zservice/service/nsqservice"
+	"zservice/zserviceex/nsqservice"
 )
 
 var nsqPService *nsqservice.NsqProducerService

@@ -3,7 +3,7 @@ package main
 import (
 	"zservice/service/zlog/internal"
 	"zservice/zservice"
-	"zservice/zservice/service/dbservice"
+	"zservice/zserviceex/dbservice"
 )
 
 func init() {

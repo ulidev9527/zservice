@@ -5,11 +5,10 @@ import (
 	"zservice/service/zauth/zauth_ex"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
-	"zservice/zservice/service/dbservice"
-	"zservice/zservice/service/etcdservice"
-	"zservice/zservice/service/ginservice"
-	"zservice/zservice/service/grpcservice"
-	"zservice/zservice/zglobal"
+	"zservice/zserviceex/dbservice"
+	"zservice/zserviceex/etcdservice"
+	"zservice/zserviceex/ginservice"
+	"zservice/zserviceex/grpcservice"
 )
 
 func init() {
@@ -35,7 +34,7 @@ func main() {
 		ctx := zservice.NewContext()
 		zauth_ex.ServiceInfo.Regist(ctx, &zauth_pb.ServiceRegist_REQ{
 			InitPermissions: []*zauth_pb.PermissionInfo{
-				{Action: "post", Path: "/login", State: zglobal.E_PermissionState_AllowAll},
+				{Action: "post", Path: "/auth/login", State: zservice.E_PermissionState_AllowAll},
 			},
 		}, true)
 
@@ -65,20 +64,20 @@ func main() {
 	internal.GinService = ginservice.NewGinService(&ginservice.GinServiceConfig{
 		ListenPort: zservice.Getenv("gin_listen_port"),
 		OnStart: func(s *ginservice.GinService) {
-			s.Engine.Use(zauth_ex.GinCheckAuthMiddleware(internal.GinService.ZService, true))
+			s.Engine.Use(zauth_ex.GinCheckAuthMiddleware(true))
 			internal.Gin = s.Engine
 			internal.InitGin()
 		},
 	})
 	internal.GinService.AddDependService(internal.GrpcService.ZService)
 
-	readyS := zservice.NewService("ready", func(z *zservice.ZService) {
-		internal.InitZZZZ()
-		z.StartDone()
-	})
-	readyS.AddDependService(internal.GinService.ZService)
-
-	zservice.AddDependService(readyS)
+	zservice.AddDependService(
+		internal.GinService.ZService,
+		zservice.NewService("ready", func(z *zservice.ZService) {
+			internal.InitZZZZString()
+			z.StartDone()
+		}).AddDependService(internal.DBService.ZService),
+	)
 
 	zservice.Start().WaitStart().WaitStop()
 }

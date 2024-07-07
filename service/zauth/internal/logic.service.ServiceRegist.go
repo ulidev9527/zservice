@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
-	"zservice/zservice/zglobal"
 )
 
 func Logic_ServiceRegist(ctx *zservice.Context, in *zauth_pb.ServiceRegist_REQ) *zauth_pb.ServiceRegist_RES {
 
 	if in.Service == "" {
 		ctx.LogError("param error")
-		return &zauth_pb.ServiceRegist_RES{Code: zglobal.Code_ParamsErr}
+		return &zauth_pb.ServiceRegist_RES{Code: zservice.Code_ParamsErr}
 	}
 
 	// 锁
@@ -19,20 +18,20 @@ func Logic_ServiceRegist(ctx *zservice.Context, in *zauth_pb.ServiceRegist_REQ) 
 	un, e := Redis.Lock(rk_regist)
 	if e != nil {
 		ctx.LogError(e)
-		return &zauth_pb.ServiceRegist_RES{Code: zglobal.Code_Fail}
+		return &zauth_pb.ServiceRegist_RES{Code: zservice.Code_Fail}
 	}
 	defer un()
 
 	// 服务组
 	orgInfo := &zauth_pb.OrgInfo{}
 	if tab, e := GetRootOrgByName(ctx, in.Service); e != nil {
-		if e.GetCode() != zglobal.Code_NotFound {
+		if e.GetCode() != zservice.Code_NotFound {
 			ctx.LogError(e)
 			return &zauth_pb.ServiceRegist_RES{Code: e.GetCode()}
 		} else {
 			// 创建服务组
 			res := Logic_OrgCreate(ctx, &zauth_pb.OrgInfo{Name: in.Service})
-			if res.Code == zglobal.Code_SUCC {
+			if res.Code == zservice.Code_SUCC {
 				orgInfo = res.Info
 			} else {
 				return &zauth_pb.ServiceRegist_RES{Code: res.Code}
@@ -51,7 +50,7 @@ func Logic_ServiceRegist(ctx *zservice.Context, in *zauth_pb.ServiceRegist_REQ) 
 	// 服务权限
 	permissionInfo := &zauth_pb.PermissionInfo{}
 	if tab, e := GetPermissionBySAP(ctx, in.Service, "", ""); e != nil {
-		if e.GetCode() != zglobal.Code_NotFound {
+		if e.GetCode() != zservice.Code_NotFound {
 			ctx.LogError(e)
 			return &zauth_pb.ServiceRegist_RES{Code: e.GetCode()}
 		} else {
@@ -62,7 +61,7 @@ func Logic_ServiceRegist(ctx *zservice.Context, in *zauth_pb.ServiceRegist_REQ) 
 				State:   2,
 			})
 			// 是否异常
-			if permissionRes.Code != zglobal.Code_SUCC {
+			if permissionRes.Code != zservice.Code_SUCC {
 				return &zauth_pb.ServiceRegist_RES{Code: permissionRes.Code}
 			}
 			permissionInfo = permissionRes.Info
@@ -79,7 +78,7 @@ func Logic_ServiceRegist(ctx *zservice.Context, in *zauth_pb.ServiceRegist_REQ) 
 
 	// 服务和权限绑定
 	if _, e := GetPermissionBind(ctx, 1, orgInfo.OrgID, permissionInfo.PermissionID); e != nil {
-		if e.GetCode() != zglobal.Code_NotFound {
+		if e.GetCode() != zservice.Code_NotFound {
 			ctx.LogError(e)
 			return &zauth_pb.ServiceRegist_RES{Code: e.GetCode()}
 		} else {
@@ -91,7 +90,7 @@ func Logic_ServiceRegist(ctx *zservice.Context, in *zauth_pb.ServiceRegist_REQ) 
 				State:        1,
 			})
 
-			if bindRes.GetCode() != zglobal.Code_SUCC {
+			if bindRes.GetCode() != zservice.Code_SUCC {
 				return &zauth_pb.ServiceRegist_RES{Code: bindRes.GetCode()}
 			}
 		}
@@ -101,10 +100,10 @@ func Logic_ServiceRegist(ctx *zservice.Context, in *zauth_pb.ServiceRegist_REQ) 
 	// 是否有账号和当前组绑定
 	adminUserTab := &UserTable{}
 	userBindTab := &UserOrgBindTable{}
-	if e := Gorm.Model(&UserOrgBindTable{}).Where("org_id = ?", orgInfo.OrgID).First(userBindTab).Error; e != nil {
+	if e := Gorm.First(userBindTab, "org_id = ?", orgInfo.OrgID).Error; e != nil {
 		if !DBService.IsNotFoundErr(e) { // 其他错误
 			ctx.LogError(e)
-			return &zauth_pb.ServiceRegist_RES{Code: zglobal.Code_Fail}
+			return &zauth_pb.ServiceRegist_RES{Code: zservice.Code_Fail}
 		} else {
 			// 创建管理员账号
 			if tab, e := CreateUser(ctx); e != nil {
@@ -126,11 +125,11 @@ func Logic_ServiceRegist(ctx *zservice.Context, in *zauth_pb.ServiceRegist_REQ) 
 
 	// 添加登陆名和密码
 	if adminUserTab.LoginName == "" {
-		resultCode := uint32(zglobal.Code_SUCC)
+		resultCode := uint32(zservice.Code_SUCC)
 		count := 0
 		for {
 			if count > 10 {
-				resultCode = zglobal.Code_Limit
+				resultCode = zservice.Code_Limit
 				break
 			}
 			adminName := zservice.RandomString(9)
@@ -138,7 +137,7 @@ func Logic_ServiceRegist(ctx *zservice.Context, in *zauth_pb.ServiceRegist_REQ) 
 			adminPassMd5 := zservice.MD5String(adminPass)
 
 			if e := adminUserTab.AddLoginNameAndPassword(ctx, adminName, zservice.MD5String(adminPass)); e != nil {
-				if e.GetCode() != zglobal.Code_Zauth_UserAlreadyExist_LoginName {
+				if e.GetCode() != zservice.Code_Zauth_UserAlreadyExist_LoginName {
 					ctx.LogError(e)
 					resultCode = e.GetCode()
 					break
@@ -151,13 +150,13 @@ func Logic_ServiceRegist(ctx *zservice.Context, in *zauth_pb.ServiceRegist_REQ) 
 				break
 			}
 		}
-		if resultCode != zglobal.Code_SUCC {
+		if resultCode != zservice.Code_SUCC {
 			return &zauth_pb.ServiceRegist_RES{Code: resultCode}
 		}
 	}
 
 	// 管理员和组绑定
-	if res := Logic_UserOrgBind(ctx, &zauth_pb.UserOrgBind_REQ{Uid: adminUserTab.UID, OrgID: orgInfo.OrgID, State: 1}); res.Code != zglobal.Code_SUCC && res.Code != zglobal.Code_RepetitionErr {
+	if res := Logic_UserOrgBind(ctx, &zauth_pb.UserOrgBind_REQ{Uid: adminUserTab.UID, OrgID: orgInfo.OrgID, State: 1}); res.Code != zservice.Code_SUCC && res.Code != zservice.Code_RepetitionErr {
 		return &zauth_pb.ServiceRegist_RES{Code: res.Code}
 	}
 
@@ -167,7 +166,7 @@ func Logic_ServiceRegist(ctx *zservice.Context, in *zauth_pb.ServiceRegist_REQ) 
 		for _, pInfo := range in.InitPermissions {
 			// 登陆权限添加
 			if _, e := GetPermissionBySAP(ctx, in.Service, pInfo.Action, pInfo.Path); e != nil {
-				if e.GetCode() != zglobal.Code_NotFound {
+				if e.GetCode() != zservice.Code_NotFound {
 					ctx.LogPanic(e)
 				} else { // 创建权限
 					permissionRES := Logic_PermissionCreate(ctx, &zauth_pb.PermissionInfo{
@@ -176,7 +175,7 @@ func Logic_ServiceRegist(ctx *zservice.Context, in *zauth_pb.ServiceRegist_REQ) 
 						Path:    pInfo.Path,
 						State:   pInfo.State,
 					})
-					if permissionRES.Code != zglobal.Code_SUCC {
+					if permissionRES.Code != zservice.Code_SUCC {
 						return &zauth_pb.ServiceRegist_RES{Code: permissionRES.Code}
 					}
 				}
@@ -186,7 +185,7 @@ func Logic_ServiceRegist(ctx *zservice.Context, in *zauth_pb.ServiceRegist_REQ) 
 	}
 
 	return &zauth_pb.ServiceRegist_RES{
-		Code:           zglobal.Code_SUCC,
+		Code:           zservice.Code_SUCC,
 		OrgInfo:        orgInfo,
 		PermissionInfo: permissionInfo,
 	}

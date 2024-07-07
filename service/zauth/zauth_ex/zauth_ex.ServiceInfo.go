@@ -5,7 +5,6 @@ import (
 	"zservice/service/zauth/zauth"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
-	"zservice/zservice/zglobal"
 )
 
 type __serviceInfo struct {
@@ -31,7 +30,7 @@ func (si *__serviceInfo) Regist(ctx *zservice.Context, in *zauth_pb.ServiceRegis
 		return zauth.GetGrpcClient().ServiceRegist(ctx, in)
 	}(); e != nil {
 		ctx.LogPanic(e)
-	} else if res.Code != zglobal.Code_SUCC {
+	} else if res.Code != zservice.Code_SUCC {
 		ctx.LogPanic(res)
 	} else {
 		si.serviceRegistRES = res

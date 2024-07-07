@@ -1,7 +1,7 @@
 package internal
 
 import (
-	"zservice/zservice/service/etcdservice"
+	"zservice/zserviceex/etcdservice"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
 )

@@ -5,7 +5,7 @@ import (
 	"time"
 	"zservice/zservice"
 
-	"zservice/zservice/service/dbservice"
+	"zservice/zserviceex/dbservice"
 
 	"gorm.io/gorm"
 )
@@ -18,8 +18,8 @@ type TimeTestTable struct {
 	gorm.Model
 
 	// T1 DeletedAt
-	// T1 zservice.ZtimeSQ
-	T1 zservice.Ztime
+	// T1 zservice.TimeSQ
+	T1 zservice.Time
 	T2 sql.NullTime
 }
 
@@ -41,9 +41,9 @@ func main() {
 				zservice.TestAction("insert", func() {
 
 					tab := &TimeTestTable{
-						T1: zservice.ZtimeNull(),
+						T1: zservice.TimeNull(),
 						// T1: DeletedAt{Time: time.Time{}},
-						// T1: zservice.ZtimeSQ{Time: time.Time{}},
+						// T1: zservice.TimeSQ{Time: time.Time{}},
 						T2: sql.NullTime{Time: time.Time{}},
 					}
 
