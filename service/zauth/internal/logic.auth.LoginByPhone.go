@@ -43,20 +43,30 @@ func Logic_LoginByPhone(ctx *zservice.Context, in *zauth_pb.LoginByPhone_REQ) *z
 		if e.GetCode() != zservice.Code_NotFound { // 其他错误
 			ctx.LogError(e)
 			return &zauth_pb.Login_RES{Code: e.GetCode()}
-		} else { // 未找到账号, 进行创建
-			user, e = CreateUser(ctx)
-			if e != nil {
-				ctx.LogError(e)
-				return &zauth_pb.Login_RES{Code: e.GetCode()}
-			}
-
-			user.Phone = in.Phone
-			if e := user.Save(ctx); e != nil {
-				ctx.LogError(e)
-				return &zauth_pb.Login_RES{Code: e.GetCode()}
-			}
 		}
-	} else if user.State == 0 {
+
+		if !in.IsAutoCreate { // 未找到账号, 进行创建
+			ctx.LogError(e)
+			return &zauth_pb.Login_RES{Code: zservice.Code_NotFound}
+		}
+
+		// 创建
+		user, e = CreateUser(ctx)
+		if e != nil {
+			ctx.LogError(e)
+			return &zauth_pb.Login_RES{Code: e.GetCode()}
+		}
+
+		user.Phone = in.Phone
+		if e := user.Save(ctx); e != nil {
+			ctx.LogError(e)
+			return &zauth_pb.Login_RES{Code: e.GetCode()}
+		}
+	} else if isBan, e := user.IsBan(ctx, in.Service); e != nil { // 限制登陆
+		ctx.LogError(e)
+		return &zauth_pb.Login_RES{Code: e.GetCode()}
+	} else if isBan {
+
 		ctx.LogError("login limit", user.UID)
 		return &zauth_pb.Login_RES{Code: zservice.Code_Limit}
 	}
@@ -76,7 +86,6 @@ func Logic_LoginByPhone(ctx *zservice.Context, in *zauth_pb.LoginByPhone_REQ) *z
 		Uid:       user.UID,
 		LoginName: user.LoginName,
 		Phone:     user.Phone,
-		State:     user.State,
 	}}
 
 }

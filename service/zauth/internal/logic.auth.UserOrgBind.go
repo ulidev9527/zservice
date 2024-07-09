@@ -11,7 +11,7 @@ func Logic_UserOrgBind(ctx *zservice.Context, in *zauth_pb.UserOrgBind_REQ) *zau
 		return &zauth_pb.Default_RES{Code: zservice.Code_ParamsErr}
 	}
 
-	if _, e := UserOrgBind(ctx, in.Uid, in.OrgID, in.Expires, in.State); e != nil {
+	if _, e := NewUserOrgBindTable(ctx, in.Uid, in.OrgID, in.Expires, in.State); e != nil {
 		ctx.LogError(e)
 		return &zauth_pb.Default_RES{Code: e.GetCode()}
 	}

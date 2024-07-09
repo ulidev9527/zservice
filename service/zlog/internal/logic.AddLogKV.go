@@ -13,7 +13,7 @@ func Logic_AddLogKV(ctx *zservice.Context, in *zlog_pb.LogKV_REQ) *zlog_pb.Defau
 		Value:    in.Value,
 		SaveTime: time.UnixMilli(in.SaveTime),
 		TraceID:  ctx.TraceID,
-		Service:  ctx.TraceService,
+		Service:  in.Service,
 	}
 
 	if e := Gorm.Create(tab).Error; e != nil {

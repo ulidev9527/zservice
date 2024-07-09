@@ -30,8 +30,12 @@ const (
 	Zauth_PermissionUpdate_FullMethodName    = "/zauth_pb.zauth/PermissionUpdate"
 	Zauth_PermissionBind_FullMethodName      = "/zauth_pb.zauth/PermissionBind"
 	Zauth_OrgCreate_FullMethodName           = "/zauth_pb.zauth/OrgCreate"
-	Zauth_OrgListGet_FullMethodName          = "/zauth_pb.zauth/OrgListGet"
+	Zauth_GetOrgList_FullMethodName          = "/zauth_pb.zauth/GetOrgList"
 	Zauth_OrgUpdate_FullMethodName           = "/zauth_pb.zauth/OrgUpdate"
+	Zauth_GetOrgInfo_FullMethodName          = "/zauth_pb.zauth/GetOrgInfo"
+	Zauth_GetOrgUsers_FullMethodName         = "/zauth_pb.zauth/GetOrgUsers"
+	Zauth_UserOrgBind_FullMethodName         = "/zauth_pb.zauth/UserOrgBind"
+	Zauth_UserBan_FullMethodName             = "/zauth_pb.zauth/UserBan"
 	Zauth_SMSVerifyCodeSend_FullMethodName   = "/zauth_pb.zauth/SMSVerifyCodeSend"
 	Zauth_SMSVerifyCodeVerify_FullMethodName = "/zauth_pb.zauth/SMSVerifyCodeVerify"
 	Zauth_CheckAuth_FullMethodName           = "/zauth_pb.zauth/CheckAuth"
@@ -39,7 +43,6 @@ const (
 	Zauth_SetServiceKV_FullMethodName        = "/zauth_pb.zauth/SetServiceKV"
 	Zauth_GetServiceKV_FullMethodName        = "/zauth_pb.zauth/GetServiceKV"
 	Zauth_ServiceRegist_FullMethodName       = "/zauth_pb.zauth/ServiceRegist"
-	Zauth_UserOrgBind_FullMethodName         = "/zauth_pb.zauth/UserOrgBind"
 	Zauth_UploadAsset_FullMethodName         = "/zauth_pb.zauth/UploadAsset"
 	Zauth_DownloadAsset_FullMethodName       = "/zauth_pb.zauth/DownloadAsset"
 	Zauth_UploadConfigAsset_FullMethodName   = "/zauth_pb.zauth/UploadConfigAsset"
@@ -61,8 +64,12 @@ type ZauthClient interface {
 	PermissionUpdate(ctx context.Context, in *PermissionInfo, opts ...grpc.CallOption) (*PermissionInfo_RES, error)
 	PermissionBind(ctx context.Context, in *PermissionBind_REQ, opts ...grpc.CallOption) (*PermissionBind_RES, error)
 	OrgCreate(ctx context.Context, in *OrgInfo, opts ...grpc.CallOption) (*OrgInfo_RES, error)
-	OrgListGet(ctx context.Context, in *OrgListGet_REQ, opts ...grpc.CallOption) (*OrgInfoList_RES, error)
+	GetOrgList(ctx context.Context, in *GetOrgList_REQ, opts ...grpc.CallOption) (*OrgInfoList_RES, error)
 	OrgUpdate(ctx context.Context, in *OrgInfo, opts ...grpc.CallOption) (*OrgInfo_RES, error)
+	GetOrgInfo(ctx context.Context, in *GetOrgInfo_REQ, opts ...grpc.CallOption) (*OrgInfo_RES, error)
+	GetOrgUsers(ctx context.Context, in *GetOrgUsers_REQ, opts ...grpc.CallOption) (*GetOrgUsers_RES, error)
+	UserOrgBind(ctx context.Context, in *UserOrgBind_REQ, opts ...grpc.CallOption) (*Default_RES, error)
+	UserBan(ctx context.Context, in *UserBan_REQ, opts ...grpc.CallOption) (*Default_RES, error)
 	SMSVerifyCodeSend(ctx context.Context, in *SMSVerifyCodeSend_REQ, opts ...grpc.CallOption) (*SMSSendVerifyCode_RES, error)
 	SMSVerifyCodeVerify(ctx context.Context, in *SMSVerifyCodeVerify_REQ, opts ...grpc.CallOption) (*Default_RES, error)
 	CheckAuth(ctx context.Context, in *CheckAuth_REQ, opts ...grpc.CallOption) (*CheckAuth_RES, error)
@@ -70,7 +77,6 @@ type ZauthClient interface {
 	SetServiceKV(ctx context.Context, in *SetServiceKV_REQ, opts ...grpc.CallOption) (*Default_RES, error)
 	GetServiceKV(ctx context.Context, in *GetServiceKV_REQ, opts ...grpc.CallOption) (*GetServiceKV_RES, error)
 	ServiceRegist(ctx context.Context, in *ServiceRegist_REQ, opts ...grpc.CallOption) (*ServiceRegist_RES, error)
-	UserOrgBind(ctx context.Context, in *UserOrgBind_REQ, opts ...grpc.CallOption) (*Default_RES, error)
 	UploadAsset(ctx context.Context, in *UploadAsset_REQ, opts ...grpc.CallOption) (*AssetInfo_RES, error)
 	DownloadAsset(ctx context.Context, in *DownloadAsset_REQ, opts ...grpc.CallOption) (*AssetInfo_RES, error)
 	UploadConfigAsset(ctx context.Context, in *UploadConfigAsset_REQ, opts ...grpc.CallOption) (*UploadConfigAsset_RES, error)
@@ -184,9 +190,9 @@ func (c *zauthClient) OrgCreate(ctx context.Context, in *OrgInfo, opts ...grpc.C
 	return out, nil
 }
 
-func (c *zauthClient) OrgListGet(ctx context.Context, in *OrgListGet_REQ, opts ...grpc.CallOption) (*OrgInfoList_RES, error) {
+func (c *zauthClient) GetOrgList(ctx context.Context, in *GetOrgList_REQ, opts ...grpc.CallOption) (*OrgInfoList_RES, error) {
 	out := new(OrgInfoList_RES)
-	err := c.cc.Invoke(ctx, Zauth_OrgListGet_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, Zauth_GetOrgList_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -196,6 +202,42 @@ func (c *zauthClient) OrgListGet(ctx context.Context, in *OrgListGet_REQ, opts .
 func (c *zauthClient) OrgUpdate(ctx context.Context, in *OrgInfo, opts ...grpc.CallOption) (*OrgInfo_RES, error) {
 	out := new(OrgInfo_RES)
 	err := c.cc.Invoke(ctx, Zauth_OrgUpdate_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *zauthClient) GetOrgInfo(ctx context.Context, in *GetOrgInfo_REQ, opts ...grpc.CallOption) (*OrgInfo_RES, error) {
+	out := new(OrgInfo_RES)
+	err := c.cc.Invoke(ctx, Zauth_GetOrgInfo_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *zauthClient) GetOrgUsers(ctx context.Context, in *GetOrgUsers_REQ, opts ...grpc.CallOption) (*GetOrgUsers_RES, error) {
+	out := new(GetOrgUsers_RES)
+	err := c.cc.Invoke(ctx, Zauth_GetOrgUsers_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *zauthClient) UserOrgBind(ctx context.Context, in *UserOrgBind_REQ, opts ...grpc.CallOption) (*Default_RES, error) {
+	out := new(Default_RES)
+	err := c.cc.Invoke(ctx, Zauth_UserOrgBind_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *zauthClient) UserBan(ctx context.Context, in *UserBan_REQ, opts ...grpc.CallOption) (*Default_RES, error) {
+	out := new(Default_RES)
+	err := c.cc.Invoke(ctx, Zauth_UserBan_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -265,15 +307,6 @@ func (c *zauthClient) ServiceRegist(ctx context.Context, in *ServiceRegist_REQ, 
 	return out, nil
 }
 
-func (c *zauthClient) UserOrgBind(ctx context.Context, in *UserOrgBind_REQ, opts ...grpc.CallOption) (*Default_RES, error) {
-	out := new(Default_RES)
-	err := c.cc.Invoke(ctx, Zauth_UserOrgBind_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *zauthClient) UploadAsset(ctx context.Context, in *UploadAsset_REQ, opts ...grpc.CallOption) (*AssetInfo_RES, error) {
 	out := new(AssetInfo_RES)
 	err := c.cc.Invoke(ctx, Zauth_UploadAsset_FullMethodName, in, out, opts...)
@@ -325,8 +358,12 @@ type ZauthServer interface {
 	PermissionUpdate(context.Context, *PermissionInfo) (*PermissionInfo_RES, error)
 	PermissionBind(context.Context, *PermissionBind_REQ) (*PermissionBind_RES, error)
 	OrgCreate(context.Context, *OrgInfo) (*OrgInfo_RES, error)
-	OrgListGet(context.Context, *OrgListGet_REQ) (*OrgInfoList_RES, error)
+	GetOrgList(context.Context, *GetOrgList_REQ) (*OrgInfoList_RES, error)
 	OrgUpdate(context.Context, *OrgInfo) (*OrgInfo_RES, error)
+	GetOrgInfo(context.Context, *GetOrgInfo_REQ) (*OrgInfo_RES, error)
+	GetOrgUsers(context.Context, *GetOrgUsers_REQ) (*GetOrgUsers_RES, error)
+	UserOrgBind(context.Context, *UserOrgBind_REQ) (*Default_RES, error)
+	UserBan(context.Context, *UserBan_REQ) (*Default_RES, error)
 	SMSVerifyCodeSend(context.Context, *SMSVerifyCodeSend_REQ) (*SMSSendVerifyCode_RES, error)
 	SMSVerifyCodeVerify(context.Context, *SMSVerifyCodeVerify_REQ) (*Default_RES, error)
 	CheckAuth(context.Context, *CheckAuth_REQ) (*CheckAuth_RES, error)
@@ -334,7 +371,6 @@ type ZauthServer interface {
 	SetServiceKV(context.Context, *SetServiceKV_REQ) (*Default_RES, error)
 	GetServiceKV(context.Context, *GetServiceKV_REQ) (*GetServiceKV_RES, error)
 	ServiceRegist(context.Context, *ServiceRegist_REQ) (*ServiceRegist_RES, error)
-	UserOrgBind(context.Context, *UserOrgBind_REQ) (*Default_RES, error)
 	UploadAsset(context.Context, *UploadAsset_REQ) (*AssetInfo_RES, error)
 	DownloadAsset(context.Context, *DownloadAsset_REQ) (*AssetInfo_RES, error)
 	UploadConfigAsset(context.Context, *UploadConfigAsset_REQ) (*UploadConfigAsset_RES, error)
@@ -379,11 +415,23 @@ func (UnimplementedZauthServer) PermissionBind(context.Context, *PermissionBind_
 func (UnimplementedZauthServer) OrgCreate(context.Context, *OrgInfo) (*OrgInfo_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method OrgCreate not implemented")
 }
-func (UnimplementedZauthServer) OrgListGet(context.Context, *OrgListGet_REQ) (*OrgInfoList_RES, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method OrgListGet not implemented")
+func (UnimplementedZauthServer) GetOrgList(context.Context, *GetOrgList_REQ) (*OrgInfoList_RES, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOrgList not implemented")
 }
 func (UnimplementedZauthServer) OrgUpdate(context.Context, *OrgInfo) (*OrgInfo_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method OrgUpdate not implemented")
+}
+func (UnimplementedZauthServer) GetOrgInfo(context.Context, *GetOrgInfo_REQ) (*OrgInfo_RES, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOrgInfo not implemented")
+}
+func (UnimplementedZauthServer) GetOrgUsers(context.Context, *GetOrgUsers_REQ) (*GetOrgUsers_RES, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOrgUsers not implemented")
+}
+func (UnimplementedZauthServer) UserOrgBind(context.Context, *UserOrgBind_REQ) (*Default_RES, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UserOrgBind not implemented")
+}
+func (UnimplementedZauthServer) UserBan(context.Context, *UserBan_REQ) (*Default_RES, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UserBan not implemented")
 }
 func (UnimplementedZauthServer) SMSVerifyCodeSend(context.Context, *SMSVerifyCodeSend_REQ) (*SMSSendVerifyCode_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SMSVerifyCodeSend not implemented")
@@ -405,9 +453,6 @@ func (UnimplementedZauthServer) GetServiceKV(context.Context, *GetServiceKV_REQ)
 }
 func (UnimplementedZauthServer) ServiceRegist(context.Context, *ServiceRegist_REQ) (*ServiceRegist_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ServiceRegist not implemented")
-}
-func (UnimplementedZauthServer) UserOrgBind(context.Context, *UserOrgBind_REQ) (*Default_RES, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UserOrgBind not implemented")
 }
 func (UnimplementedZauthServer) UploadAsset(context.Context, *UploadAsset_REQ) (*AssetInfo_RES, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UploadAsset not implemented")
@@ -632,20 +677,20 @@ func _Zauth_OrgCreate_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Zauth_OrgListGet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(OrgListGet_REQ)
+func _Zauth_GetOrgList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetOrgList_REQ)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ZauthServer).OrgListGet(ctx, in)
+		return srv.(ZauthServer).GetOrgList(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Zauth_OrgListGet_FullMethodName,
+		FullMethod: Zauth_GetOrgList_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ZauthServer).OrgListGet(ctx, req.(*OrgListGet_REQ))
+		return srv.(ZauthServer).GetOrgList(ctx, req.(*GetOrgList_REQ))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -664,6 +709,78 @@ func _Zauth_OrgUpdate_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ZauthServer).OrgUpdate(ctx, req.(*OrgInfo))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Zauth_GetOrgInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetOrgInfo_REQ)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ZauthServer).GetOrgInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Zauth_GetOrgInfo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ZauthServer).GetOrgInfo(ctx, req.(*GetOrgInfo_REQ))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Zauth_GetOrgUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetOrgUsers_REQ)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ZauthServer).GetOrgUsers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Zauth_GetOrgUsers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ZauthServer).GetOrgUsers(ctx, req.(*GetOrgUsers_REQ))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Zauth_UserOrgBind_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserOrgBind_REQ)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ZauthServer).UserOrgBind(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Zauth_UserOrgBind_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ZauthServer).UserOrgBind(ctx, req.(*UserOrgBind_REQ))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Zauth_UserBan_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserBan_REQ)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ZauthServer).UserBan(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Zauth_UserBan_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ZauthServer).UserBan(ctx, req.(*UserBan_REQ))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -794,24 +911,6 @@ func _Zauth_ServiceRegist_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Zauth_UserOrgBind_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UserOrgBind_REQ)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ZauthServer).UserOrgBind(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Zauth_UserOrgBind_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ZauthServer).UserOrgBind(ctx, req.(*UserOrgBind_REQ))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Zauth_UploadAsset_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UploadAsset_REQ)
 	if err := dec(in); err != nil {
@@ -936,12 +1035,28 @@ var Zauth_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Zauth_OrgCreate_Handler,
 		},
 		{
-			MethodName: "OrgListGet",
-			Handler:    _Zauth_OrgListGet_Handler,
+			MethodName: "GetOrgList",
+			Handler:    _Zauth_GetOrgList_Handler,
 		},
 		{
 			MethodName: "OrgUpdate",
 			Handler:    _Zauth_OrgUpdate_Handler,
+		},
+		{
+			MethodName: "GetOrgInfo",
+			Handler:    _Zauth_GetOrgInfo_Handler,
+		},
+		{
+			MethodName: "GetOrgUsers",
+			Handler:    _Zauth_GetOrgUsers_Handler,
+		},
+		{
+			MethodName: "UserOrgBind",
+			Handler:    _Zauth_UserOrgBind_Handler,
+		},
+		{
+			MethodName: "UserBan",
+			Handler:    _Zauth_UserBan_Handler,
 		},
 		{
 			MethodName: "SMSVerifyCodeSend",
@@ -970,10 +1085,6 @@ var Zauth_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ServiceRegist",
 			Handler:    _Zauth_ServiceRegist_Handler,
-		},
-		{
-			MethodName: "UserOrgBind",
-			Handler:    _Zauth_UserOrgBind_Handler,
 		},
 		{
 			MethodName: "UploadAsset",

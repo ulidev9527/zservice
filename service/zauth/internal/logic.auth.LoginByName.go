@@ -32,9 +32,31 @@ func Logic_LoginByName(ctx *zservice.Context, in *zauth_pb.LoginByName_REQ) *zau
 	// 获取账号信息/验证账号状态
 	user, e := GetUserByLoginName(ctx, in.User)
 	if e != nil {
+		if e.GetCode() != zservice.Code_NotFound {
+			ctx.LogError(e)
+			return &zauth_pb.Login_RES{Code: e.GetCode()}
+		}
+		if !in.IsAutoCreate { // 是否自动创建
+			ctx.LogError(e)
+			return &zauth_pb.Login_RES{Code: e.GetCode()}
+		}
+
+		// 创建
+		user, e = CreateUser(ctx)
+		if e != nil {
+			ctx.LogError(e)
+			return &zauth_pb.Login_RES{Code: e.GetCode()}
+		}
+
+		if e := user.AddLoginNameAndPassword(ctx, in.User, in.Password); e != nil {
+			ctx.LogError(e)
+			return &zauth_pb.Login_RES{Code: e.GetCode()}
+		}
+
+	} else if isBan, e := user.IsBan(ctx, in.Service); e != nil { // 限制登陆
 		ctx.LogError(e)
 		return &zauth_pb.Login_RES{Code: e.GetCode()}
-	} else if user.State == 0 { // 限制登陆
+	} else if isBan {
 		ctx.LogError("login limit", user.UID)
 		return &zauth_pb.Login_RES{Code: zservice.Code_Limit}
 	} else if !user.VerifyPass(ctx, in.Password) { // 验证

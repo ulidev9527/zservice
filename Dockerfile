@@ -15,6 +15,7 @@ RUN go mod download
 
 # 打包
 COPY zservice ./zservice
+COPY zserviceex ./zserviceex
 COPY service ./service
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64
 RUN go build -o __SERVICE_NAME__ ./service/__SERVICE_NAME__/__SERVICE_NAME__.service.go

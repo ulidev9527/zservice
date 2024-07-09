@@ -9,27 +9,28 @@ message Default_RES {
 
   // 账户/登陆相关
 message UserInfo {
-    uint32 uid       = 1;
-    string loginName = 2;
-    string phone     = 3;
-    uint32 state     = 4;
+    uint32 uid       = 1;  // 用户ID
+    string loginName = 2;  // 登录名
+    string phone     = 3;  // 手机号
 }
 message LoginByPhone_REQ {
-    string phone      = 1;  // 手机号 +86****
-    string verifyCode = 2;  // 验证码
-    string service    = 3;  // 登陆服
-    string toekn      = 4;  // 令牌
-    string toeknSign  = 5;  // 令牌 sign 
+    string phone        = 1;  // 手机号 +86****
+    string verifyCode   = 2;  // 验证码
+    string service      = 3;  // 登陆服务
+    string toekn        = 4;  // 令牌
+    string toeknSign    = 5;  // 令牌 sign 
+    bool isAutoCreate = 6;  // 是否自动创建账号
 }
 message LoginByName_REQ {
-    string user      = 1;  // 账号
-    string password  = 2;  // 密码
-    string service   = 3;  // 登陆服
-    string toekn     = 4;  // 令牌
-    string toeknSign = 5;  // 令牌 sign 
+    string user         = 1;  // 账号
+    string password     = 2;  // 密码
+    string service      = 3;  // 登陆服务
+    string toekn        = 4;  // 令牌
+    string toeknSign    = 5;  // 令牌 sign
+    bool   isAutoCreate = 6;  // 是否自动创建账号
 }
 message LoginByToken_REQ{
-    string service    = 1;  // 登陆服
+    string service    = 1;  // 登陆服务
     string toekn      = 2;  // 令牌
     string toeknSign  = 3;  // 令牌 sign 
 }
@@ -41,7 +42,7 @@ message Login_RES{
 message LoginCheck_REQ{
     string token     = 1;  // 令牌
     string tokenSign = 2;  // 签名
-    string service   = 3;  // 服务
+    string service   = 3;  // 登陆服务
 }
 
 message LoginCheck_RES{
@@ -113,7 +114,7 @@ message PermissionBind_RES{
     PermissionBindInfo info = 2;  // 权限绑定信息
 }
 
-  // 组织相关
+// 组织相关
 message OrgInfo{
     uint32 OrgID    = 1;  // 组织ID
     string name     = 2;  // 组织名称
@@ -131,13 +132,42 @@ message OrgInfoList_RES{
     uint32   code         = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
     repeated OrgInfo list = 2;  // 组织列表
 }
-message OrgListGet_REQ{
+message GetOrgList_REQ{
     uint32 page   = 1;  // 第几页
     uint32 size   = 2;  // 每页多少条
     string search = 3;  // 搜索关键字
 }
+message GetOrgInfo_REQ{ // 两种方式，一种是根据ID查询，一种是根据服务和组织名查询
+    uint32 OrgID   = 1;   // 组织ID
+    string service = 2 ;  // 服务
+    string orgName = 3 ;  // 组织名称
+}
 
-  // 短信相关
+
+// 用户相关
+message UserBan_REQ{
+    uint32   uid            = 1;  // 用户ID
+    repeated string service = 2;  // ban 服务，不填写直接禁用所有服务，无论是否填写都会退出目前所有服务的登录
+    int64    expire         = 3;  // 过期时间，超过时间自动解封
+    string   msg            = 4;  // 封禁原因
+}
+message UserOrgBind_REQ{
+    uint32 uid     = 1;  // uid
+    uint32 orgID   = 2;  // orgid
+    int64  expires = 3;  // 过期时间戳
+    uint32 state   = 4;  // 状态 0禁用 1开启
+}
+
+message GetOrgUsers_REQ{
+    uint32 OrgID = 1;  // 组织ID
+    uint32 page  = 2;  // 第几页
+}
+message GetOrgUsers_RES{
+    uint32   code         = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
+    repeated UserInfo list = 2;  // 组织列表
+}
+
+// 短信相关
 message SMSVerifyCodeSend_REQ { // 发送验证码 请求
     string phone      = 1;  // 手机号 必须带有 +86
     string verifyCode = 2;  // 接口验证码，如果需要就上传
@@ -184,12 +214,6 @@ message ServiceRegist_RES {
     uint32         code           = 1;  // 服务状态码 约定: 1 表示成功, 其它数字根据业务进行返回
     OrgInfo        OrgInfo        = 2;  // 组织信息
     PermissionInfo permissionInfo = 3;  // 权限信息
-}
-message UserOrgBind_REQ{
-    uint32 uid     = 1;  // uid
-    uint32 orgID   = 2;  // orgid
-    int64  expires = 3;  // 过期时间戳
-    uint32 state   = 4;  // 状态 0禁用 1开启
 }
 
   // 资源
@@ -245,11 +269,6 @@ message DownloadConfigAsset_REQ {
     string service = 2;  // 服务名
 }
 
-message SyncConfigAsset_REQ{
-    string name    = 1;  // 文件名
-    string service = 2;  // 服务名
-}
-
 service zauth{
 
     rpc Logout(Logout_REQ) returns(Default_RES);             // 登出
@@ -265,8 +284,13 @@ service zauth{
     rpc PermissionBind(PermissionBind_REQ) returns(PermissionBind_RES);            // 权限绑定
 
     rpc OrgCreate(OrgInfo) returns(OrgInfo_RES);              // 创建组织
-    rpc OrgListGet(OrgListGet_REQ) returns(OrgInfoList_RES);  // 获取组织列表
+    rpc GetOrgList(GetOrgList_REQ) returns(OrgInfoList_RES);  // 获取组织列表
     rpc OrgUpdate(OrgInfo) returns(OrgInfo_RES);              // 更新组织
+    rpc GetOrgInfo(GetOrgInfo_REQ) returns(OrgInfo_RES);      // 获取指定组织
+    rpc GetOrgUsers(GetOrgUsers_REQ) returns(GetOrgUsers_RES); // 获取组织成员
+
+    rpc UserOrgBind(UserOrgBind_REQ)returns(Default_RES);     // 添加用户到服务组
+    rpc UserBan(UserBan_REQ)returns(Default_RES);  // 用户关小黑屋
     
     rpc SMSVerifyCodeSend(SMSVerifyCodeSend_REQ) returns(SMSSendVerifyCode_RES);  // 发送验证码
     rpc SMSVerifyCodeVerify(SMSVerifyCodeVerify_REQ) returns(Default_RES);        // 验证验证码
@@ -280,7 +304,6 @@ service zauth{
     rpc GetServiceKV(GetServiceKV_REQ) returns(GetServiceKV_RES);  // 获取服务的键值对
     
     rpc ServiceRegist(ServiceRegist_REQ)returns(ServiceRegist_RES);  // 服务注册, 创建服务组/服务权限
-    rpc UserOrgBind(UserOrgBind_REQ)returns(Default_RES);            // 添加用户到服务组
 
     rpc UploadAsset(UploadAsset_REQ) returns(AssetInfo_RES);      // 添加资源
     rpc DownloadAsset(DownloadAsset_REQ) returns(AssetInfo_RES);  // 下载资源

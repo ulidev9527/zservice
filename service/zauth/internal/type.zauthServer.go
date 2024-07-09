@@ -35,6 +35,16 @@ func (s *ZauthServer) HasUID(ctx context.Context, in *zauth_pb.HasUID_REQ) (*zau
 	return Logic_HasUID(ctx.(*zservice.Context), in), nil
 }
 
+// 获取组织信息
+func (s *ZauthServer) GetOrgInfo(ctx context.Context, in *zauth_pb.GetOrgInfo_REQ) (*zauth_pb.OrgInfo_RES, error) {
+	return Logic_GetOrgInfo(ctx.(*zservice.Context), in), nil
+}
+
+// 获取组织用户
+func (s *ZauthServer) GetOrgUsers(ctx context.Context, in *zauth_pb.GetOrgUsers_REQ) (*zauth_pb.GetOrgUsers_RES, error) {
+	return Logic_GetOrgUsers(ctx.(*zservice.Context), in), nil
+}
+
 // 登陆检查
 func (s *ZauthServer) LoginCheck(ctx context.Context, in *zauth_pb.LoginCheck_REQ) (*zauth_pb.LoginCheck_RES, error) {
 	return Logic_LoginCheck(ctx.(*zservice.Context), in), nil

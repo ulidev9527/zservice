@@ -4,14 +4,13 @@ import (
 	"net/http"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
-	"zservice/zserviceex/ginservice"
 
 	"github.com/gin-gonic/gin"
 )
 
-func gin_get_orgListGet(ctx *gin.Context) {
+func gin_get_GetOrgList(ctx *gin.Context) {
 
-	ctx.JSON(http.StatusOK, Logic_OrgListGet(ginservice.GetCtxEX(ctx), &zauth_pb.OrgListGet_REQ{
+	ctx.JSON(http.StatusOK, Logic_GetOrgList(GinService.GetCtx(ctx), &zauth_pb.GetOrgList_REQ{
 		Page:   zservice.StringToUint32(ctx.Query("p")),
 		Size:   zservice.StringToUint32(ctx.Query("si")),
 		Search: ctx.Query("se"),

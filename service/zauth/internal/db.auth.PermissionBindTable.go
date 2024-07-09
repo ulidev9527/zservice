@@ -31,7 +31,7 @@ func HasPermissionBind(ctx *zservice.Context, targetType uint32, targetID uint32
 // 获取权限绑定
 func GetPermissionBind(ctx *zservice.Context, targetType uint32, targetID uint32, permissionID uint32) (*PermissionBindTable, *zservice.Error) {
 	tab := &PermissionBindTable{}
-	if e := DBService.GetTableFirst(ctx, dbservice.GetTableValueOption{
+	if e := DBService.GetTableValue(ctx, dbservice.GetTableValueOption{
 		Tab:      tab,
 		RK:       fmt.Sprintf(RK_PermissionBindInfo, targetType, targetID, permissionID),
 		SQLConds: []any{"target_type = ? AND target_id = ? AND permission_id = ?", targetType, targetID, permissionID},

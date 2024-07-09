@@ -15,26 +15,12 @@ import (
 // 扩展 Context 中间件
 func GinMiddlewareContext(zs *zservice.ZService) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		zctx := zservice.NewContext()
 
-		zctx := func() *zservice.Context { // 提取 S2S / C2S 信息
-			s2sStr := ctx.Request.Header.Get(zservice.S_S2S)
-			c2sStr := ctx.Request.Header.Get(zservice.S_C2S)
-			zzctx := zservice.NewContext(s2sStr)
-			zzctx.ContextS2S.RequestIP = ctx.ClientIP()
-			if c2sStr == "" {
-				return zzctx
-			}
-
-			if len(c2sStr) == 65 {
-				c2sArr := strings.Split(c2sStr, ".")
-				if len(c2sArr) == 2 {
-					zzctx.ContextS2S.AuthToken = c2sArr[0]
-					zzctx.ContextS2S.ClientSign = c2sArr[1]
-				}
-			}
-
-			return zzctx
-		}()
+		zctx.RequestIP = ctx.ClientIP()
+		zctx.AuthToken = ctx.Request.Header.Get(zservice.S_C2S_Token)
+		zctx.ClientSign = ctx.Request.Header.Get(zservice.S_C2S_Sign)
+		zctx.ClientTime = zservice.StringToUint32(ctx.Request.Header.Get(zservice.S_C2S_Time))
 
 		ctx.Set(GIN_contextEX_Middleware_Key, zctx)
 

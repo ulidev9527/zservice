@@ -41,7 +41,7 @@ func HasPermissionByID(ctx *zservice.Context, id uint32) (bool, *zservice.Error)
 // 根据ID获取一个权限
 func GetPermissionByID(ctx *zservice.Context, id uint) (*PermissionTable, *zservice.Error) {
 	tab := &PermissionTable{}
-	if e := DBService.GetTableFirst(ctx, dbservice.GetTableValueOption{
+	if e := DBService.GetTableValue(ctx, dbservice.GetTableValueOption{
 		Tab:      tab,
 		RK:       fmt.Sprintf(RK_PermissionInfo, id),
 		SQLConds: []any{"permission_id = %v", id},

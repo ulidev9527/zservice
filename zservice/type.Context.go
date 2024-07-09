@@ -23,6 +23,7 @@ type ContextS2S struct {
 	AuthToken     string    `json:"at,omitempty"`  // token
 	AuthTokenSign string    `json:"ats,omitempty"` // 授权的签名
 	ClientSign    string    `json:"cs,omitempty"`  // 客户端签名
+	ClientTime    uint32    `json:"ct,omitempty"`  // 客户端签名的时间
 }
 
 // 集成链路、日志、错误功能

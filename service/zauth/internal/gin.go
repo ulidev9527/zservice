@@ -25,7 +25,7 @@ func InitGin() {
 	Gin.POST("/permission/permission", gin_post_permission)
 	Gin.POST("/permission/bind", gin_post_permissionBind)
 
-	Gin.GET("/permission/org", gin_get_orgListGet)
+	Gin.GET("/permission/org", gin_get_GetOrgList)
 	Gin.POST("/permission/org", gin_post_orgCreate)
 	Gin.PUT("/permission/org", gin_put_orgUpdate)
 

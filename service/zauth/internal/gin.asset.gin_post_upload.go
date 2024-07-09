@@ -11,7 +11,7 @@ import (
 
 func gin_post_upload(ctx *gin.Context) {
 
-	zctx := ginservice.GetCtxEX(ctx)
+	zctx := GinService.GetCtx(ctx)
 	file, e := ctx.FormFile("file")
 
 	if e != nil {

@@ -1,10 +1,8 @@
-package zauth_ex
+package zauth
 
 import (
 	"net/http"
 	"strings"
-	"zservice/service/zauth/internal"
-	"zservice/service/zauth/zauth"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
 	"zservice/zserviceex/ginservice"
@@ -13,13 +11,8 @@ import (
 )
 
 // gin 检查权限中间件
-// @isZauthSelf 是否是自己，自己会调用 internal 中的权限逻辑, 否则通过 grpc 调用
-func GinCheckAuthMiddleware(isZauthSelf ...bool) gin.HandlerFunc {
-
-	isSelf := false
-	if len(isZauthSelf) > 0 {
-		isSelf = isZauthSelf[0]
-	}
+// fn 具体的检查方法
+func GinCheckAuthMiddleware(s *ginservice.GinService, fn func(*zservice.Context, *zauth_pb.CheckAuth_REQ) *zauth_pb.CheckAuth_RES) gin.HandlerFunc {
 
 	return func(ctx *gin.Context) {
 
@@ -28,34 +21,20 @@ func GinCheckAuthMiddleware(isZauthSelf ...bool) gin.HandlerFunc {
 			return
 		}
 
-		zctx := ginservice.GetCtxEX(ctx)
+		zctx := s.GetCtx(ctx)
 		zctx.AuthTokenSign = zservice.MD5String(ctx.Request.UserAgent()) // 生成签名
 
-		in := &zauth_pb.CheckAuth_REQ{
+		res := fn(zctx, &zauth_pb.CheckAuth_REQ{
 			Service:   zservice.GetServiceName(),
 			Action:    strings.ToLower(ctx.Request.Method),
 			Path:      ctx.Request.URL.Path,
 			Token:     zctx.AuthToken,
 			TokenSign: zctx.AuthTokenSign,
-		}
-
-		res, e := func() (*zauth_pb.CheckAuth_RES, error) {
-			if isSelf {
-				return internal.Logic_CheckAuth(zctx, in), nil
-			}
-			return zauth.CheckAuth(zctx, in), nil
-		}()
-
-		if e != nil {
-			zctx.LogError(e)
-			ctx.JSON(http.StatusOK, gin.H{"code": zservice.Code_Fail, "msg": zctx.TraceID})
-			ctx.Abort()
-			return
-		}
+		})
 
 		if zctx.AuthToken != res.Token { // 刷新 token
 			zctx.AuthToken = res.Token
-			ginservice.SyncHeader(ctx)
+			s.SyncHeader(ctx)
 		}
 		zctx.UID = res.Uid
 

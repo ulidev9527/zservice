@@ -17,7 +17,6 @@ type UserTable struct {
 	LoginPass      string // 登陆密码
 	LoginPassToken string // 密码令牌
 	Phone          string // 手机号 含区号 +86******
-	State          uint32 `gorm:"default:1"` // 账号状态 0 禁用 1 启用
 }
 
 // 创建一个新的账号
@@ -59,7 +58,7 @@ func UserGenPassSign(z *UserTable, password string) string {
 func GetUserByUID(ctx *zservice.Context, id uint32) (*UserTable, *zservice.Error) {
 	tab := &UserTable{}
 
-	if e := DBService.GetTableFirst(ctx, dbservice.GetTableValueOption{
+	if e := DBService.GetTableValue(ctx, dbservice.GetTableValueOption{
 		Tab:      tab,
 		RK:       fmt.Sprintf(RK_UserInfo, id),
 		SQLConds: []any{"uid = ?", id},
@@ -183,13 +182,32 @@ func (z *UserTable) VerifyPass(ctx *zservice.Context, password string) bool {
 	return z.LoginPass == UserGenPassSign(z, password)
 }
 
+// 是否封禁
+func (z *UserTable) IsBan(ctx *zservice.Context, service string) (bool, *zservice.Error) {
+
+	if tab, e := GetOrCreateUserBanTable(ctx, z.UID, service); e != nil {
+		return false, e.AddCaller()
+	} else if tab.Expire.BeforeNow() {
+		return true, nil
+	}
+
+	if service == "" {
+		return false, nil
+	}
+
+	if tab, e := GetOrCreateUserBanTable(ctx, z.UID, ""); e != nil {
+		return false, e.AddCaller()
+	} else {
+		return tab.Expire.BeforeNow(), nil
+	}
+}
+
 // 转换成用户信息
 func (z *UserTable) ToUserInfo() *zauth_pb.UserInfo {
 	return &zauth_pb.UserInfo{
 		Uid:       z.UID,
 		LoginName: z.LoginName,
 		Phone:     z.Phone,
-		State:     z.State,
 	}
 }
 

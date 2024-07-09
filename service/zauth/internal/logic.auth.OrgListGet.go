@@ -7,7 +7,7 @@ import (
 	"zservice/zservice"
 )
 
-func Logic_OrgListGet(ctx *zservice.Context, in *zauth_pb.OrgListGet_REQ) *zauth_pb.OrgInfoList_RES {
+func Logic_GetOrgList(ctx *zservice.Context, in *zauth_pb.GetOrgList_REQ) *zauth_pb.OrgInfoList_RES {
 
 	// 限制查询数量
 	if in.Size == 0 {

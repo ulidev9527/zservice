@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
-	"zservice/zserviceex/ginservice"
 
 	"github.com/gin-gonic/gin"
 )
@@ -12,7 +11,7 @@ import (
 // 创建权限
 func gin_post_permission(ctx *gin.Context) {
 
-	zctx := ginservice.GetCtxEX(ctx)
+	zctx := GinService.GetCtx(ctx)
 	req := &zauth_pb.PermissionInfo{}
 	if e := ctx.ShouldBindJSON(req); e != nil {
 		zctx.LogError(e)

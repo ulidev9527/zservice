@@ -20,9 +20,9 @@ type UserOrgBindTable struct {
 }
 
 // 用户和组织绑定
-func UserOrgBind(ctx *zservice.Context, uid uint32, orgID uint32, expires int64, state uint32) (*UserOrgBindTable, *zservice.Error) {
+func NewUserOrgBindTable(ctx *zservice.Context, uid uint32, orgID uint32, expires int64, state uint32) (*UserOrgBindTable, *zservice.Error) {
 
-	if tab, e := GetUserOrgBind(ctx, uid, orgID); e != nil {
+	if tab, e := GetUserOrgBindTable(ctx, uid, orgID); e != nil {
 		if e.GetCode() != zservice.Code_NotFound {
 			return nil, e.AddCaller()
 		}
@@ -57,11 +57,11 @@ func UserOrgBind(ctx *zservice.Context, uid uint32, orgID uint32, expires int64,
 }
 
 // 用户用户和组织绑定信息
-func GetUserOrgBind(ctx *zservice.Context, uid uint32, orgID uint32) (*UserOrgBindTable, *zservice.Error) {
+func GetUserOrgBindTable(ctx *zservice.Context, uid uint32, orgID uint32) (*UserOrgBindTable, *zservice.Error) {
 
 	tab := &UserOrgBindTable{}
 
-	if e := DBService.GetTableFirst(ctx, dbservice.GetTableValueOption{
+	if e := DBService.GetTableValue(ctx, dbservice.GetTableValueOption{
 		Tab:      tab,
 		RK:       fmt.Sprintf(RK_UserOrgBind_Info, uid, orgID),
 		SQLConds: []any{"uid = ? AND org_id = ?", uid, orgID},
@@ -75,6 +75,29 @@ func GetUserOrgBind(ctx *zservice.Context, uid uint32, orgID uint32) (*UserOrgBi
 // 是否有账号和组织绑定
 func HasUserOrgBindByID(ctx *zservice.Context, uid uint32, orgID uint32) (bool, *zservice.Error) {
 	return DBService.HasTableValue(ctx, dbservice.HasTableValueOption{Tab: &UserOrgBindTable{}, RK: fmt.Sprintf(RK_UserOrgBind_Info, uid, orgID), SQLConds: []any{"uid = ? AND org_id = ?", uid, orgID}})
+}
+
+// 获取组织下的用户绑定信息
+func GetOrgUsers(ctx *zservice.Context, orgID uint32, page uint32, pageSize uint32) ([]*UserOrgBindTable, *zservice.Error) {
+	// 限制查询数量
+	if pageSize == 0 {
+		pageSize = 30
+	} else if pageSize > 100 {
+		pageSize = 100
+	}
+
+	if page == 0 {
+		page = 1
+	}
+
+	tab := make([]*UserOrgBindTable, 0)
+	if e := Gorm.Model(&UserOrgBindTable{}).Where("org_id = ?", orgID).Order("created_at desc").Limit(int(pageSize)).Offset(int((page - 1) * pageSize)).Find(&tab).Error; e != nil {
+		if e != gorm.ErrRecordNotFound {
+			return nil, zservice.NewError(e.Error())
+		}
+	}
+
+	return tab, nil
 }
 
 // 是否过期

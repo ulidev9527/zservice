@@ -11,7 +11,7 @@ message LogKV_REQ{
     string key      = 1; // 存储键
     string value    = 2; // 存储值
     int64  saveTime = 3; // 存储时间
-    string service  = 4; // 服务
+    string service  = 4; // 所属服务
 }
 
 service zlog{

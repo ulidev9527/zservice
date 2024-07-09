@@ -2,7 +2,6 @@ package main
 
 import (
 	"zservice/service/zauth/zauth"
-	"zservice/service/zauth/zauth_ex"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/test/zauth/internal"
 	"zservice/zservice"
@@ -33,7 +32,7 @@ func main() {
 			GrpcAddr:    zservice.Getenv("ZAUTH_GRPCADDR"),
 		})
 
-		zauth_ex.ServiceInfo.Regist(ctx, &zauth_pb.ServiceRegist_REQ{})
+		zauth.ServiceRegist(ctx, &zauth_pb.ServiceRegist_REQ{})
 	})
 	grpcClient.AddDependService(etcdS.ZService)
 

@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
-	"zservice/zserviceex/ginservice"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,7 +16,7 @@ type gin_T_SMS_VerifyCodeSend struct {
 // 发送验证码
 func gin_post_SMS_VerifyCodeSend(ctx *gin.Context) {
 
-	zctx := ginservice.GetCtxEX(ctx)
+	zctx := GinService.GetCtx(ctx)
 
 	req := gin_T_SMS_VerifyCodeSend{}
 

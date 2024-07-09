@@ -2,7 +2,7 @@ package main
 
 import (
 	"zservice/service/zauth/internal"
-	"zservice/service/zauth/zauth_ex"
+	"zservice/service/zauth/zauth"
 	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
 	"zservice/zserviceex/dbservice"
@@ -32,11 +32,11 @@ func main() {
 
 	ServiceRegist := zservice.NewService("ServiceRegist", func(z *zservice.ZService) {
 		ctx := zservice.NewContext()
-		zauth_ex.ServiceInfo.Regist(ctx, &zauth_pb.ServiceRegist_REQ{
+		internal.Logic_ServiceRegist(ctx, &zauth_pb.ServiceRegist_REQ{
 			InitPermissions: []*zauth_pb.PermissionInfo{
 				{Action: "post", Path: "/auth/login", State: zservice.E_PermissionState_AllowAll},
 			},
-		}, true)
+		})
 
 		z.StartDone()
 	})
@@ -64,7 +64,7 @@ func main() {
 	internal.GinService = ginservice.NewGinService(&ginservice.GinServiceConfig{
 		ListenPort: zservice.Getenv("gin_listen_port"),
 		OnStart: func(s *ginservice.GinService) {
-			s.Engine.Use(zauth_ex.GinCheckAuthMiddleware(true))
+			s.Engine.Use(zauth.GinCheckAuthMiddleware(s, internal.Logic_CheckAuth))
 			internal.Gin = s.Engine
 			internal.InitGin()
 		},

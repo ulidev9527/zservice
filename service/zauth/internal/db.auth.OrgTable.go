@@ -2,6 +2,7 @@ package internal
 
 import (
 	"fmt"
+	"zservice/service/zauth/zauth_pb"
 	"zservice/zservice"
 	"zservice/zserviceex/dbservice"
 
@@ -40,7 +41,7 @@ func HasOrgByID(ctx *zservice.Context, id uint32) (bool, *zservice.Error) {
 // 根据ID获取一个组织
 func GetOrgByID(ctx *zservice.Context, id uint32) (*OrgTable, *zservice.Error) {
 	tab := &OrgTable{}
-	if e := DBService.GetTableFirst(ctx, dbservice.GetTableValueOption{
+	if e := DBService.GetTableValue(ctx, dbservice.GetTableValueOption{
 		Tab:      tab,
 		RK:       fmt.Sprintf(RK_OrgInfo, id),
 		SQLConds: []any{"org_id = ?", id},
@@ -83,6 +84,34 @@ func GetRootOrgByName(ctx *zservice.Context, name string) (*OrgTable, *zservice.
 
 	})
 	return tab, nil
+}
+
+// 更加服务名和组织名获取组织
+func GetOrgByName(ctx *zservice.Context, serviceName, orgName string) (*OrgTable, *zservice.Error) {
+	rootOrg, e := GetRootOrgByName(ctx, serviceName)
+	if e != nil {
+		return nil, e
+	}
+
+	tab := &OrgTable{}
+	if e := Gorm.Model(&OrgTable{}).Where("name = ? AND parent_id = ?", orgName, rootOrg.OrgID, rootOrg.OrgID).First(tab).Error; e != nil {
+		if DBService.IsNotFoundErr(e) {
+			return nil, zservice.NewError(e).SetCode(zservice.Code_NotFound)
+		}
+		return nil, zservice.NewError(e)
+	}
+	return tab, nil
+}
+
+// to OrgInfo
+func (tab *OrgTable) ToOrgInfo() *zauth_pb.OrgInfo {
+	return &zauth_pb.OrgInfo{
+		OrgID:    tab.OrgID,
+		Name:     tab.Name,
+		RootID:   tab.RootID,
+		ParentID: tab.ParentID,
+		State:    tab.State,
+	}
 }
 
 // 组织存储

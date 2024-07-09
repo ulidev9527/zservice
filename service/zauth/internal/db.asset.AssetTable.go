@@ -47,7 +47,7 @@ func CreateAssetInfo(ctx *zservice.Context, in *zauth_pb.AssetInfo) (*AssetTable
 // 获取资源
 func GetAssetByID(ctx *zservice.Context, token string) (*AssetTable, *zservice.Error) {
 	tab := &AssetTable{}
-	if e := DBService.GetTableFirst(ctx, dbservice.GetTableValueOption{
+	if e := DBService.GetTableValue(ctx, dbservice.GetTableValueOption{
 		Tab:      tab,
 		RK:       fmt.Sprintf(RK_AssetInfo, token),
 		SQLConds: []any{"asset_id = ? AND (expires IS NULL OR expires > ?)", token, time.Now()},

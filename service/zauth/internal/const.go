@@ -14,6 +14,7 @@ const (
 	RK_UserLoginPhone     = "auth:user:loginPhone:%v"           // 账号信息缓存 %v:手机号 val:UID
 	RK_UserLoginServices  = "auth:user:loginService:%v:%v"      // 账号登陆后的目标service缓存 %v:uid %v:service val:[AuthToken]
 	RK_UserOrgBind_Info   = "auth:userOrg:bindInfo:%v:%v"       // 账号组织绑定 %v:UID %v:OrgID val:UserOrgBindTable
+	RK_UserBan            = "auth:user:ban:%d:%s"               // 账号关小黑屋 %d:UID %S:ServiceName
 	RK_PermissionInfo     = "auth:permission:info:%v"           // 权限信息 %v:PermissionID
 	RK_PermissionBindInfo = "auth:permission:bindInfo:%v:%v:%v" // 权限绑定 %v:TargetType %v:TargetID %v:PermissionID val:PermissionBindTable
 	RK_PermissionSAP      = "auth:permission:sap:%v:%v:%v"      // 权限绑定 %v:service %v:action %v:path val:PermissionID
@@ -27,8 +28,7 @@ const (
 	RK_AssetInfo       = "asset:assetInfo:%s"          // 资产信息 %s:AssetID val:AssetTable
 	RK_ConfigAssetInfo = "asset:configAssetInfo:%s:%s" // 配置资源缓存 %s:ServiceName %s:FileName val:ConfigAssetTable
 
-	KV_Service_SMS_VerifyCodeSend_NoSend = "sms/verifyCodeSend/NoSend" // 服务配置 不发送验证码
-	KV_Service_Login_AllowMPOP           = "login/AllowMPOP"           // 是否允许服务进行多点登录
-	KV_ZZZZString                        = "ZZZZString"                // ZZZZString
+	KV_Service_Login_AllowMPOP = "login/AllowMPOP" // 是否允许服务进行多点登录
+	KV_ZZZZString              = "ZZZZString"      // ZZZZString
 
 )

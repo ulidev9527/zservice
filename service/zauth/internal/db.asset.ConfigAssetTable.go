@@ -40,7 +40,7 @@ func CreateConfigAssetInfo(ctx *zservice.Context, in *zauth_pb.ConfigAssetInfo) 
 // 获取最新一个对应服务的配置资源
 func GetConfigAssetInfo(ctx *zservice.Context, service string, name string) (*ConfigAssetTable, *zservice.Error) {
 	tab := &ConfigAssetTable{}
-	if e := DBService.GetTableFirst(ctx, dbservice.GetTableValueOption{
+	if e := DBService.GetTableValue(ctx, dbservice.GetTableValueOption{
 		Tab:      tab,
 		RK:       fmt.Sprintf(RK_ConfigAssetInfo, service, name),
 		SQLConds: []any{"service = ? AND name = ?", service, name},

@@ -229,7 +229,7 @@ type GetTableValueOption struct {
 
 // 获取指定值
 // 注意，如果没找到数据回返回：zservice.Code_NotFound
-func (dbs *DBService) GetTableFirst(ctx *zservice.Context, opt GetTableValueOption) *zservice.Error {
+func (dbs *DBService) GetTableValue(ctx *zservice.Context, opt GetTableValueOption) *zservice.Error {
 	// 读缓存
 	if e := dbs.Redis.GetScan(opt.RK, opt.Tab); e != nil {
 		if e.GetCode() != zservice.Code_NotFound {
@@ -277,22 +277,31 @@ func (dbs *DBService) GetTableFirst(ctx *zservice.Context, opt GetTableValueOpti
 // 存储表数据
 func (dbs *DBService) SaveTableValue(ctx *zservice.Context, tab any, rk string) *zservice.Error {
 
-	un, e := dbs.Redis.Lock(rk)
-	if e != nil {
-		return e.AddCaller()
+	unlock := func() {}
+
+	if rk != "" {
+		un, e := dbs.Redis.Lock(rk)
+		if e != nil {
+			return e.AddCaller()
+		} else {
+			unlock = un
+		}
 	}
-	defer un()
+
+	defer unlock()
 
 	if e := dbs.Gorm.Save(tab).Error; e != nil {
 		return zservice.NewError(e)
 	}
 
 	// 删除缓存
-	zservice.Go(func() {
-		if e := dbs.Redis.Del(rk).Err(); e != nil {
-			ctx.LogError(e)
-		}
-	})
+	if rk != "" {
+		zservice.Go(func() {
+			if e := dbs.Redis.Del(rk).Err(); e != nil {
+				ctx.LogError(e)
+			}
+		})
+	}
 
 	return nil
 

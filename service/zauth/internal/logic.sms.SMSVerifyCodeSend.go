@@ -37,29 +37,17 @@ func Logic_SMSVerifyCodeSend(ctx *zservice.Context, in *zauth_pb.SMSVerifyCodeSe
 
 	verifyCode := zservice.IntToString(zservice.RandomIntRange(100000, 999999))
 
-	// 检查服务是否需要发送验证码
-	isNoSend := false
-	if tab, e := GetServiceKVTable(ctx, ctx.TraceService, KV_Service_SMS_VerifyCodeSend_NoSend); e != nil {
-		if e.GetCode() != zservice.Code_NotFound {
-			return &zauth_pb.SMSSendVerifyCode_RES{Code: e.GetCode()}
-		}
-	} else {
-		isNoSend = zservice.StringToBoolean(tab.Value)
-	}
-
-	if !isNoSend {
-		// 调用三方验证码接口
-		if e := SMSSend_aliyun(ctx, &SMSSend_aliyunConfig{
-			Phone:        in.Phone,
-			VerifyCode:   verifyCode,
-			Key:          zservice.Getenv("SMS_KEY"),
-			Secret:       zservice.Getenv("SMS_SECRET"),
-			TemplateCode: zservice.Getenv("SMS_TEMPLATE_CODE"),
-			SignName:     zservice.Getenv("SMS_SIGN_NAME"),
-		}); e != nil {
-			ctx.LogError(e)
-			return &zauth_pb.SMSSendVerifyCode_RES{Code: e.GetCode()}
-		}
+	// 调用三方验证码接口
+	if e := SMSSend_aliyun(ctx, &SMSSend_aliyunConfig{
+		Phone:        in.Phone,
+		VerifyCode:   verifyCode,
+		Key:          zservice.Getenv("SMS_KEY"),
+		Secret:       zservice.Getenv("SMS_SECRET"),
+		TemplateCode: zservice.Getenv("SMS_TEMPLATE_CODE"),
+		SignName:     zservice.Getenv("SMS_SIGN_NAME"),
+	}); e != nil {
+		ctx.LogError(e)
+		return &zauth_pb.SMSSendVerifyCode_RES{Code: e.GetCode()}
 	}
 
 	ctx.LogInfo("verify code:", in.Phone, verifyCode)
