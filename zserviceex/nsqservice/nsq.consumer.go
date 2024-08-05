@@ -3,7 +3,8 @@ package nsqservice
 import (
 	"encoding/json"
 	"runtime"
-	"zservice/zservice"
+
+	"github.com/ulidev9527/zservice/zservice"
 
 	"github.com/nsqio/go-nsq"
 )

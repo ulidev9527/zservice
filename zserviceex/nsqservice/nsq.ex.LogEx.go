@@ -2,7 +2,8 @@ package nsqservice
 
 import (
 	"strings"
-	"zservice/zservice"
+
+	"github.com/ulidev9527/zservice/zservice"
 )
 
 // 日志扩展
