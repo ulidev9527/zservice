@@ -1,8 +1,8 @@
 package main
 
 import (
-	"zservice/zservice"
-	"zservice/zserviceex/ginservice"
+	"github.com/ulidev9527/zservice/zservice"
+	"github.com/ulidev9527/zservice/zserviceex/ginservice"
 
 	"github.com/gin-gonic/gin"
 )

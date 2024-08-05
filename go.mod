@@ -1,4 +1,4 @@
-module zservice
+module github.com/ulidev9527/zservice
 
 go 1.22.3
 

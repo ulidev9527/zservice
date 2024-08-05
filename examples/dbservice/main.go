@@ -3,9 +3,10 @@ package main
 import (
 	"database/sql"
 	"time"
-	"zservice/zservice"
 
-	"zservice/zserviceex/dbservice"
+	"github.com/ulidev9527/zservice/zservice"
+
+	"github.com/ulidev9527/zservice/zserviceex/dbservice"
 
 	"gorm.io/gorm"
 )

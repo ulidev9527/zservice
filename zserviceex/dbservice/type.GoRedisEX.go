@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
-	"zservice/zservice"
+
+	"github.com/ulidev9527/zservice/zservice"
 
 	"github.com/redis/go-redis/v9"
 )

@@ -8,7 +8,8 @@ import (
 	"runtime"
 	"strings"
 	"time"
-	"zservice/zservice"
+
+	"github.com/ulidev9527/zservice/zservice"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"go.etcd.io/etcd/client/v3/naming/endpoints"

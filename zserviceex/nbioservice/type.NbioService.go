@@ -3,7 +3,8 @@ package nbioservice
 import (
 	"fmt"
 	"net/http"
-	"zservice/zservice"
+
+	"github.com/ulidev9527/zservice/zservice"
 
 	"github.com/lesismal/nbio/nbhttp"
 	"github.com/lesismal/nbio/nbhttp/websocket"

@@ -7,7 +7,8 @@ import (
 	"net/http"
 	"runtime"
 	"strings"
-	"zservice/zservice"
+
+	"github.com/ulidev9527/zservice/zservice"
 
 	"github.com/gin-gonic/gin"
 )

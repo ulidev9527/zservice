@@ -3,7 +3,8 @@ package dbservice
 import (
 	"fmt"
 	"time"
-	"zservice/zservice"
+
+	"github.com/ulidev9527/zservice/zservice"
 )
 
 // 数据服务，结合：github.com/redis/go-redis/v9 和 gorm.io/gorm 配合使用

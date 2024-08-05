@@ -2,8 +2,9 @@ package main
 
 import (
 	"net/http"
-	"zservice/zservice"
-	"zservice/zserviceex/nbioservice"
+
+	"github.com/ulidev9527/zservice/zservice"
+	"github.com/ulidev9527/zservice/zserviceex/nbioservice"
 
 	"github.com/lesismal/nbio/nbhttp/websocket"
 )

@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"mime/multipart"
 	"time"
-	"zservice/zservice"
+
+	"github.com/ulidev9527/zservice/zservice"
 
 	"github.com/gin-gonic/gin"
 )

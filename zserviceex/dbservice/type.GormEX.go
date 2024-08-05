@@ -6,7 +6,8 @@ import (
 	"log"
 	"os"
 	"time"
-	"zservice/zservice"
+
+	"github.com/ulidev9527/zservice/zservice"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
