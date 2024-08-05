@@ -156,9 +156,9 @@ func ServerUnaryInterceptor(ctx context.Context, req any, info *grpc.UnaryServer
 	md, _ := metadata.FromIncomingContext(ctx)
 
 	zctx := func() *zservice.Context {
-		S2SArr := md.Get(zservice.S_S2S)
+		S2SArr := md.Get(zservice.S_S2S_CTX)
 		if len(S2SArr) > 0 {
-			zservice.LogDebug(zservice.S_S2S, S2SArr[0])
+			zservice.LogDebug(zservice.S_S2S_CTX, S2SArr[0])
 			return zservice.NewContext(S2SArr[0])
 		} else {
 			return zservice.NewContext()

@@ -151,9 +151,9 @@ func (dbs *DBService) SyncTableCache(ctx *zservice.Context, tabArr any, getRK fu
 
 	if allCount > 0 && errorCount > 0 {
 		if errorCount < allCount {
-			return zservice.NewErrorf("SyncTableCache has Error, A:%v E:%v", allCount, errorCount).SetCode(zservice.Code_SyncCacheIncomplete)
+			return zservice.NewErrorf("SyncTableCache has Error, A:%v E:%v", allCount, errorCount)
 		} else {
-			return zservice.NewError("SyncTableCache Fail").SetCode(zservice.Code_SyncCacheErr)
+			return zservice.NewError("SyncTableCache Fail")
 		}
 	} else {
 		return nil
@@ -202,7 +202,7 @@ func (dbs *DBService) GetNewTableID(
 	orgID := uint32(0)
 	for {
 		if forCount > 10 {
-			return 0, zservice.NewError("gen id count max fail").SetCode(zservice.Code_GenIDCountMaxErr)
+			return 0, zservice.NewError("gen id count max fail")
 		}
 		orgID = genID()
 

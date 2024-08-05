@@ -87,7 +87,7 @@ func (r *GoRedisEX) LockCtx(ctx context.Context, key string, timeout ...time.Dur
 		return nil, zservice.NewError(e)
 	}
 	if !ok {
-		return nil, zservice.NewErrorf("lock %s fail", lockKey).SetCode(zservice.Code_RepetitionErr)
+		return nil, zservice.NewErrorf("lock %s fail", lockKey).SetCode(zservice.Code_Repetition)
 	}
 
 	return func() {

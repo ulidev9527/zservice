@@ -59,7 +59,7 @@ func GinMiddlewareContext(zs *zservice.ZService) gin.HandlerFunc {
 					zctx.RequestIP, ctx.Request.Method, ctx.Request.URL,
 					ctx.Writer.Status(), zctx.Since(), reqParams, e, string(buf[:stackSize]),
 				)
-				ctx.JSON(http.StatusOK, gin.H{"code": zservice.Code_500Err, "error": zctx.TraceID})
+				ctx.JSON(http.StatusOK, gin.H{"code": zservice.Code_Fatal, "error": zctx.TraceID})
 			}
 		}()
 

@@ -10,7 +10,7 @@ import (
 
 func HttpRequestSend(ctx *Context, in *http.Request) ([]byte, *Error) {
 	b, _ := json.Marshal(&ctx.ContextS2S)
-	in.Header.Set(S_S2S, string(b))
+	in.Header.Set(S_S2S_CTX, string(b))
 	res, e := (&http.Client{}).Do(in) // 发起请求
 	if e != nil {
 		return nil, NewError(e)

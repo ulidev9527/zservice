@@ -1,3 +1,3 @@
-package gwsservice
+package nbioservice
 
-// github.com/lxzan/gws@latest
+// https://github.com/lesismal/nbio
