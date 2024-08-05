@@ -1,6 +1,7 @@
 package dbservice
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -221,24 +222,51 @@ func (dbs *DBService) GetNewTableID(
 }
 
 type GetTableValueOption struct {
-	Tab      any            // 需要查询的表结构体对象
-	RK       string         // redis缓存Key
-	SQLConds []any          // 查询条件, 使用 Gorm 中的 Where 条件，不要自己拼接，避免 sql 注入
-	Order    string         // 排序
-	Expires  *time.Duration // 缓存过期时间,默认：10天, 0 表示不过期
+	Tab        any                                                          // 需要查询的表结构体对象
+	RK         string                                                       // redis缓存Key
+	SQLConds   []any                                                        // 查询条件, 使用 Gorm 中的 Where 条件，不要自己拼接，避免 sql 注入
+	Order      string                                                       // 排序
+	Expires    *time.Duration                                               // 缓存过期时间,默认：10天, 0 表示不过期
+	RedisGetFN func(*zservice.Context, any, string) (bool, *zservice.Error) // 获取缓存数据，需要对数据进行重新处理, 返回处理状态或者错误消息，处理后的数据为空表示处理失败，会继续进行数据查询
+	RedisSetFN func(*zservice.Context, any) string                          // 存储缓存数据，返回处理后的字符串，字符串将存储到 redis
 }
 
 // 获取指定值
 // 注意，如果没找到数据回返回：zservice.Code_NotFound
 func (dbs *DBService) GetTableValue(ctx *zservice.Context, opt GetTableValueOption) *zservice.Error {
 	// 读缓存
-	if e := dbs.Redis.GetScan(opt.RK, opt.Tab); e != nil {
-		if e.GetCode() != zservice.Code_NotFound {
-			return e.AddCaller()
+	if opt.RK != "" { // 需要读缓存
+		if s, e := dbs.Redis.Get(opt.RK).Result(); e != nil {
+			if !dbs.Redis.IsNotFoundErr(e) {
+				return zservice.NewError(e).SetCode(zservice.Code_Fatal)
+			}
+		} else {
+			if opt.RedisGetFN != nil { // 使用提供的数据处理方法
+				if ok, e := opt.RedisGetFN(ctx, opt.Tab, s); e != nil {
+					return e.AddCaller()
+				} else if ok { // 处理成功，直接返回，失败回去数据库进行查询
+					return nil
+				}
+
+				// 处理失败，数据库查询
+			} else { // 使用默认的数据处理方法
+				if e := json.Unmarshal([]byte(s), opt.Tab); e != nil { // 处理失败，删除缓存，继续数据查询
+					ctx.LogError(e, opt)
+				} else {
+					return nil
+				}
+			}
+
+			// 执行到此次代表缓存查询的数据有问题，删除缓存
+			zservice.Go(func() {
+				if e := dbs.Redis.Del(opt.RK); e != nil {
+					ctx.LogError(e)
+				}
+			})
 		}
-	} else {
-		return nil
 	}
+
+	// 数据库查询
 
 	dbSql := dbs.Gorm.Model(opt.Tab)
 	if opt.Order != "" {
@@ -259,13 +287,22 @@ func (dbs *DBService) GetTableValue(ctx *zservice.Context, opt GetTableValueOpti
 
 	// 更新缓存
 	zservice.Go(func() {
+		if opt.RK == "" {
+			return
+		}
 		if e := func() error {
-			if opt.Expires == nil {
-				return dbs.Redis.SetEX(opt.RK, string(zservice.JsonMustMarshal(opt.Tab)), zservice.Time_10Day).Err()
-			} else if opt.Expires.Abs().Milliseconds() == 0 {
-				return dbs.Redis.Set(opt.RK, string(zservice.JsonMustMarshal(opt.Tab))).Err()
+			val := ""
+			if opt.RedisSetFN != nil {
+				val = opt.RedisSetFN(ctx, opt.Tab)
 			} else {
-				return dbs.Redis.SetEX(opt.RK, string(zservice.JsonMustMarshal(opt.Tab)), zservice.Time_10Day).Err()
+				val = string(zservice.JsonMustMarshal(opt.Tab))
+			}
+			if opt.Expires == nil {
+				return dbs.Redis.SetEX(opt.RK, val, zservice.Time_10Day).Err()
+			} else if opt.Expires.Abs().Milliseconds() == 0 {
+				return dbs.Redis.Set(opt.RK, val).Err()
+			} else {
+				return dbs.Redis.SetEX(opt.RK, val, zservice.Time_10Day).Err()
 			}
 		}(); e != nil {
 			ctx.LogError(e) // 缓存更新失败
@@ -275,13 +312,18 @@ func (dbs *DBService) GetTableValue(ctx *zservice.Context, opt GetTableValueOpti
 	return nil
 }
 
+type SaveTableValueOption struct {
+	Tab any    // 表
+	RK  string // 缓存的 Redis
+}
+
 // 存储表数据
-func (dbs *DBService) SaveTableValue(ctx *zservice.Context, tab any, rk string) *zservice.Error {
+func (dbs *DBService) SaveTableValue(ctx *zservice.Context, opt SaveTableValueOption) *zservice.Error {
 
 	unlock := func() {}
 
-	if rk != "" {
-		un, e := dbs.Redis.Lock(rk)
+	if opt.RK != "" {
+		un, e := dbs.Redis.Lock(opt.RK)
 		if e != nil {
 			return e.AddCaller()
 		} else {
@@ -291,14 +333,14 @@ func (dbs *DBService) SaveTableValue(ctx *zservice.Context, tab any, rk string) 
 
 	defer unlock()
 
-	if e := dbs.Gorm.Save(tab).Error; e != nil {
+	if e := dbs.Gorm.Save(opt.Tab).Error; e != nil {
 		return zservice.NewError(e)
 	}
 
 	// 删除缓存
-	if rk != "" {
+	if opt.RK != "" {
 		zservice.Go(func() {
-			if e := dbs.Redis.Del(rk).Err(); e != nil {
+			if e := dbs.Redis.Del(opt.RK).Err(); e != nil {
 				ctx.LogError(e)
 			}
 		})

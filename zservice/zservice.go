@@ -5,13 +5,10 @@ import (
 	"os"
 )
 
-const (
-	Version = "0.1.0" // zservice 框架版本号
-)
+var Version = "0.1.0"
+var ISDebug = false
 
-var ISDebug = false // 是否是 Debug 模式
-
-// 主服务
+// 服务
 var mainService *ZService
 
 // zservice 初始化

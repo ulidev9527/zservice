@@ -4,8 +4,7 @@ import (
 	"context"
 	"fmt"
 	"runtime"
-
-	"github.com/ulidev9527/zservice/zservice"
+	"zservice/zservice"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"go.etcd.io/etcd/client/v3/naming/resolver"
@@ -80,8 +79,8 @@ func ClientUnaryInterceptor(ctx context.Context, method string, req, reply any, 
 	}
 
 	// 配置metadata
-	ctx = metadata.AppendToOutgoingContext(ctx, zservice.S_S2S_CTX, zservice.JsonMustMarshalString(zctx.ContextS2S))
-	zctx.LogDebug(method, zservice.S_S2S_CTX, zservice.JsonMustMarshalString(zctx.ContextS2S))
+	ctx = metadata.AppendToOutgoingContext(ctx, zservice.S_S2S, zservice.JsonMustMarshalString(zctx.ContextS2S))
+	zctx.LogDebug(method, zservice.S_S2S, zservice.JsonMustMarshalString(zctx.ContextS2S))
 
 	// panic
 	defer func() {

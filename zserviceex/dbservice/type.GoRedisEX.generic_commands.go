@@ -76,9 +76,13 @@ func (r *GoRedisEX) ExpireLT(key string, expiration time.Duration) *redis.BoolCm
 func (r *GoRedisEX) ExpireLTCtx(ctx context.Context, key string, expiration time.Duration) *redis.BoolCmd {
 	return r.client.ExpireLT(ctx, r.AddKeyPrefix(key), expiration)
 }
+
+// 注意，返回数据包含 key 前缀
 func (r *GoRedisEX) Keys(pattern string) *redis.StringSliceCmd {
 	return r.KeysCtx(context.TODO(), pattern)
 }
+
+// 注意，返回数据包含 key 前缀
 func (r *GoRedisEX) KeysCtx(ctx context.Context, pattern string) *redis.StringSliceCmd {
 	return r.client.Keys(ctx, r.AddKeyPrefix(pattern))
 }
@@ -251,7 +255,7 @@ func (r *GoRedisEX) CopyCtx(ctx context.Context, key, newkey string, db int, rep
 	return r.client.Copy(ctx, r.AddKeyPrefix(key), r.AddKeyPrefix(newkey), db, replace)
 }
 
-// 注意，返回数据添加的 key 前缀
+// 注意，返回数据包含 key 前缀
 func (r *GoRedisEX) Scan(cursor uint64, match string, count int64) *redis.ScanCmd {
 	return r.ScanCtx(context.TODO(), cursor, match, count)
 }
@@ -259,7 +263,7 @@ func (r *GoRedisEX) ScanCtx(ctx context.Context, cursor uint64, match string, co
 	return r.client.Scan(ctx, cursor, r.AddKeyPrefix(match), count)
 }
 
-// 注意，返回数据添加的 key 前缀
+// 注意，返回数据包含 key 前缀
 func (r *GoRedisEX) ScanType(cursor uint64, match string, count int64, keyType string) *redis.ScanCmd {
 	return r.ScanTypeCtx(context.TODO(), cursor, match, count, keyType)
 }

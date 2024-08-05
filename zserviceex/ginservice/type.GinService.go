@@ -99,3 +99,8 @@ func (s *GinService) SyncHeader(ctx *gin.Context) {
 
 	ctx.Header(zservice.S_C2S_Token, zctx.AuthToken)
 }
+
+// 默认响应Json
+func DefResJson(code uint32, msg ...any) map[string]any {
+	return gin.H{"code": code, "msg": zservice.NewError(code).SetMsg(msg...).GetMsg()}
+}

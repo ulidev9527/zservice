@@ -5,8 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
-
-	"github.com/ulidev9527/zservice/zservice"
+	"zservice/zservice"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
 )

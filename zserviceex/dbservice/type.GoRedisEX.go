@@ -7,9 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ulidev9527/zservice/zservice"
-
 	"github.com/redis/go-redis/v9"
+	"github.com/ulidev9527/zservice/zservice"
 )
 
 type GoRedisEX struct {
@@ -85,10 +84,10 @@ func (r *GoRedisEX) LockCtx(ctx context.Context, key string, timeout ...time.Dur
 
 	ok, e := r.SetNX(lockKey, "1", timeout[0]).Result()
 	if e != nil {
-		return nil, zservice.NewError(e)
+		return nil, zservice.NewError(e).SetCode(zservice.Code_Fatal)
 	}
 	if !ok {
-		return nil, zservice.NewErrorf("lock %s fail", lockKey).SetCode(zservice.Code_Repetition)
+		return nil, zservice.NewErrorf("lock %s fail", lockKey).SetCode(zservice.Code_Repetition).SetMsg("数据正在处理，请稍后重试")
 	}
 
 	return func() {
@@ -113,9 +112,9 @@ func (r *GoRedisEX) GetScan(key string, v any) *zservice.Error {
 		if r.IsNotFoundErr(e) {
 			return zservice.NewError(e).SetCode(zservice.Code_NotFound)
 		}
-		return zservice.NewError(e)
+		return zservice.NewError(e).SetCode(zservice.Code_Fatal)
 	} else if e := json.Unmarshal([]byte(s), v); e != nil {
-		return zservice.NewError(e, key)
+		return zservice.NewError(e, key).SetCode(zservice.Code_Fatal)
 	} else {
 		return nil
 	}

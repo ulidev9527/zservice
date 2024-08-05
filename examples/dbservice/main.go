@@ -5,9 +5,7 @@ import (
 	"time"
 
 	"github.com/ulidev9527/zservice/zservice"
-
 	"github.com/ulidev9527/zservice/zserviceex/dbservice"
-
 	"gorm.io/gorm"
 )
 
@@ -43,6 +41,8 @@ func main() {
 
 					tab := &TimeTestTable{
 						T1: zservice.TimeNull(),
+						// T1: DeletedAt{Time: time.Time{}},
+						// T1: zservice.TimeSQ{Time: time.Time{}},
 						T2: sql.NullTime{Time: time.Time{}},
 					}
 

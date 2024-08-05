@@ -8,8 +8,7 @@ import (
 	"runtime"
 	"strings"
 	"time"
-
-	"github.com/ulidev9527/zservice/zservice"
+	"zservice/zservice"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"go.etcd.io/etcd/client/v3/naming/endpoints"
@@ -157,9 +156,9 @@ func ServerUnaryInterceptor(ctx context.Context, req any, info *grpc.UnaryServer
 	md, _ := metadata.FromIncomingContext(ctx)
 
 	zctx := func() *zservice.Context {
-		S2SArr := md.Get(zservice.S_S2S_CTX)
+		S2SArr := md.Get(zservice.S_S2S)
 		if len(S2SArr) > 0 {
-			zservice.LogDebug(zservice.S_S2S_CTX, S2SArr[0])
+			zservice.LogDebug(zservice.S_S2S, S2SArr[0])
 			return zservice.NewContext(S2SArr[0])
 		} else {
 			return zservice.NewContext()
