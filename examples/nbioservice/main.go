@@ -31,7 +31,7 @@ func main() {
 		},
 		OnMessage: func(c *websocket.Conn, messageType websocket.MessageType, data []byte) {
 			zservice.LogInfo("OnMessage", messageType, data)
-			c.Write(data)
+			c.WriteMessage(messageType, data)
 		},
 		OnClose: func(c *websocket.Conn, err error) {
 			zservice.LogInfo("OnClose", c.RemoteAddr())
