@@ -61,8 +61,8 @@ func GetenvInt(key string) int {
 	return StringToInt(Getenv(key))
 }
 
-func GetenvUInt32(key string) int32 {
-	return int32(GetenvInt(key))
+func GetenvUInt32(key string) uint32 {
+	return uint32(GetenvInt(key))
 }
 func GetenvBool(key string) bool {
 	return StringToBoolean(Getenv(key))
