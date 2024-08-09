@@ -3,11 +3,21 @@ package zservice
 import (
 	"fmt"
 	"os"
+
+	"github.com/panjf2000/ants/v2"
 )
 
-// go 协程
+// go 原生协程
 func Go(f func()) {
 	go f()
+}
+
+// go ants 协程
+func GO_ants(f func()) {
+	e := ants.Submit(f)
+	if e != nil {
+		LogError(e)
+	}
 }
 
 // 写入文件到临时目录
