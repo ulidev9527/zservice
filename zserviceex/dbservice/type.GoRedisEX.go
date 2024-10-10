@@ -25,8 +25,11 @@ func NewGoRedisEX(opt DBServiceOption) *GoRedisEX {
 	}
 	r := &GoRedisEX{
 		client: redis.NewClient(&redis.Options{
-			Addr:     opt.RedisAddr,
-			Password: opt.RedisPass,
+			Addr:         opt.RedisAddr,
+			Password:     opt.RedisPass,
+			MaxIdleConns: opt.MaxIdleConns,
+			PoolSize:     opt.MaxOpenConns,
+			PoolTimeout:  time.Duration(opt.ConnMaxLifetime) * time.Second,
 		}),
 		keyPrefix:     fmt.Sprint(keyPrefix, ":"),
 		keyLockPrefix: fmt.Sprint("__zserviceKeyLock:", keyPrefix, ":"),

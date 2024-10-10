@@ -17,54 +17,22 @@ type DBService struct {
 }
 
 type DBServiceOption struct {
-	Name        string           // 服务名称 仅用于日志显示，如果主服务中有多个DBService，建议配置，如果只有一个DBService，可以忽略此配置
-	GORMType    string           // 数据库类型 目前仅支持 mysql
-	GORMName    string           // 数据库名称
-	GORMAddr    string           // 数据库地址 填入地址才会启用 DB 功能
-	GORMUser    string           // 数据库用户名
-	GORMPass    string           // 数据库密码
-	RedisAddr   string           // redis 地址 填入地址才会启用 Redis 功能
-	RedisPass   string           // redis 密码
-	RedisPrefix string           // redis 前缀 默认使用 zservice.Init 中的 serviceName
-	Debug       bool             // 是否开启 debug
-	OnStart     func(*DBService) // 启动的回调
-}
-
-// 检查是否启动完成
-func checkStartDone(dbs *DBService) {
-
-	if dbs.GetState() != 1 {
-		dbs.LogWarn("checkStartDone: service not start")
-		return
-	}
-
-	count := 0
-	start := 0
-
-	if dbs.option.GORMAddr != "" {
-		count++
-		if dbs.Gorm != nil {
-			start++
-		}
-	}
-
-	if dbs.option.RedisAddr != "" {
-		count++
-		if dbs.Redis != nil {
-			start++
-		}
-	}
-	if count == 0 {
-		dbs.LogError("checkStartDone: db start in 0")
-		return
-	}
-
-	if count == start {
-		if dbs.option.OnStart != nil {
-			dbs.option.OnStart(dbs)
-		}
-		dbs.StartDone()
-	}
+	Name            string           // 服务名称 仅用于日志显示，如果主服务中有多个DBService，建议配置，如果只有一个DBService，可以忽略此配置
+	DBType          string           // 数据库 类型 目前支持 mysql/postgres
+	DBName          string           // 数据库 名称
+	DBHost          string           // 数据库 地址 填入地址才会启用 Gorm 功能
+	DBPort          int              // 数据库 端口
+	DBUser          string           // 数据库 用户名
+	DBPass          string           // 数据库 密码
+	DBParams        string           // 数据库 额外参数
+	MaxIdleConns    int              // 最大空闲连接数 default: 10
+	MaxOpenConns    int              // 最大连接数 default: 30
+	ConnMaxLifetime float32          // 连接最大生命周期 default: 300s
+	RedisAddr       string           // redis 地址 填入地址才会启用 Redis 功能
+	RedisPass       string           // redis 密码
+	RedisPrefix     string           // redis 前缀 默认使用 zservice.Init 中的 serviceName
+	Debug           bool             // 是否开启 debug
+	OnStart         func(*DBService) // 启动的回调
 }
 
 func NewDBService(opt DBServiceOption) *DBService {
@@ -72,32 +40,34 @@ func NewDBService(opt DBServiceOption) *DBService {
 	dbs := &DBService{
 		option: opt,
 	}
+
+	// 处理配置
 	name := "dbservice"
 	if opt.Name != "" {
 		name = fmt.Sprintf("%v-%v", name, opt.Name)
 	}
+	if opt.MaxIdleConns == 0 {
+		opt.MaxIdleConns = 10
+	}
+
+	if opt.MaxOpenConns == 0 {
+		opt.MaxOpenConns = 30
+	}
+	if opt.ConnMaxLifetime == 0 {
+		opt.ConnMaxLifetime = 3
+	}
 	zs := zservice.NewService(name, func(s *zservice.ZService) {
-		count := 0
+
 		// gorm
-		if opt.GORMAddr != "" {
-			dbs.LogInfo("Init DB")
-			count++
+		if opt.DBHost != "" {
 			dbs.Gorm = NewGormEX(opt)
-			zservice.Go(func() { checkStartDone(dbs) })
 		}
 
 		// redis
 		if opt.RedisAddr != "" {
-			dbs.LogInfo("Init Redis")
-			count++
 			dbs.Redis = NewGoRedisEX(opt)
-			zservice.Go(func() { checkStartDone(dbs) })
 		}
-
-		if count == 0 {
-			dbs.LogWarn("dbservice start: not option in start")
-			s.StartDone()
-		}
+		s.StartDone()
 
 	})
 

@@ -25,11 +25,12 @@ type TimeTestTable struct {
 func main() {
 	zservice.AddDependService(
 		dbservice.NewDBService(dbservice.DBServiceOption{
-			GORMType:    zservice.Getenv("DBSERVICE_GORM_TYPE"),
-			GORMName:    zservice.Getenv("DBSERVICE_GORM_NAME"),
-			GORMAddr:    zservice.Getenv("DBSERVICE_GORM_ADDR"),
-			GORMUser:    zservice.Getenv("DBSERVICE_GORM_USER"),
-			GORMPass:    zservice.Getenv("DBSERVICE_GORM_PASS"),
+			DBType:      zservice.Getenv("DBSERVICE_GORM_TYPE"),
+			DBName:      zservice.Getenv("DBSERVICE_GORM_NAME"),
+			DBHost:      zservice.Getenv("DBSERVICE_GORM_HOST"),
+			DBPort:      zservice.GetenvInt("DBSERVICE_GORM_PORT"),
+			DBUser:      zservice.Getenv("DBSERVICE_GORM_USER"),
+			DBPass:      zservice.Getenv("DBSERVICE_GORM_PASS"),
 			RedisAddr:   zservice.Getenv("DBSERVICE_REDIS_ADDR"),
 			RedisPass:   zservice.Getenv("DBSERVICE_REDIS_PASS"),
 			RedisPrefix: zservice.Getenv("DBSERVICE_REDIS_PREFIX"),

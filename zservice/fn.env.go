@@ -60,10 +60,25 @@ func Setenv(key string, value string) {
 func GetenvInt(key string) int {
 	return StringToInt(Getenv(key))
 }
-
+func GetenvInt32(key string) int32 {
+	return int32(GetenvInt(key))
+}
+func GetenvInt64(key string) int64 {
+	return int64(GetenvInt(key))
+}
+func GetenvFloat32(key string) float32 {
+	return StringToFloat32(Getenv(key))
+}
+func GetenvFloat64(key string) float64 {
+	return StringToFloat64(Getenv(key))
+}
 func GetenvUInt32(key string) uint32 {
 	return uint32(GetenvInt(key))
 }
+func GetenvUInt64(key string) uint64 {
+	return uint64(GetenvInt(key))
+}
+
 func GetenvBool(key string) bool {
 	return StringToBoolean(Getenv(key))
 }
