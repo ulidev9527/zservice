@@ -67,6 +67,10 @@ func NewDBService(opt DBServiceOption) *DBService {
 		if opt.RedisAddr != "" {
 			dbs.Redis = NewGoRedisEX(opt)
 		}
+
+		if opt.OnStart != nil {
+			opt.OnStart(dbs)
+		}
 		s.StartDone()
 
 	})
