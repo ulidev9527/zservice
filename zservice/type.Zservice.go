@@ -44,7 +44,10 @@ func NewService(name string, onStart func(*ZService)) *ZService {
 	if mainService == nil {
 		LogPanic("you need use zservice.Init first")
 	}
-	return createService(name, onStart)
+	ser := createService(name, onStart)
+	// 添加到主服务
+	mainService.AddDependService(ser)
+	return ser
 }
 
 // 启动服务
