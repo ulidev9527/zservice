@@ -14,15 +14,11 @@ import (
 type GoRedisEX struct {
 	client          *redis.Client
 	keyPrefix       string // 前缀
-	ignoreKeyPrefix bool   // 是否忽略前缀
+	ignoreKeyPrefix bool   // 是否忽略前缀, 当前传入缀为空则忽略
 	keyLockPrefix   string // 锁前缀
 }
 
 func NewGoRedisEX(opt DBServiceOption) *GoRedisEX {
-	keyPrefix := opt.RedisPrefix
-	if keyPrefix == "" {
-		keyPrefix = zservice.GetServiceName()
-	}
 	r := &GoRedisEX{
 		client: redis.NewClient(&redis.Options{
 			Addr:         opt.RedisAddr,
@@ -31,9 +27,17 @@ func NewGoRedisEX(opt DBServiceOption) *GoRedisEX {
 			PoolSize:     opt.MaxOpenConns,
 			PoolTimeout:  time.Duration(opt.ConnMaxLifetime) * time.Second,
 		}),
-		keyPrefix:     fmt.Sprint(keyPrefix, ":"),
-		keyLockPrefix: fmt.Sprint("__zserviceKeyLock:", keyPrefix, ":"),
+
+		keyLockPrefix: "__zserviceKeyLock:",
 	}
+
+	r.ignoreKeyPrefix = opt.RedisPrefix == ""
+
+	if !r.ignoreKeyPrefix {
+		r.keyPrefix = fmt.Sprint(opt.RedisPrefix, ":")
+		r.keyLockPrefix = fmt.Sprint(r.keyLockPrefix, opt.RedisPrefix, ":")
+	}
+
 	_, e := r.client.Info(context.TODO(), "stats").Result()
 	if e != nil {
 		zservice.LogPanic(e)
