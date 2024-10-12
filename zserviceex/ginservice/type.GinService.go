@@ -3,7 +3,6 @@ package ginservice
 import (
 	"fmt"
 	"mime/multipart"
-	"time"
 
 	"github.com/ulidev9527/zservice/zservice"
 
@@ -75,29 +74,6 @@ func ReadUploadFile(file *multipart.FileHeader) ([]byte, *zservice.Error) {
 	} else {
 		return data, nil
 	}
-}
-
-// 获取携带的 上下文
-func (s *GinService) GetCtx(ctx *gin.Context) *zservice.Context {
-	z, has := ctx.Get(GIN_contextEX_Middleware_Key)
-	if !has {
-		return nil
-	}
-	zctx := z.(*zservice.Context)
-	zctx.GinCtx = ctx
-	return zctx
-}
-
-// 同步 header 信息
-func (s *GinService) SyncHeader(ctx *gin.Context) {
-	zctx := s.GetCtx(ctx)
-
-	if zctx.ClientSign != "" {
-		ctx.Header(zservice.S_C2S_Sign, zctx.ClientSign)
-		ctx.Header(zservice.S_C2S_Time, zservice.Int64ToString(time.Now().UnixMilli()))
-	}
-
-	ctx.Header(zservice.S_C2S_Token, zctx.AuthToken)
 }
 
 // 默认响应Json
