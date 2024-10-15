@@ -63,7 +63,7 @@ func NewEtcdService(c *EtcdServiceConfig) *EtcdService {
 }
 
 // 发送事件
-func (es *EtcdService) SendEvent(ctx *zservice.Context, key string, val string) *zservice.Error {
+func (es *EtcdService) SendEvent(ctx *zservice.Context, key string, val []byte) *zservice.Error {
 	eb := &EventBody{
 		S2S: ctx.GetS2S(),
 		Val: val,
@@ -79,7 +79,7 @@ func (es *EtcdService) SendEvent(ctx *zservice.Context, key string, val string) 
 }
 
 // 监听事件，支持取消功能
-func (es *EtcdService) WatchEvent(key string, cb func(ctx *zservice.Context, val string)) (cancelFunc context.CancelFunc) {
+func (es *EtcdService) WatchEvent(key string, cb func(ctx *zservice.Context, val []byte)) (cancelFunc context.CancelFunc) {
 	// 创建带取消功能的上下文
 	ctx, cancel := context.WithCancel(zservice.ContextTODO())
 
