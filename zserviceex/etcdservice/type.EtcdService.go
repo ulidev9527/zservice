@@ -78,13 +78,15 @@ func (es *EtcdService) SendEvent(ctx *zservice.Context, key string, val string) 
 	return nil
 }
 
-// 监听事件
-func (es *EtcdService) WatchEvent(key string, cb func(ctx *zservice.Context, val string)) {
+// 监听事件，支持取消功能
+func (es *EtcdService) WatchEvent(key string, cb func(ctx *zservice.Context, val string)) (cancelFunc context.CancelFunc) {
+	// 创建带取消功能的上下文
+	ctx, cancel := context.WithCancel(zservice.ContextTODO())
+
 	zservice.Go(func() {
-		watcher := es.EtcdClient.Watch(zservice.ContextTODO(), key)
+		watcher := es.EtcdClient.Watch(ctx, key)
 		for resp := range watcher {
 			for _, event := range resp.Events {
-
 				eb := &EventBody{}
 				if e := json.Unmarshal([]byte(event.Kv.Value), eb); e != nil {
 					es.LogErrorf("ETCD K:%s E:%s", key, e)
@@ -96,6 +98,8 @@ func (es *EtcdService) WatchEvent(key string, cb func(ctx *zservice.Context, val
 				cb(ctx, eb.Val)
 			}
 		}
-
 	})
+
+	// 返回 cancel 函数，以便外部可以调用取消
+	return cancel
 }

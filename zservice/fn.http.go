@@ -17,23 +17,23 @@ func HttpRequestSend(ctx *Context, in *http.Request) ([]byte, *Error) {
 	}
 
 	if res.StatusCode != http.StatusOK {
-		return nil, NewError("REQ FAIL", res.Request.URL)
+		return nil, NewError("[zserver SendRequest] FAIL", res.Request.URL)
 	}
 
 	body, e := io.ReadAll(res.Body)
 	if e != nil {
 		return nil, NewError(e)
 	}
-	ctx.LogInfo("[zserver SendRequest] RES SUCC", string(body))
+	ctx.LogInfo("[zserver SendRequest] SUCC", res.Request.URL, string(body))
 	return body, nil
 }
 
 // 发送 post 请求
-func HttpPost(ctx *Context, url string, params *map[string]any, header *map[string]string) (body []byte, e *Error) {
+func HttpPost(ctx *Context, url string, params map[string]any, header map[string]string) (body []byte, e *Error) {
 	var bodyReader io.Reader
 	logStr := ""
 	if params != nil {
-		for k, v := range *params {
+		for k, v := range params {
 			vStr := fmt.Sprint(v)
 			logStr = fmt.Sprint(logStr, "&", k, "=", vStr)
 		}
@@ -43,25 +43,19 @@ func HttpPost(ctx *Context, url string, params *map[string]any, header *map[stri
 
 	req, _ := http.NewRequest(http.MethodPost, url, bodyReader)
 
-	if header != nil {
-		for k, v := range *header {
-			req.Header.Set(k, v)
-		}
+	for k, v := range header {
+		req.Header.Set(k, v)
 	}
 	ctx.LogInfof("[zserver.rest Post] %v %v", url, logStr)
 	return HttpRequestSend(ctx, req)
 }
 
 // 发送 json 请求
-func HttpPostJson(ctx *Context, url string, params *map[string]any, header *map[string]string) (body []byte, e *Error) {
-	if header == nil {
-		header = &map[string]string{}
-	}
-
+func HttpPostJson(ctx *Context, url string, params map[string]any, header map[string]string) (body []byte, e *Error) {
 	var bodyReader io.Reader
 	logStr := ""
 	if params != nil {
-		for k, v := range *params {
+		for k, v := range params {
 			vStr := fmt.Sprint(v)
 			logStr = fmt.Sprint(logStr, "&", k, "=", vStr)
 		}
@@ -71,12 +65,9 @@ func HttpPostJson(ctx *Context, url string, params *map[string]any, header *map[
 
 	req, _ := http.NewRequest(http.MethodPost, url, bodyReader)
 
-	if header != nil {
-		for k, v := range *header {
-			req.Header.Set(k, v)
-		}
+	for k, v := range header {
+		req.Header.Set(k, v)
 	}
-
 	req.Header.Set("content-type", "application/json")
 
 	ctx.LogInfof("[zserver.rest Post] %v %v", url, logStr)
@@ -84,25 +75,26 @@ func HttpPostJson(ctx *Context, url string, params *map[string]any, header *map[
 }
 
 // 发送 HttpGet 请求
-func HttpGet(ctx *Context, url string, params *map[string]any, header *map[string]string) ([]byte, *Error) {
-	logStr := ""
-	if params != nil {
-		for k, v := range *params {
-			logStr = fmt.Sprint(logStr, "&", k, "=", v)
+func HttpGet(ctx *Context, url string, params map[string]any, header map[string]string) ([]byte, *Error) {
+	paramsStr := ""
+	for k, v := range params {
+		paramsStr = fmt.Sprint(paramsStr, "&", k, "=", v)
+	}
+
+	if len(paramsStr) > 0 {
+		if !strings.Contains(url, "?") {
+			url = url + "?"
 		}
+		url = url + paramsStr
 	}
-	if logStr == "" {
-		logStr = "?"
-	}
-	req, e := http.NewRequest(http.MethodGet, fmt.Sprintf("%v?%v", url, logStr[1:]), nil)
+
+	req, e := http.NewRequest(http.MethodGet, url, nil)
 	if e != nil {
 		return nil, NewError(e)
 	}
 
-	if header != nil {
-		for k, v := range *header {
-			req.Header.Set(k, v)
-		}
+	for k, v := range header {
+		req.Header.Set(k, v)
 	}
 	return HttpRequestSend(ctx, req)
 }

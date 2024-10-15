@@ -60,6 +60,9 @@ func Setenv(key string, value string) {
 func GetenvInt(key string) int {
 	return StringToInt(Getenv(key))
 }
+func GetenvUInt(key string) uint {
+	return uint(GetenvInt(key))
+}
 func GetenvInt32(key string) int32 {
 	return int32(GetenvInt(key))
 }

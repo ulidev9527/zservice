@@ -105,6 +105,42 @@ func (r *GoRedisEX) LockCtx(ctx context.Context, key string, timeout ...time.Dur
 	}, nil
 }
 
+type LockOrWaitOption struct {
+	RetryCount    uint32        // 重试次数 def:10
+	RetryInterval time.Duration // 单次重试间隔 def: 10ms
+	Timeout       time.Duration // 上锁超时时间 def: 1s
+}
+
+// 默认锁配置
+var LockOrWaitOptionDefault = LockOrWaitOption{}
+
+// 加锁，等待直到超时, timeout[0]等待时间 timeout[1]超时时间
+func (r *GoRedisEX) LockOrWait(key string, opt LockOrWaitOption) (func(), *zservice.Error) {
+	return r.LockOrWaitCtx(context.TODO(), key, opt)
+}
+func (r *GoRedisEX) LockOrWaitCtx(ctx context.Context, key string, opt LockOrWaitOption) (func(), *zservice.Error) {
+	if opt.RetryCount == 0 {
+		opt.RetryCount = 10
+	}
+	if opt.RetryInterval.Milliseconds() <= 0 {
+		opt.RetryInterval = 10 * time.Millisecond
+	}
+	if opt.Timeout.Milliseconds() <= 0 {
+		opt.Timeout = 1 * time.Second
+	}
+	for {
+		un, e := r.LockCtx(ctx, key, opt.Timeout)
+		if e != nil {
+			if e.GetCode() == zservice.Code_Repetition {
+				time.Sleep(opt.RetryInterval)
+				continue
+			}
+			return nil, e
+		}
+		return un, nil
+	}
+}
+
 func (r *GoRedisEX) Get(key string) *redis.StringCmd {
 	return r.GetCtx(context.TODO(), key)
 }
@@ -122,6 +158,28 @@ func (r *GoRedisEX) GetScan(key string, v any) *zservice.Error {
 		return zservice.NewError(e).SetCode(zservice.Code_Fatal)
 	} else if e := json.Unmarshal([]byte(s), v); e != nil {
 		return zservice.NewError(e, key).SetCode(zservice.Code_Fatal)
+	} else {
+		return nil
+	}
+}
+
+// 将结构体转为json字符串并存储
+func (r *GoRedisEX) SetScan(key string, v any) *zservice.Error {
+	if s, e := json.Marshal(v); e != nil {
+		return zservice.NewError(e).SetCode(zservice.Code_Fatal)
+	} else if e := r.Set(key, string(s)); e != nil {
+		return zservice.NewError(e).SetCode(zservice.Code_Fatal)
+	} else {
+		return nil
+	}
+}
+
+// 将结构体转为json字符串并存储
+func (r *GoRedisEX) SetScanEX(key string, v any, expiration time.Duration) *zservice.Error {
+	if s, e := json.Marshal(v); e != nil {
+		return zservice.NewError(e).SetCode(zservice.Code_Fatal)
+	} else if e := r.SetEX(key, string(s), expiration); e != nil {
+		return zservice.NewError(e).SetCode(zservice.Code_Fatal)
 	} else {
 		return nil
 	}
