@@ -1,6 +1,6 @@
 package zservice
 
-import "github.com/gogo/protobuf/proto"
+import "google.golang.org/protobuf/proto"
 
 func ProtobufMustMarshal(pb proto.Message) []byte {
 	bt, e := proto.Marshal(pb)
