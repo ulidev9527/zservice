@@ -167,7 +167,7 @@ func (r *GoRedisEX) GetScan(key string, v any) *zservice.Error {
 func (r *GoRedisEX) SetScan(key string, v any) *zservice.Error {
 	if s, e := json.Marshal(v); e != nil {
 		return zservice.NewError(e).SetCode(zservice.Code_Fatal)
-	} else if e := r.Set(key, string(s)); e != nil {
+	} else if e := r.Set(key, string(s)).Err(); e != nil {
 		return zservice.NewError(e).SetCode(zservice.Code_Fatal)
 	} else {
 		return nil
@@ -178,7 +178,7 @@ func (r *GoRedisEX) SetScan(key string, v any) *zservice.Error {
 func (r *GoRedisEX) SetScanEX(key string, v any, expiration time.Duration) *zservice.Error {
 	if s, e := json.Marshal(v); e != nil {
 		return zservice.NewError(e).SetCode(zservice.Code_Fatal)
-	} else if e := r.SetEX(key, string(s), expiration); e != nil {
+	} else if e := r.SetEX(key, string(s), expiration).Err(); e != nil {
 		return zservice.NewError(e).SetCode(zservice.Code_Fatal)
 	} else {
 		return nil
