@@ -1,7 +1,6 @@
 package zservice
 
 import (
-	"crypto/md5"
 	"encoding/hex"
 	"math/rand"
 	"time"
@@ -57,6 +56,10 @@ func RandomFloat64Range(min float64, max float64) float64 {
 
 // 随机字符串
 func RandomString(count int) string {
+	return RandomString_AllCharset(count)
+}
+
+func RandomString_AllCharset(count int) string {
 	b := make([]byte, count)
 	for i := range b {
 		b[i] = charsetAll[RandomInt(len(charsetAll))]
@@ -84,9 +87,17 @@ func RandomStringLow(count int) string {
 
 // md5
 func RandomMD5() string {
-	m := md5.New()
-	m.Write(xid.New().Bytes())
-	return hex.EncodeToString(m.Sum(nil))
+	return RandomMD5_XID_Random()
+}
+
+// md5 xid
+func RandomMD5_XID() string {
+	return hex.EncodeToString(xid.New().Bytes())
+}
+
+// md5 xid + random string
+func RandomMD5_XID_Random() string {
+	return hex.EncodeToString(append(xid.New().Bytes(), []byte(RandomString(32))...))
 }
 
 // 随机 xid

@@ -68,8 +68,9 @@ func (es *EtcdService) SendEvent(ctx *zservice.Context, key string, val []byte) 
 		S2S: ctx.GetS2S(),
 		Val: val,
 	}
-	ctx.LogDebug(key, zservice.JsonMustMarshalString(eb))
+
 	if _, e := es.EtcdClient.Put(ctx, key, zservice.JsonMustMarshalString(eb)); e != nil {
+		ctx.LogInfof("ETCD K:%s V:%s E:%s", key, val, e)
 		return zservice.NewError(e)
 	}
 	return nil
@@ -86,12 +87,11 @@ func (es *EtcdService) WatchEvent(key string, cb func(ctx *zservice.Context, val
 			for _, event := range resp.Events {
 				eb := &EventBody{}
 				if e := json.Unmarshal([]byte(event.Kv.Value), eb); e != nil {
-					es.LogErrorf("ETCD K:%s E:%s", key, e)
+					es.LogErrorf("ETCD K:%s EK:%s V:%s E:%s", key, event.Kv.Key, event.Kv.Value, e)
 					continue
 				}
 				ctx := zservice.NewContext(eb.S2S)
 
-				ctx.LogDebugf("ETCD K:%s V:%s", key, eb.Val)
 				cb(ctx, eb.Val)
 			}
 		}

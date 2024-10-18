@@ -48,15 +48,20 @@ func NewGrpcService(c *GrpcServiceConfig) *GrpcService {
 			grpc.ChainStreamInterceptor(ServerStreamInterceptor),
 		)
 
-		// 创建 etcd 客户端
-		mgrTarget := fmt.Sprintf(S_ServiceName, zservice.GetServiceName())
-		mgr, e := endpoints.NewManager(c.EtcdClient, mgrTarget)
-		if e != nil {
-			s.LogPanic(e)
-		}
-
 		chanConn := make(chan any)
 		go func() {
+
+			if c.EtcdClient == nil {
+				close(chanConn)
+				return
+			}
+
+			// 创建 etcd 客户端
+			mgrTarget := fmt.Sprintf(S_ServiceName, zservice.GetServiceName())
+			mgr, e := endpoints.NewManager(c.EtcdClient, mgrTarget)
+			if e != nil {
+				s.LogPanic(e)
+			}
 
 			isCloseChanconn := false
 
