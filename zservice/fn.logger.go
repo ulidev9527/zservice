@@ -24,15 +24,7 @@ func initLogger() {
 func LogInfo(v ...any)                 { LogInfoCaller(2, v...) }
 func LogInfof(format string, v ...any) { LogInfoCaller(2, fmt.Sprintf(format, v...)) }
 
-// func LogInfoCaller(caller int, v ...any) { logger.Info().Caller(caller).Msg(Sprint(v...)) }
-func LogInfoCaller(caller int, v ...any) {
-	s := Sprint(v...)
-	// 限制打印长度
-	if len(s) > 1024 {
-		s = s[:1000]
-	}
-	logger.Info().Msg(s)
-} // 不打印 caller
+func LogInfoCaller(caller int, v ...any) { logger.Info().Caller(caller).Msg(Sprint(v...)) }
 func LogInfoCallerf(caller int, format string, v ...any) {
 	LogInfoCaller(caller+1, fmt.Sprintf(format, v...))
 }
