@@ -31,7 +31,7 @@ func Benchmark_RandomMd5_XID(t *testing.B) {
 }
 func Benchmark_RandomMd5_XID_Random(t *testing.B) {
 	for i := 0; i < t.N; i++ {
-		zservice.RandomMD5_XID_Random()
+		t.Log(zservice.RandomMD5_XID_Random())
 	}
 }
 

@@ -1,6 +1,7 @@
 package zservice
 
 import (
+	"crypto/md5"
 	"encoding/hex"
 	"math/rand"
 	"time"
@@ -97,7 +98,12 @@ func RandomMD5_XID() string {
 
 // md5 xid + random string
 func RandomMD5_XID_Random() string {
-	return hex.EncodeToString(append(xid.New().Bytes(), []byte(RandomString(32))...))
+
+	m := md5.New()
+	m.Write(append(xid.New().Bytes(), []byte(RandomString(32))...))
+	return hex.EncodeToString(m.Sum(nil))
+
+	// return hex.EncodeToString(append(xid.New().Bytes(), []byte(RandomString(32))...))
 }
 
 // 随机 xid
