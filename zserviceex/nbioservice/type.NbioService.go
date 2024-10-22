@@ -63,11 +63,11 @@ func NewNbioService_WebSocket(opt NbioServiceOption_WebScoket) *NbioService_WebS
 				return
 			}
 
-			conn, err := ns.upgrader.Upgrade(w, r, nil)
+			_, err := ns.upgrader.Upgrade(w, r, nil)
 			if err != nil {
 				z.LogPanic(err)
 			}
-			z.LogInfo("Upgraded:", conn.RemoteAddr().String())
+			// z.LogInfo("Upgraded:", conn.RemoteAddr().String())
 		})
 
 		engine := nbhttp.NewEngine(nbhttp.Config{

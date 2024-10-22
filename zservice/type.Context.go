@@ -19,7 +19,6 @@ type ContextS2S struct {
 	TraceService  string    `json:"ts,omitempty"`  // 链路服务, 之前的服务
 	RequestIP     string    `json:"ip,omitempty"`  // 请求IP
 	NowService    string    `json:"ns,omitempty"`  // 当前服务
-	UID           uint32    `json:"ui,omitempty"`  // 授权ID/uid/uid
 	AuthToken     string    `json:"at,omitempty"`  // token
 	AuthTokenSign string    `json:"ats,omitempty"` // 授权的签名
 	ClientSign    string    `json:"cs,omitempty"`  // 客户端签名
