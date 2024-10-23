@@ -10,11 +10,7 @@ import (
 )
 
 func (r *GoRedisEX) Pub(channel string, data []byte) *zservice.Error {
-	err := r.Publish(channel, data).Err()
-	if err != nil {
-		return zservice.NewError(err)
-	}
-	return nil
+	return r.PubCtx(zservice.NewContext(), channel, data)
 }
 
 func (r *GoRedisEX) PubCtx(ctx *zservice.Context, channel string, data []byte) *zservice.Error {
