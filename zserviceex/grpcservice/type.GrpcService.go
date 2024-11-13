@@ -18,135 +18,140 @@ import (
 	"google.golang.org/grpc/peer"
 )
 
+// 服务端配置
+type GrpcServiceOption struct {
+	EtcdKey    string             // * etcd key
+	EtcdClient *clientv3.Client   // etcd 客户端
+	GrpcPort   string             // * 监听端口
+	OnStart    func(*GrpcService) // 启动的回调
+}
+
 type GrpcService struct {
 	*zservice.ZService
 	GrpcServer *grpc.Server
 }
 
-type GrpcServiceConfig struct {
-	ListenPort string // 监听端口
-	EtcdClient *clientv3.Client
-	OnStart    func(*GrpcService) // 启动的回调
-}
+func NewGrpcService(opt GrpcServiceOption) *GrpcService {
 
-func NewGrpcService(c *GrpcServiceConfig) *GrpcService {
-
-	if c == nil {
-		zservice.LogPanic("GrpcServiceConfig is nil")
-		return nil
-	}
-
-	name := fmt.Sprint("GrpcService-", c.ListenPort)
+	name := fmt.Sprint("GrpcService-", opt.GrpcPort)
 
 	gs := &GrpcService{}
-	gs.ZService = zservice.NewService(name, func(s *zservice.ZService) {
+	gs.ZService = zservice.NewService(zservice.ZserviceOption{
 
-		// https://ayang.ink/分布式_grpc-基于-etcd-的服务发现/#grpc-服务端
+		Name: name,
+		OnStart: func(s *zservice.ZService) {
 
-		gs.GrpcServer = grpc.NewServer(
-			grpc.ChainUnaryInterceptor(ServerUnaryInterceptor),
-			grpc.ChainStreamInterceptor(ServerStreamInterceptor),
-		)
+			// https://ayang.ink/分布式_grpc-基于-etcd-的服务发现/#grpc-服务端
 
-		chanConn := make(chan any)
-		go func() {
+			gs.GrpcServer = grpc.NewServer(
+				grpc.ChainUnaryInterceptor(ServerUnaryInterceptor),
+				grpc.ChainStreamInterceptor(ServerStreamInterceptor),
+			)
 
-			if c.EtcdClient == nil {
-				close(chanConn)
-				return
-			}
+			chanConn := make(chan any)
+			go func() {
 
-			// 创建 etcd 客户端
-			mgrTarget := fmt.Sprintf(S_ServiceName, zservice.GetServiceName())
-			mgr, e := endpoints.NewManager(c.EtcdClient, mgrTarget)
-			if e != nil {
-				s.LogPanic(e)
-			}
-
-			isCloseChanconn := false
-
-			for {
-				// 创建一个租约，每隔 10s 需要向 etcd 汇报一次心跳，证明当前节点仍然存活
-				lease, e := c.EtcdClient.Grant(c.EtcdClient.Ctx(), 10)
-				if e != nil {
-					s.LogError(e)
-					time.Sleep(time.Second) // 等待1秒重连
-					continue
-				}
-
-				hostName, e := os.Hostname()
-				if e != nil {
-					s.LogError(e)
-					time.Sleep(time.Second) // 等待1秒重连
-					continue
-				}
-
-				listener := fmt.Sprint(hostName, ":", c.ListenPort)
-				endpointKey := fmt.Sprintf("%s/%s", mgrTarget, listener)
-				s.LogInfo("grcp endpointKey:", endpointKey)
-				// 添加注册节点到 etcd 中，并且携带上租约 id
-				// 以 serverName/serverAddr 为 key，serverAddr 为 value
-				// serverName/serverAddr 中的 serverAddr 可以自定义，只要能够区分同一个 grpc 服务器功能的不同机器即可
-
-				e = mgr.AddEndpoint(c.EtcdClient.Ctx(), endpointKey, endpoints.Endpoint{Addr: listener}, clientv3.WithLease(lease.ID))
-				if e != nil {
-					s.LogError(e)
-					time.Sleep(time.Second) // 等待1秒重连
-					continue
-				}
-
-				if !isCloseChanconn { // 控制顺序
-					isCloseChanconn = true
+				if opt.EtcdClient == nil {
 					close(chanConn)
+					return
 				}
 
-				// 处理租约续期，如果续租失败或者租约过期则退出
+				if opt.EtcdKey == "" {
+					zservice.LogError("EtcdKey is nil")
+					return
+				}
+
+				// 创建 etcd 客户端
+				mgr, e := endpoints.NewManager(opt.EtcdClient, opt.EtcdKey)
+				if e != nil {
+					s.LogPanic(e)
+				}
+
+				isCloseChanconn := false
+
 				for {
-					isTimeout := false
-					select {
-					case <-time.After(5 * time.Second):
-						// 租约
-						_, err := c.EtcdClient.KeepAliveOnce(context.Background(), lease.ID)
-						if err != nil {
-							s.LogErrorf("Failed to keep lease alive: %s\n", err.Error())
+					// 创建一个租约，每隔 10s 需要向 etcd 汇报一次心跳，证明当前节点仍然存活
+					lease, e := opt.EtcdClient.Grant(opt.EtcdClient.Ctx(), 10)
+					if e != nil {
+						s.LogError(e)
+						time.Sleep(time.Second) // 等待1秒重连
+						continue
+					}
+
+					hostName, e := os.Hostname()
+					if e != nil {
+						s.LogError(e)
+						time.Sleep(time.Second) // 等待1秒重连
+						continue
+					}
+
+					addr := fmt.Sprint(hostName, ":", opt.GrpcPort)
+					endpointKey := fmt.Sprintf("%s/%s", opt.EtcdKey, addr)
+					s.LogDebug("grcp endpointKey:", endpointKey)
+					// 添加注册节点到 etcd 中，并且携带上租约 id
+					// 以 serverName/serverAddr 为 key，serverAddr 为 value
+					// serverName/serverAddr 中的 serverAddr 可以自定义，只要能够区分同一个 grpc 服务器功能的不同机器即可
+
+					e = mgr.AddEndpoint(opt.EtcdClient.Ctx(), endpointKey, endpoints.Endpoint{Addr: addr}, clientv3.WithLease(lease.ID))
+					if e != nil {
+						s.LogError(e)
+						time.Sleep(time.Second) // 等待1秒重连
+						continue
+					}
+
+					if !isCloseChanconn { // 控制顺序
+						isCloseChanconn = true
+						close(chanConn)
+					}
+
+					// 处理租约续期，如果续租失败或者租约过期则退出
+					for {
+						isTimeout := false
+						select {
+						case <-time.After(5 * time.Second):
+							// 租约
+							_, err := opt.EtcdClient.KeepAliveOnce(context.Background(), lease.ID)
+							if err != nil {
+								s.LogErrorf("Failed to keep lease alive: %s\n", err.Error())
+								isTimeout = true
+							}
+						case <-opt.EtcdClient.Ctx().Done():
+							s.LogError(opt.EtcdClient.Ctx().Err())
 							isTimeout = true
 						}
-					case <-c.EtcdClient.Ctx().Done():
-						s.LogError(c.EtcdClient.Ctx().Err())
-						isTimeout = true
+						if isTimeout { // 重连
+							break
+						}
 					}
-					if isTimeout { // 重连
-						break
-					}
+					s.LogWarn("GRPC Reconnecting...")
 				}
-				s.LogWarn("GRPC Reconnecting...")
+			}()
+
+			// 启动 grpc 服务
+			s.LogInfof("grpcService listen on :%v", opt.GrpcPort)
+			go func() {
+				<-chanConn
+
+				lis, e := net.Listen("tcp", fmt.Sprint(":", opt.GrpcPort))
+				if e != nil {
+					s.LogPanic(e)
+				}
+
+				if e := gs.GrpcServer.Serve(lis); e != nil {
+					s.LogPanic(e)
+				}
+			}()
+
+			go func() {
+				<-chanConn
+				s.StartDone()
+			}()
+
+			if opt.OnStart != nil {
+				opt.OnStart(gs)
 			}
-		}()
 
-		// 启动 grpc 服务
-		s.LogInfof("grpcService listen on :%v", c.ListenPort)
-		go func() {
-			<-chanConn
-
-			lis, e := net.Listen("tcp", fmt.Sprint(":", c.ListenPort))
-			if e != nil {
-				s.LogPanic(e)
-			}
-
-			if e := gs.GrpcServer.Serve(lis); e != nil {
-				s.LogPanic(e)
-			}
-		}()
-
-		go func() {
-			<-chanConn
-			s.StartDone()
-		}()
-
-		if c.OnStart != nil {
-			c.OnStart(gs)
-		}
-
+		},
 	})
 
 	return gs
@@ -189,7 +194,7 @@ func ServerUnaryInterceptor(ctx context.Context, req any, info *grpc.UnaryServer
 	if e != nil {
 		zctx.LogErrorf("GRPC %v %v :Q %v :E %v", ipaddr, info.FullMethod, req, e)
 	} else {
-		zctx.LogInfof("GRPC %v %v :Q %v :S %v", ipaddr, info.FullMethod, req, resp)
+		zctx.LogDebugf("GRPC %v %v :Q %v :S %v", ipaddr, info.FullMethod, req, resp)
 	}
 
 	return resp, e

@@ -33,26 +33,30 @@ func NewNsqProducerService(c *NsqProducerServiceConfig) *NsqProducerService {
 
 	nps := &NsqProducerService{}
 
-	nps.ZService = zservice.NewService(name, func(s *zservice.ZService) {
+	nps.ZService = zservice.NewService(zservice.ZserviceOption{
 
-		producer, e := nsq.NewProducer(c.Addr, nsq.NewConfig())
-		if e != nil {
-			s.LogPanic(e)
-		}
-		s.LogInfo("start nsq producer", c.Addr)
-		nps.Producer = producer
+		Name: name,
+		OnStart: func(s *zservice.ZService) {
 
-		producer.SetLogger(&LogEx{s}, nsq.LogLevelInfo)
+			producer, e := nsq.NewProducer(c.Addr, nsq.NewConfig())
+			if e != nil {
+				s.LogPanic(e)
+			}
+			s.LogInfo("start nsq producer", c.Addr)
+			nps.Producer = producer
 
-		e = nps.Producer.Ping()
-		if e != nil {
-			s.LogPanic(e)
-		}
+			producer.SetLogger(&LogEx{s}, nsq.LogLevelInfo)
 
-		if c.OnStart != nil {
-			c.OnStart(nps)
-		}
-		s.StartDone()
+			e = nps.Producer.Ping()
+			if e != nil {
+				s.LogPanic(e)
+			}
+
+			if c.OnStart != nil {
+				c.OnStart(nps)
+			}
+			s.StartDone()
+		},
 	})
 
 	return nps

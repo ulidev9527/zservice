@@ -16,37 +16,38 @@ type EtcdService struct {
 	EtcdClient *clientv3.Client
 }
 
-type EtcdServiceConfig struct {
+type EtcdServiceOption struct {
+	Name    string             // 显示在日志中的名称
 	Addr    string             // ETCD 服务地址
 	OnStart func(*EtcdService) // 启动的回调
 }
 
-func NewEtcdService(c *EtcdServiceConfig) *EtcdService {
+func NewEtcdService(c EtcdServiceOption) *EtcdService {
 
-	if c == nil {
-		zservice.LogPanic("EtcdServiceConfig is nil")
-		return nil
+	if c.Name == "" {
+		c.Name = fmt.Sprint("EtcdService-", c.Addr)
 	}
 
-	name := fmt.Sprint("EtcdService-", c.Addr)
-
 	es := &EtcdService{}
-	es.ZService = zservice.NewService(name, func(s *zservice.ZService) {
+	es.ZService = zservice.NewService(zservice.ZserviceOption{
+		Name: c.Name,
+		OnStart: func(s *zservice.ZService) {
 
-		s.LogInfof("etcdService connect on %v", c.Addr)
+			s.LogDebugf("etcdService connect on: %v", c.Addr)
 
-		timeoutCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		if status, e := es.EtcdClient.Status(timeoutCtx, c.Addr); e != nil {
-			s.LogPanic(e)
-		} else {
-			s.LogInfo("ETCD Status:", string(zservice.JsonMustMarshal(status)))
-		}
-		if c.OnStart != nil {
-			c.OnStart(es)
-		}
-		s.StartDone()
+			timeoutCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if status, e := es.EtcdClient.Status(timeoutCtx, c.Addr); e != nil {
+				s.LogPanic(e)
+			} else {
+				s.LogDebug("ETCD Status:", string(zservice.JsonMustMarshal(status)))
+			}
+			if c.OnStart != nil {
+				c.OnStart(es)
+			}
+			s.StartDone()
 
+		},
 	})
 
 	etcd, e := clientv3.New(clientv3.Config{
@@ -70,7 +71,7 @@ func (es *EtcdService) SendEvent(ctx *zservice.Context, key string, val []byte) 
 	}
 
 	if _, e := es.EtcdClient.Put(ctx, key, zservice.JsonMustMarshalString(eb)); e != nil {
-		ctx.LogInfof("ETCD K:%s V:%s E:%s", key, val, e)
+		ctx.LogDebugf("ETCD K:%s V:%s E:%s", key, val, e)
 		return zservice.NewError(e)
 	}
 	return nil

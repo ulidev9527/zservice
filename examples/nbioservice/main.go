@@ -9,10 +9,13 @@ import (
 	"github.com/lesismal/nbio/nbhttp/websocket"
 )
 
-func init() {
-	zservice.Init("nbioservice.test", "1.0.0")
-}
 func main() {
+
+	zservice.Init(zservice.ZserviceOption{
+		Name:    "nbioservice.test",
+		Version: "1.0.0",
+	})
+
 	n := 0
 	nbioS := nbioservice.NewNbioService_WebSocket(nbioservice.NbioServiceOption_WebScoket{
 		ListenPort: "8801",

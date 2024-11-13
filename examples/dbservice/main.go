@@ -9,10 +9,6 @@ import (
 	"gorm.io/gorm"
 )
 
-func init() {
-	zservice.Init("gormservice_test", "1.0.0")
-}
-
 type TimeTestTable struct {
 	gorm.Model
 
@@ -23,6 +19,12 @@ type TimeTestTable struct {
 }
 
 func main() {
+
+	zservice.Init(zservice.ZserviceOption{
+		Name:    "gormservice.test",
+		Version: "1.0.0",
+	})
+
 	zservice.AddDependService(
 		dbservice.NewDBService(dbservice.DBServiceOption{
 			DBType:      zservice.Getenv("DBSERVICE_GORM_TYPE"),

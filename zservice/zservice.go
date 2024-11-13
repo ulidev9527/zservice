@@ -5,24 +5,18 @@ import (
 	"os"
 )
 
-var Version = "0.1.0"
+var Version = "0.1.16"
 var ISDebug = false
 
 // 服务
 var mainService *ZService
 
 // zservice 初始化
-func Init(serviceName, serviceVersion string) {
+func Init(opt ZserviceOption) {
 	fmt.Println("zservice init start")
 
 	initLogger()
 	initEnv()
-
-	// 配置初始化环境变量
-	if Getenv("ZSERVICE_NAME") == "" {
-		Setenv("ZSERVICE_NAME", serviceName)
-	}
-	Setenv("ZSERVICE_VERSION", serviceVersion)
 
 	// 加载 .env 文件环境变量
 	if _, err := os.Stat(".env"); !os.IsNotExist(err) {
@@ -32,42 +26,20 @@ func Init(serviceName, serviceVersion string) {
 		}
 	}
 
-	// 自定义其它文件配置
-	func() {
-		arr := GetenvStringSplit("ZSERVICE_FILES_ENV")
-		if len(arr) > 0 { // load other env files
-			for _, v := range arr {
-				e := LoadFileEnv(v)
-				if e != nil {
-					LogError("load env files fail:", e)
-				}
-			}
-		}
-	}()
-
-	mainService = createService(Getenv("ZSERVICE_NAME"), nil)
+	mainService = createService(opt)
 
 	LogInfof("run service at:    zservice v%s", Version)
-
-	if Getenv("ZSERVICE_NAME") == "" {
-		LogPanic("zservice name is empty, you need run zservice.Init first")
-	}
-	if Getenv("ZSERVICE_VERSION") == "" {
-		LogPanic("zservice version is empty, you need run zservice.Init first")
-	}
-
-	LogInfof("run service up:    %s v%s", serviceName, Getenv("ZSERVICE_VERSION"))
+	LogInfof("run service up:    %s v%s", opt.Name, opt.Version)
 	LogInfof("run service name:  %s", Getenv("ZSERVICE_NAME"))
 
-	mainService.name = Getenv("ZSERVICE_NAME")
-	mainService.tranceName = mainService.name
+	mainService.tranceName = opt.Name
 	ISDebug = GetenvBool("ZSERVICE_DEBUG")
 	LogInfo("run service debug:", BoolToString(ISDebug))
 }
 
 // 获取服务名称
 func GetServiceName() string {
-	return mainService.name
+	return mainService.opt.Name
 }
 
 // 获取主服务
@@ -76,6 +48,12 @@ func GetMainService() *ZService {
 }
 
 func Start() *ZService {
+
+	if mainService == nil {
+		LogPanic("you need use zservice.Init method first")
+		return nil
+	}
+
 	return mainService.Start()
 }
 

@@ -7,7 +7,6 @@ import (
 )
 
 type ZService struct {
-	name                 string          // 服务名称
 	tranceName           string          // 链路名称
 	dependService        []*ZService     // 等待的依赖服务
 	chanServiceStopLock  chan any        // 服务完成锁，表示服务已经执行结束
@@ -17,34 +16,35 @@ type ZService struct {
 	onStart              func(*ZService) // 等待启动
 	state                uint32          // 服务状态 0已创建 1等待启动 2已启动 3已停止
 	mu                   sync.Mutex      // 互斥锁
+
+	opt ZserviceOption // 配置
 }
 
 // 创建一个服务
-func createService(name string, onStart func(*ZService)) *ZService {
+func createService(opt ZserviceOption) *ZService {
 
-	tName := name
+	tName := opt.Name
 	if mainService != nil {
-		tName = fmt.Sprintf("%s/%s", mainService.tranceName, name)
+		tName = fmt.Sprintf("%s/%s", mainService.tranceName, opt.Name)
 	}
 
 	return &ZService{
-		name:                 name,
 		tranceName:           tName,
 		dependService:        []*ZService{},
 		chanServiceStopLock:  make(chan any, 1),
 		chanServiceStartLock: make(chan any, 1),
 		mu:                   sync.Mutex{},
 		createTime:           time.Now(),
-		onStart:              onStart,
+		opt:                  opt,
 	}
 }
 
 // 外部创建服务入口
-func NewService(name string, onStart func(*ZService)) *ZService {
+func NewService(opt ZserviceOption) *ZService {
 	if mainService == nil {
 		LogPanic("you need use zservice.Init first")
 	}
-	ser := createService(name, onStart)
+	ser := createService(opt)
 	// 添加到主服务
 	mainService.AddDependService(ser)
 	return ser
@@ -167,4 +167,14 @@ func (z *ZService) LogPanicf(f string, v ...any) {
 }
 func (z *ZService) LogPanicCaller(caller int, v ...any) {
 	LogPanicCaller(2+caller, z.logCtxStr(), Sprint(v...))
+}
+func (z *ZService) LogDebug(v ...any) {
+	LogDebugCaller(2, z.logCtxStr(), Sprint(v...))
+}
+
+func (z *ZService) LogDebugf(f string, v ...any) {
+	LogDebugCaller(2, z.logCtxStr(), fmt.Sprintf(f, v...))
+}
+func (z *ZService) LogDebugCaller(caller int, v ...any) {
+	LogDebugCaller(2+caller, z.logCtxStr(), Sprint(v...))
 }

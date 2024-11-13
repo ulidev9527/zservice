@@ -8,12 +8,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func init() {
-
-	zservice.Init("ginservice.test", "1.0.0")
-}
-
 func main() {
+
+	zservice.Init(zservice.ZserviceOption{
+
+		Name:    "ginservice.test",
+		Version: "1.0.0",
+	})
+
 	ginS := ginservice.NewGinService(&ginservice.GinServiceConfig{
 		ListenPort: zservice.Getenv("GIN_ADDR"),
 		OnStart: func(s *ginservice.GinService) {

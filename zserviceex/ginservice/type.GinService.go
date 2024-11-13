@@ -35,22 +35,25 @@ func NewGinService(c *GinServiceConfig) *GinService {
 	gs.Engine = gin.New()
 
 	// 服务
-	gs.ZService = zservice.NewService(name, func(s *zservice.ZService) {
+	gs.ZService = zservice.NewService(zservice.ZserviceOption{
+		Name: name,
+		OnStart: func(s *zservice.ZService) {
 
-		if c.OnStart != nil {
-			c.OnStart(gs)
-		}
-
-		go func() {
-			e := gs.Engine.Run(fmt.Sprint(":", c.ListenPort))
-			if e != nil {
-				s.LogPanic(e)
+			if c.OnStart != nil {
+				c.OnStart(gs)
 			}
-		}()
 
-		gs.LogInfof("ginService listen on :%v", c.ListenPort)
-		s.StartDone()
+			go func() {
+				e := gs.Engine.Run(fmt.Sprint(":", c.ListenPort))
+				if e != nil {
+					s.LogPanic(e)
+				}
+			}()
 
+			gs.LogInfof("ginService listen on :%v", c.ListenPort)
+			s.StartDone()
+
+		},
 	})
 
 	// 中间件

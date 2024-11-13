@@ -14,36 +14,36 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-type GrpcClientOption struct {
-	ServiceName string           // 服务名
-	EtcdClient  *clientv3.Client // etcd 客户端
-	Addr        string           // grcp 服务器地址
+// 客户端配置
+type GrpcClientConnOption struct {
+	// addr 和 etcd 二选一
+	EtcdKey    string           // * etcd key
+	EtcdClient *clientv3.Client // etcd 客户端
+	Addr       string           // grcp 服务器地址
 }
 
 // GRPC 客户端创建，优先使用 Addr 配置的地址直连，如果 Addr 未配置，使用 ETCD 服务发现
-func NewGrpcClient(opt *GrpcClientOption) (*grpc.ClientConn, error) {
+func NewGrpcClientConn(opt GrpcClientConnOption) (*grpc.ClientConn, error) {
 
-	// 配置检查
-
-	grpcOpts := []grpc.DialOption{
+	grpcDialOpts := []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithUnaryInterceptor(ClientUnaryInterceptor),
 	}
 
 	// 直连
 	if opt.Addr != "" {
-		return grpc.Dial(opt.Addr, grpcOpts...)
+		return grpc.Dial(opt.Addr, grpcDialOpts...)
 	}
 
-	// etcd
-	if opt.ServiceName == "" {
-		return nil, zservice.NewError("ServiceName is nil")
-	}
 	if opt.EtcdClient == nil {
 		return nil, zservice.NewError("EtcdClient is nil")
 	}
 
-	serviceName := fmt.Sprintf(S_ServiceName, opt.ServiceName)
+	// etcd
+	if opt.EtcdKey == "" {
+		return nil, zservice.NewError("EtcdKey is nil")
+	}
+
 	// 创建 etcd 实现的 grpc 服务注册发现模块 resolver
 	builder, e := resolver.NewBuilder(opt.EtcdClient)
 	if e != nil {
@@ -51,7 +51,7 @@ func NewGrpcClient(opt *GrpcClientOption) (*grpc.ClientConn, error) {
 	}
 
 	// etcd 需要的内容
-	grpcOpts = append(grpcOpts,
+	grpcDialOpts = append(grpcDialOpts,
 		// 注入 etcd resolver
 		grpc.WithResolvers(builder),
 		// 声明使用的负载均衡策略为 roundrobin，轮询。（测试 target 时去除该注释）
@@ -60,7 +60,7 @@ func NewGrpcClient(opt *GrpcClientOption) (*grpc.ClientConn, error) {
 	)
 
 	// 创建 grpc 连接代理
-	conn, e := grpc.Dial(fmt.Sprintf("etcd:///%s", serviceName), grpcOpts...)
+	conn, e := grpc.Dial(fmt.Sprintf("etcd:///%s", opt.EtcdKey), grpcDialOpts...)
 	if e != nil {
 		return nil, e
 	}

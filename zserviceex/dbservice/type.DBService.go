@@ -56,23 +56,26 @@ func NewDBService(opt DBServiceOption) *DBService {
 	if opt.ConnMaxLifetime == 0 {
 		opt.ConnMaxLifetime = 3
 	}
-	zs := zservice.NewService(name, func(s *zservice.ZService) {
+	zs := zservice.NewService(zservice.ZserviceOption{
+		Name: name,
+		OnStart: func(s *zservice.ZService) {
 
-		// gorm
-		if opt.DBHost != "" {
-			dbs.Gorm = NewGormEX(opt)
-		}
+			// gorm
+			if opt.DBHost != "" {
+				dbs.Gorm = NewGormEX(opt)
+			}
 
-		// redis
-		if opt.RedisAddr != "" {
-			dbs.Redis = NewGoRedisEX(opt)
-		}
+			// redis
+			if opt.RedisAddr != "" {
+				dbs.Redis = NewGoRedisEX(opt)
+			}
 
-		if opt.OnStart != nil {
-			opt.OnStart(dbs)
-		}
-		s.StartDone()
+			if opt.OnStart != nil {
+				opt.OnStart(dbs)
+			}
+			s.StartDone()
 
+		},
 	})
 
 	dbs.ZService = zs

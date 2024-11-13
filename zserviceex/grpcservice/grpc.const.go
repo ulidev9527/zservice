@@ -1,5 +1,5 @@
 package grpcservice
 
 const (
-	S_ServiceName = "/zservice/services/%s"
+// S_ServiceName = "/zservice/services/%s"
 )

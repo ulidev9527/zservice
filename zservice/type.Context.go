@@ -73,11 +73,11 @@ func NewContext(in ...string) *Context {
 
 	// 链路服务名更新
 	if ctx.ContextS2S.NowService == "" {
-		ctx.ContextS2S.TraceService = mainService.name
+		ctx.ContextS2S.TraceService = mainService.opt.Name
 	} else {
 		ctx.ContextS2S.TraceService = ctx.ContextS2S.NowService
 	}
-	ctx.ContextS2S.NowService = mainService.name
+	ctx.ContextS2S.NowService = mainService.opt.Name
 
 	return ctx
 }
