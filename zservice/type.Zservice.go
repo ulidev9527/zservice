@@ -7,21 +7,28 @@ import (
 )
 
 type ZService struct {
-	tranceName           string          // 链路名称
-	dependService        []*ZService     // 等待的依赖服务
-	chanServiceStopLock  chan any        // 服务完成锁，表示服务已经执行结束
-	chanServiceStartLock chan any        // 服务启动锁，表示服务已经执行启动
-	createTime           time.Time       // 创建时间
-	startTime            time.Time       // 启动时间
-	onStart              func(*ZService) // 等待启动
-	state                uint32          // 服务状态 0已创建 1等待启动 2已启动 3已停止
-	mu                   sync.Mutex      // 互斥锁
+	tranceName           string      // 链路名称
+	dependService        []*ZService // 等待的依赖服务
+	chanServiceStopLock  chan any    // 服务完成锁，表示服务已经执行结束
+	chanServiceStartLock chan any    // 服务启动锁，表示服务已经执行启动
+	createTime           time.Time   // 创建时间
+	startTime            time.Time   // 启动时间
+	state                uint32      // 服务状态 0已创建 1等待启动 2已启动 3已停止
+	mu                   sync.Mutex  // 互斥锁
 
 	opt ZserviceOption // 配置
 }
 
 // 创建一个服务
 func createService(opt ZserviceOption) *ZService {
+
+	if opt.Name == "" {
+		opt.Name = "zservice_" + RandomString(8)
+	}
+
+	if opt.Version == "" {
+		opt.Version = "version_nil"
+	}
 
 	tName := opt.Name
 	if mainService != nil {
@@ -75,9 +82,9 @@ func (z *ZService) Start() *ZService {
 		}
 	}
 	// 启动自己
-	if z.onStart != nil {
+	if z.opt.OnStart != nil {
 		z.LogInfo("waiting start service")
-		z.onStart(z)
+		z.opt.OnStart(z)
 		z.WaitStart()
 	}
 	if z == mainService {

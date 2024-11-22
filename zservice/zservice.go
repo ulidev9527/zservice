@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-var Version = "0.1.16"
+var Version = "0.2.1"
 var ISDebug = false
 
 // 服务
@@ -29,11 +29,11 @@ func Init(opt ZserviceOption) {
 	mainService = createService(opt)
 
 	LogInfof("run service at:    zservice v%s", Version)
-	LogInfof("run service up:    %s v%s", opt.Name, opt.Version)
+	LogInfof("run service up:    %s v%s", mainService.opt.Name, mainService.opt.Version)
 	LogInfof("run service name:  %s", Getenv("ZSERVICE_NAME"))
 
-	mainService.tranceName = opt.Name
-	ISDebug = GetenvBool("ZSERVICE_DEBUG")
+	mainService.tranceName = mainService.opt.Name
+	ISDebug = mainService.opt.Debug
 	LogInfo("run service debug:", BoolToString(ISDebug))
 }
 

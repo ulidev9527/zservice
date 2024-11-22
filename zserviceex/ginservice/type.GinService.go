@@ -15,8 +15,8 @@ type GinService struct {
 }
 
 type GinServiceConfig struct {
-	ListenPort string            // 监听地址
-	OnStart    func(*GinService) // 启动的回调
+	Port    int               // 监听端口
+	OnStart func(*GinService) // 启动的回调
 }
 
 func init() {
@@ -24,13 +24,9 @@ func init() {
 }
 
 // gin 服务扩展
-func NewGinService(c *GinServiceConfig) *GinService {
+func NewGinService(c GinServiceConfig) *GinService {
 
-	if c == nil {
-		zservice.LogPanic("GinServiceConfig is nil")
-		return nil
-	}
-	name := fmt.Sprint("GinService-", c.ListenPort)
+	name := fmt.Sprint("GinService-", c.Port)
 	gs := &GinService{}
 	gs.Engine = gin.New()
 
@@ -44,13 +40,13 @@ func NewGinService(c *GinServiceConfig) *GinService {
 			}
 
 			go func() {
-				e := gs.Engine.Run(fmt.Sprint(":", c.ListenPort))
+				e := gs.Engine.Run(fmt.Sprint(":", c.Port))
 				if e != nil {
 					s.LogPanic(e)
 				}
 			}()
 
-			gs.LogInfof("ginService listen on :%v", c.ListenPort)
+			gs.LogInfof("ginService listen on :%v", c.Port)
 			s.StartDone()
 
 		},

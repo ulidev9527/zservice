@@ -16,8 +16,8 @@ func main() {
 		Version: "1.0.0",
 	})
 
-	ginS := ginservice.NewGinService(&ginservice.GinServiceConfig{
-		ListenPort: zservice.Getenv("GIN_ADDR"),
+	ginS := ginservice.NewGinService(ginservice.GinServiceConfig{
+		Port: 8811,
 		OnStart: func(s *ginservice.GinService) {
 
 			s.Engine.GET("/test_auth", func(ctx *gin.Context) {
