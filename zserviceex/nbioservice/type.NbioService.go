@@ -16,6 +16,7 @@ type NbioService_WebSocket struct {
 }
 
 type NbioServiceOption_WebScoket struct {
+	Path       string                                                                  // 路径 默认 /
 	ListenPort string                                                                  // 监听的端口
 	MaxLoad    uint                                                                    // 最大连接数 默认:10K
 	OnRequest  func(w http.ResponseWriter, r *http.Request) bool                       // 响应请求, 在 Upgrader 之前调用, 返回 false 表示拒绝进行 Upgrader 操作
@@ -49,9 +50,13 @@ func NewNbioService_WebSocket(opt NbioServiceOption_WebScoket) *NbioService_WebS
 				ns.upgrader.OnClose(opt.OnClose)
 			}
 
+			if opt.Path == "" {
+				opt.Path = "/"
+			}
+
 			// listener 创建
 			mux := &http.ServeMux{}
-			mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+			mux.HandleFunc(opt.Path, func(w http.ResponseWriter, r *http.Request) {
 				origin := r.Header.Get("Origin")
 				if origin != "" {
 					w.Header().Set("Access-Control-Allow-Origin", "*") // 可将将 * 替换为指定的域名
