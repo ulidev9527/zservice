@@ -1,2 +1,9 @@
-__debug**
 .DS_Store
+__debug*
+__tmp__
+**/luabn/**/*.meta
+**/pb/*.meta
+~$*.xlsx
+*.tmp
+__*.exe
+mail_reward.yaml.*

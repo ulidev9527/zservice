@@ -1,0 +1,50 @@
+# 注意：
+#     1. gitea 项目中需要在 设置 -> Actions -> 变量 中添加 __GITEA_DOMAIN、__DOCKER_HOST_IP
+#     2. gitea_runner 容器中需要添加对应的 Host 配置 
+#           extra_hosts:
+#             git.self.local: 10.223.223.100
+
+name: build_service_image
+
+on:
+  push:
+    branches:
+      - 'releases/**'
+jobs:
+  build: # 打包流程
+    container:
+      image: catthehacker/ubuntu:act-22.04
+      options: --add-host=${{ vars.__GITEA_DOMAIN }}:${{ vars.__DOCKER_HOST_IP }}
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branches | 分支拉取
+        uses: http://${{ vars.__GITEA_DOMAIN }}/actions/checkout@v4
+        with:
+          github-server-url: http://${{ vars.__GITEA_DOMAIN }}
+      - name: Docker Build | 镜像打包
+        run: |
+          echo '
+          #!/bin/bash
+          # 参数准备
+          refPath=$1
+          tagName=${refPath#*/releases/}
+          serviceName=${tagName/\/*/}
+          image=${tagName/\//:}
+          image=$(echo $image | tr A-Z a-z)
+          dockerCLI="docker build --tag zserviceapps/$image ."
+          sedReplacer="sed -i "s/__SERVICE_NAME__/$serviceName/g" ./Dockerfile"
+
+          # 输出相关消息
+          echo "RefPath:      $refPath"
+          echo "TagName:      $tagName"
+          echo "ServiceName:  $serviceName"
+          echo "Image:        $image"
+          echo "Docker CLI:   $dockerCLI"
+          echo "Sed Replacer: $sedReplacer"
+          # 替换服务名
+          $sedReplacer
+          # 打包镜像
+          $dockerCLI
+          ' > build.sh
+          bash ./build.sh ${{ gitea.ref }}

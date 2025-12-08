@@ -1,0 +1,13 @@
+namespace fb;
+
+
+// 客户端消息体
+table ClientMessageBody{
+    msg_id        : int32 ;    // 消息ID
+    msg_count     : int64 ;    // 消息计数器
+    body          : [ubyte] ;    // 消息体
+    resends       : [int64] ;  // 需要重发给客户端的消息
+    auto_clear_cd : int64 ;    // 自动清理倒计时
+    server_time   : int64 ;    // 服务器时间
+    resend_counter: int32 ;    // 重新发送计数
+}

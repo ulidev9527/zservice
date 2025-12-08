@@ -1,0 +1,13 @@
+syntax = "proto3";
+package common; // 客户端和服务器公用
+
+// 客户端消息体
+message ClientMessageBody{
+    int32    msgID         = 1;  // 消息ID
+    int64    msgCount      = 2;  // 消息计数器
+    bytes    body          = 3;  // 消息体
+    repeated int64 resends = 4;  // 需要重发给客户端的消息
+
+    int32 resendCounter = 10;  // 重新发送计数
+}
+ 

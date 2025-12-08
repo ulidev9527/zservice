@@ -1,0 +1,19 @@
+
+syntax = "proto3";
+package econst; // 客户端和服务器公用
+
+
+// 常量
+// go 中直接使用 pb.Const_XXXX
+// c# 中直接使用 PBConst.XXXX
+enum EConst{ // 常量
+    option allow_alias = true; // 允许别名
+
+    None = 0; // 无
+
+    Rank_Type_None  = 0;  //
+    Rank_Type_1vnCD = 1;  // 乱斗排行榜
+    Rank_Type_GVGCD = 2;  // 组队乱斗排行榜
+    Rank_Type_G3    = 3;  // 3组组队
+
+}

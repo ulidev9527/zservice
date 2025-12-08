@@ -1,0 +1,8 @@
+syntax = "proto3";
+package etcdservice; // 客户端和服务器公用
+
+// 事件消息题
+message EventBody{
+   string ctx = 1; // 上下文
+   bytes body = 2; // 内容
+}
